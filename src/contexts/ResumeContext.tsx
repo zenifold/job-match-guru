@@ -125,15 +125,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
           .from('profiles')
           .select('content')
           .eq('user_id', session.user.id)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error('Error loading resume:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load your resume. Please try again.",
-            variant: "destructive",
-          });
           return;
         }
 
@@ -143,24 +138,14 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
             title: "Resume Loaded",
             description: "Your saved resume data has been loaded.",
           });
-        } else {
-          toast({
-            title: "No Resume Found",
-            description: "Starting with a new resume template.",
-          });
         }
       } catch (error) {
         console.error('Error in loadSavedResume:', error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while loading your resume.",
-          variant: "destructive",
-        });
       }
     };
 
     loadSavedResume();
-  }, [session?.user?.id, toast]);
+  }, [session?.user?.id]);
 
   const updateResumeData = (section: string, data: any) => {
     setResumeData((prev) => ({
