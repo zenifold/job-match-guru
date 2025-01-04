@@ -2,6 +2,7 @@ import { Check, LightbulbIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -26,10 +27,23 @@ export function JobAnalysisDialog({
 }: JobAnalysisDialogProps) {
   if (!analysis) return null;
 
-  // Parse keywords from analysis text (assuming they're in the analysis)
-  const keywords = ["machine learning", "mobile app", "product management", "Agile", "user research", "customer value"];
-  const matchedKeywords = keywords.slice(0, Math.floor((analysis.match_score / 100) * keywords.length));
-  const unmatchedKeywords = keywords.slice(matchedKeywords.length);
+  // Parse the analysis text to extract matched and missing keywords
+  const analysisLines = analysis.analysis_text.split('\n');
+  const matchedKeywords: string[] = [];
+  const missingKeywords: string[] = [];
+
+  let currentSection = '';
+  analysisLines.forEach(line => {
+    if (line.includes('Strong Matches:')) {
+      currentSection = 'matched';
+    } else if (line.includes('Suggested Improvements:')) {
+      currentSection = 'missing';
+    } else if (line.startsWith('✓ ')) {
+      matchedKeywords.push(line.replace('✓ ', '').trim());
+    } else if (line.startsWith('• Consider adding experience or skills related to:')) {
+      missingKeywords.push(line.replace('• Consider adding experience or skills related to:', '').trim());
+    }
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
@@ -38,17 +52,20 @@ export function JobAnalysisDialog({
           <DialogTitle className="text-xl font-semibold">
             Job Match Analysis - {jobTitle}
           </DialogTitle>
+          <DialogDescription>
+            Analysis of your resume against the job requirements
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
           <div className="flex items-center gap-2 text-lg font-medium text-blue-500">
             <Check className="h-6 w-6" />
-            <span>Keyword Match - Strong</span>
+            <span>Match Score Analysis</span>
           </div>
 
           <div className="space-y-2">
             <p className="text-gray-700">
-              Your resume has matched {matchedKeywords.length} out of {keywords.length} ({Math.round(analysis.match_score)}%) 
+              Your resume has matched {matchedKeywords.length} out of {matchedKeywords.length + missingKeywords.length} ({Math.round(analysis.match_score)}%) 
               keywords that appear in the job description.
             </p>
 
@@ -82,11 +99,11 @@ export function JobAnalysisDialog({
             </div>
           </div>
 
-          {unmatchedKeywords.length > 0 && (
+          {missingKeywords.length > 0 && (
             <div className="space-y-3">
               <h4 className="font-medium">Missing Keywords:</h4>
               <div className="flex flex-wrap gap-2">
-                {unmatchedKeywords.map((keyword) => (
+                {missingKeywords.map((keyword) => (
                   <div
                     key={keyword}
                     className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"

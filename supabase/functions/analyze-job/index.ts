@@ -7,22 +7,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Common high-value keywords in job descriptions
+// Comprehensive list of high-value keywords
 const HIGH_VALUE_KEYWORDS = {
   technical: [
     "python", "javascript", "typescript", "react", "node.js", "aws", "docker",
     "kubernetes", "ci/cd", "git", "sql", "nosql", "rest api", "graphql",
-    "machine learning", "ai", "cloud computing", "microservices", "devops"
+    "machine learning", "ai", "cloud computing", "microservices", "devops",
+    "java", "c++", "ruby", "php", "swift", "kotlin", "mobile development",
+    "web development", "database", "api", "frontend", "backend", "full stack"
   ],
   soft_skills: [
     "leadership", "communication", "problem-solving", "teamwork", "collaboration",
     "project management", "agile", "scrum", "time management", "analytical",
-    "strategic thinking", "innovation", "creativity", "attention to detail"
+    "strategic thinking", "innovation", "creativity", "attention to detail",
+    "presentation", "negotiation", "mentoring", "team building", "adaptability"
   ],
   business: [
     "strategy", "analytics", "optimization", "stakeholder management",
     "budget management", "risk management", "product management",
-    "business development", "client relations", "market analysis"
+    "business development", "client relations", "market analysis",
+    "digital transformation", "process improvement", "data analysis",
+    "customer experience", "operations management", "strategic planning"
   ]
 };
 
@@ -107,6 +112,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log(`Starting analysis for job ${jobId} and user ${userId}`);
+
     // Fetch job details
     const { data: job, error: jobError } = await supabase
       .from('jobs')
@@ -125,8 +132,11 @@ serve(async (req) => {
 
     if (profileError) throw profileError;
 
+    console.log('Successfully fetched job and profile data');
+
     // Extract keywords from job description
     const jobKeywords = extractKeywords(job.description + ' ' + job.title);
+    console.log('Extracted job keywords:', jobKeywords);
 
     // Extract keywords from resume
     const resumeContent = profile.content;
@@ -137,9 +147,11 @@ serve(async (req) => {
     ].join(' ');
     
     const resumeKeywords = extractKeywords(resumeText);
+    console.log('Extracted resume keywords:', resumeKeywords);
 
     // Calculate match score and get matched/missing keywords
     const matchResult = calculateMatchScore(jobKeywords, resumeKeywords);
+    console.log('Match result:', matchResult);
     
     // Generate detailed analysis text
     const analysisText = generateAnalysisText(matchResult);
@@ -168,7 +180,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in analyze-job function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
