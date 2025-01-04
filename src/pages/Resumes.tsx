@@ -75,7 +75,7 @@ const Resumes = () => {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Created At</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,10 +86,9 @@ const Resumes = () => {
                 {new Date(resume.created_at).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
-                <ResumeActions 
-                  resume={resume}
-                  onDelete={handleDelete}
-                />
+                <div className="flex justify-end">
+                  <ResumeActions resume={resume} onDelete={handleDelete} />
+                </div>
               </TableCell>
             </TableRow>
           ))}
