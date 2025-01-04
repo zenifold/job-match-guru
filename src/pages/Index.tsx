@@ -4,6 +4,7 @@ import { PainPointsSection } from "@/components/landing/PainPointsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { UseCasesSection } from "@/components/landing/UseCasesSection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
+import { Footer } from "@/components/landing/Footer";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
         <PricingSection />
         <UseCasesSection />
         <FinalCTA />
+        <Footer />
       </div>
     </MainLayout>
   );
