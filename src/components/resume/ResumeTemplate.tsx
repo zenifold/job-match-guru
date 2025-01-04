@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Download, Mail, Phone, MapPin, Github, Linkedin } from "lucide-react";
-import { ResumeThemeStyles } from "./ResumeThemeStyles";
+import { ResumeThemeStyles, getThemeStyles } from "./ResumeThemeStyles";
 import { useResumeTheme } from "@/contexts/ThemeContext";
 
 interface ResumeTemplateProps {
