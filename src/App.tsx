@@ -12,6 +12,7 @@ import CreateJob from "./pages/CreateJob"
 import Builder from "./pages/Builder"
 import Preview from "./pages/Preview"
 import Resumes from "./pages/Resumes"
+import Dashboard from "./pages/Dashboard"
 
 import "./App.css"
 
@@ -26,6 +27,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/new" element={<CreateJob />} />
               <Route path="/builder" element={<Builder />} />
