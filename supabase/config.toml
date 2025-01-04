@@ -1,1 +1,10 @@
 project_id = "qqbulzzezbcwstrhfbco"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[[functions]]
+name = "analyze-job"
+verify_jwt = true
