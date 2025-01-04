@@ -1,15 +1,16 @@
 import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Index } from "@/pages/Index";
-import { Builder } from "@/pages/Builder";
-import { Preview } from "@/pages/Preview";
-import { Resumes } from "@/pages/Resumes";
-import { Login } from "@/pages/Login";
+import Index from "@/pages/Index";
+import Builder from "@/pages/Builder";
+import Preview from "@/pages/Preview";
+import Resumes from "@/pages/Resumes";
+import Login from "@/pages/Login";
+import { Outlet } from "react-router-dom";
 
 const Routes = () => {
   return (
     <RouterRoutes>
-      <Route path="/" element={<MainLayout />}>
+      <Route path="/" element={<MainLayout><Outlet /></MainLayout>}>
         <Route index element={<Index />} />
         <Route path="builder" element={<Builder />} />
         <Route path="preview" element={<Preview />} />
