@@ -15,10 +15,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { JobActions } from "@/components/job/JobActions";
+import { JobAnalysisDialog } from "@/components/job/JobAnalysisDialog";
+import { useState } from "react";
 
 const Jobs = () => {
   const session = useSession();
   const { toast } = useToast();
+  const [selectedAnalysis, setSelectedAnalysis] = useState<{
+    analysis: { match_score: number; analysis_text: string } | null;
+    jobTitle: string;
+  } | null>(null);
 
   const { data: jobs, refetch } = useQuery({
     queryKey: ["jobs"],
@@ -32,7 +38,6 @@ const Jobs = () => {
 
       if (jobsError) throw jobsError;
 
-      // Fetch analyses for all jobs
       const { data: analysesData, error: analysesError } = await supabase
         .from("job_analyses")
         .select("*")
@@ -40,7 +45,6 @@ const Jobs = () => {
 
       if (analysesError) throw analysesError;
 
-      // Combine jobs with their analyses
       return jobsData.map(job => ({
         ...job,
         analysis: analysesData.find(analysis => analysis.job_id === job.id)
@@ -130,9 +134,16 @@ const Jobs = () => {
               </TableCell>
               <TableCell className="text-center">
                 {job.analysis ? (
-                  <span className="font-medium">
+                  <Button
+                    variant="ghost"
+                    className="font-medium hover:bg-blue-50"
+                    onClick={() => setSelectedAnalysis({
+                      analysis: job.analysis,
+                      jobTitle: job.title
+                    })}
+                  >
                     {Math.round(job.analysis.match_score)}%
-                  </span>
+                  </Button>
                 ) : (
                   <Button
                     variant="outline"
@@ -152,6 +163,13 @@ const Jobs = () => {
           ))}
         </TableBody>
       </Table>
+
+      <JobAnalysisDialog
+        isOpen={!!selectedAnalysis}
+        onClose={() => setSelectedAnalysis(null)}
+        analysis={selectedAnalysis?.analysis}
+        jobTitle={selectedAnalysis?.jobTitle || ""}
+      />
     </MainLayout>
   );
 };
