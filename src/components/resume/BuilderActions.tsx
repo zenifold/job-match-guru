@@ -54,21 +54,27 @@ export const BuilderActions = ({
     }
 
     try {
+      console.log("Saving resume data:", resumeData);
       const { error } = await supabase
         .from("profiles")
         .upsert({
           user_id: session.user.id,
           name: resumeData.personalInfo.fullName || "My Resume",
           content: resumeData,
+          created_at: new Date().toISOString(),
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving resume:", error);
+        throw error;
+      }
 
       toast({
         title: "Success",
         description: "Your resume has been saved successfully.",
       });
     } catch (error) {
+      console.error("Error in handleSave:", error);
       toast({
         title: "Error",
         description: "Failed to save your resume. Please try again.",

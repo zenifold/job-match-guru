@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSession } from '@supabase/auth-helpers-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 type ResumeData = {
   personalInfo: {
@@ -110,6 +113,39 @@ const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
+  const session = useSession();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadSavedResume = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('content')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading resume:', error);
+          return;
+        }
+
+        if (data?.content) {
+          setResumeData(data.content as ResumeData);
+          toast({
+            title: "Resume Loaded",
+            description: "Your saved resume data has been loaded.",
+          });
+        }
+      } catch (error) {
+        console.error('Error in loadSavedResume:', error);
+      }
+    };
+
+    loadSavedResume();
+  }, [session?.user?.id]);
 
   const updateResumeData = (section: string, data: any) => {
     setResumeData((prev) => ({
