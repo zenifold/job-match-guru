@@ -31,6 +31,8 @@ const initialResumeData = {
         "Lead internal product innovation initiatives, building proof-of-concepts (PoCs)",
         "Identifying strategic use cases of AI, developing new products"
       ],
+      skillsAcquired: [],
+      industry: ""
     },
     {
       company: "SourceFuse",
@@ -45,8 +47,9 @@ const initialResumeData = {
         "Authored business requirement documents",
         "Conducted team meetings to proactively assess project progress"
       ],
-    },
-    // ... Additional experience entries can be added here
+      skillsAcquired: [],
+      industry: ""
+    }
   ],
   education: [
     {
@@ -55,7 +58,9 @@ const initialResumeData = {
       field: "MBA",
       startDate: "2023-01",
       endDate: "2024-06",
-      location: "Online"
+      location: "Online",
+      finalEvaluationGrade: "",
+      exams: []
     },
     {
       school: "ECPI University",
@@ -63,7 +68,9 @@ const initialResumeData = {
       field: "Computer Science",
       startDate: "2010-08",
       endDate: "2014-06",
-      location: "Norfolk VA"
+      location: "Norfolk VA",
+      finalEvaluationGrade: "",
+      exams: []
     }
   ],
   skills: [
@@ -94,8 +101,7 @@ const initialResumeData = {
       name: "AWS Cloud Practitioner Certification",
       issuer: "Amazon Web Services",
       year: "2021"
-    },
-    // ... Additional certifications can be added here
+    }
   ]
 };
 
@@ -138,7 +144,7 @@ const Builder = () => {
             )}
             {step === 2 && (
               <ExperienceForm
-                data={resumeData.experience}
+                data={resumeData.experience || []}
                 onSave={(data) => {
                   updateResumeData("experience", data);
                   setStep(3);
@@ -147,7 +153,7 @@ const Builder = () => {
             )}
             {step === 3 && (
               <EducationForm
-                data={resumeData.education}
+                data={resumeData.education || []}
                 onSave={(data) => {
                   updateResumeData("education", data);
                   setStep(4);
@@ -156,7 +162,7 @@ const Builder = () => {
             )}
             {step === 4 && (
               <SkillsForm
-                data={resumeData.skills}
+                data={resumeData.skills || []}
                 onSave={(data) => {
                   updateResumeData("skills", data);
                 }}
