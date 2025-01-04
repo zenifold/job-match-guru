@@ -7,6 +7,92 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Common high-value keywords in job descriptions
+const HIGH_VALUE_KEYWORDS = {
+  technical: [
+    "python", "javascript", "typescript", "react", "node.js", "aws", "docker",
+    "kubernetes", "ci/cd", "git", "sql", "nosql", "rest api", "graphql",
+    "machine learning", "ai", "cloud computing", "microservices", "devops"
+  ],
+  soft_skills: [
+    "leadership", "communication", "problem-solving", "teamwork", "collaboration",
+    "project management", "agile", "scrum", "time management", "analytical",
+    "strategic thinking", "innovation", "creativity", "attention to detail"
+  ],
+  business: [
+    "strategy", "analytics", "optimization", "stakeholder management",
+    "budget management", "risk management", "product management",
+    "business development", "client relations", "market analysis"
+  ]
+};
+
+function extractKeywords(text: string): string[] {
+  const normalizedText = text.toLowerCase();
+  const allKeywords = [
+    ...HIGH_VALUE_KEYWORDS.technical,
+    ...HIGH_VALUE_KEYWORDS.soft_skills,
+    ...HIGH_VALUE_KEYWORDS.business
+  ];
+  
+  return allKeywords.filter(keyword => normalizedText.includes(keyword.toLowerCase()));
+}
+
+function calculateMatchScore(jobKeywords: string[], resumeKeywords: string[]): {
+  score: number;
+  matched: string[];
+  missing: string[];
+} {
+  const matched = jobKeywords.filter(keyword => 
+    resumeKeywords.includes(keyword.toLowerCase())
+  );
+  
+  const missing = jobKeywords.filter(keyword => 
+    !resumeKeywords.includes(keyword.toLowerCase())
+  );
+
+  const score = (matched.length / jobKeywords.length) * 100;
+
+  return {
+    score: Math.round(score),
+    matched,
+    missing
+  };
+}
+
+function generateAnalysisText(matchResult: { score: number; matched: string[]; missing: string[] }): string {
+  const { score, matched, missing } = matchResult;
+  
+  let analysis = `Match Score Analysis:\n\n`;
+  analysis += `Overall Match: ${score}%\n\n`;
+  
+  if (matched.length > 0) {
+    analysis += `Strong Matches:\n`;
+    matched.forEach(keyword => {
+      analysis += `✓ ${keyword}\n`;
+    });
+  }
+  
+  if (missing.length > 0) {
+    analysis += `\nSuggested Improvements:\n`;
+    missing.forEach(keyword => {
+      analysis += `• Consider adding experience or skills related to: ${keyword}\n`;
+    });
+  }
+  
+  analysis += `\nRecommendations:\n`;
+  if (score < 50) {
+    analysis += `• Focus on acquiring skills in: ${missing.slice(0, 3).join(', ')}\n`;
+    analysis += `• Consider taking relevant courses or certifications\n`;
+  } else if (score < 75) {
+    analysis += `• Highlight your experience with: ${matched.slice(0, 3).join(', ')}\n`;
+    analysis += `• Look for opportunities to gain experience in: ${missing.slice(0, 2).join(', ')}\n`;
+  } else {
+    analysis += `• You're a strong match! Consider highlighting your expertise in: ${matched.slice(0, 3).join(', ')}\n`;
+  }
+
+  return analysis;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,33 +125,24 @@ serve(async (req) => {
 
     if (profileError) throw profileError;
 
-    // Prepare data for analysis
+    // Extract keywords from job description
+    const jobKeywords = extractKeywords(job.description + ' ' + job.title);
+
+    // Extract keywords from resume
     const resumeContent = profile.content;
-    const skills = resumeContent.skills || [];
-    const experience = resumeContent.experience || [];
+    const resumeText = [
+      ...resumeContent.skills,
+      ...(resumeContent.experience || []).map((exp: any) => exp.description),
+      ...(resumeContent.projects || []).map((proj: any) => proj.description)
+    ].join(' ');
+    
+    const resumeKeywords = extractKeywords(resumeText);
 
-    // Simple scoring algorithm (we'll use GPT-4 for more sophisticated analysis later)
-    let score = 0;
-    const jobDescription = job.description.toLowerCase();
-    const jobTitle = job.title.toLowerCase();
-
-    // Score based on skills match
-    skills.forEach((skill: string) => {
-      if (jobDescription.includes(skill.toLowerCase())) {
-        score += 10;
-      }
-    });
-
-    // Score based on experience relevance
-    experience.forEach((exp: any) => {
-      if (jobDescription.includes(exp.position.toLowerCase()) || 
-          jobTitle.includes(exp.position.toLowerCase())) {
-        score += 15;
-      }
-    });
-
-    // Normalize score to 0-100 range
-    score = Math.min(100, score);
+    // Calculate match score and get matched/missing keywords
+    const matchResult = calculateMatchScore(jobKeywords, resumeKeywords);
+    
+    // Generate detailed analysis text
+    const analysisText = generateAnalysisText(matchResult);
 
     // Store analysis results
     const { error: analysisError } = await supabase
@@ -73,14 +150,21 @@ serve(async (req) => {
       .upsert({
         job_id: jobId,
         user_id: userId,
-        analysis_text: `Match score: ${score}%`,
-        match_score: score
+        analysis_text: analysisText,
+        match_score: matchResult.score
       });
 
     if (analysisError) throw analysisError;
 
+    console.log(`Analysis completed for job ${jobId} with score ${matchResult.score}%`);
+
     return new Response(
-      JSON.stringify({ score, message: 'Analysis completed successfully' }),
+      JSON.stringify({ 
+        score: matchResult.score,
+        message: 'Analysis completed successfully',
+        matched: matchResult.matched,
+        missing: matchResult.missing
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
