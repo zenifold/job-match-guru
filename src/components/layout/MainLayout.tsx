@@ -15,7 +15,7 @@ export const MainLayout = ({ children, hideNav = false }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       {showNav && <Navbar />}
-      <main className={`container mx-auto ${showNav ? 'py-6' : 'py-0'} px-4 animate-fadeIn`}>
+      <main className={`${showNav ? 'container mx-auto py-6 px-4' : 'w-full'} animate-fadeIn`}>
         {showNav && <Breadcrumbs />}
         <div className={showNav ? "mt-4" : ""}>{children}</div>
       </main>
