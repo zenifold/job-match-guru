@@ -9,6 +9,7 @@ import { ProjectsForm } from "@/components/resume/ProjectsForm";
 import { CertificationsForm } from "@/components/resume/CertificationsForm";
 import { BuilderActions } from "@/components/resume/BuilderActions";
 import { ResumeProvider, useResume } from "@/contexts/ResumeContext";
+import { Button } from "@/components/ui/button";
 
 const BuilderContent = () => {
   const [step, setStep] = useState(1);
@@ -69,8 +70,8 @@ const BuilderContent = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Resume Builder</h1>
         <BuilderActions 
           step={step} 
@@ -83,6 +84,23 @@ const BuilderContent = () => {
           {renderStep()}
         </div>
       </Card>
+      <div className="flex justify-between mt-6 pb-6">
+        <Button
+          variant="outline"
+          onClick={() => setStep(step - 1)}
+          disabled={step === 1}
+        >
+          Previous
+        </Button>
+        {step === 6 ? null : (
+          <Button
+            onClick={() => setStep(step + 1)}
+            disabled={step === 6}
+          >
+            Next
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

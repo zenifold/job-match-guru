@@ -166,28 +166,14 @@ export const BuilderActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={() => setStep(step - 1)}
-          disabled={step === 1}
-        >
-          Previous
-        </Button>
-        {isLastStep ? (
-          <Button onClick={handleSave}>
+      {isLastStep && (
+        <div className="mt-6">
+          <Button onClick={handleSave} className="w-full">
             <Save className="h-4 w-4 mr-2" />
             Save Resume
           </Button>
-        ) : (
-          <Button
-            onClick={() => setStep(step + 1)}
-            disabled={step === 6}
-          >
-            Next
-          </Button>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 };
