@@ -6,103 +6,31 @@ import { PersonalInfoForm } from "@/components/resume/PersonalInfoForm";
 import { ExperienceForm } from "@/components/resume/ExperienceForm";
 import { EducationForm } from "@/components/resume/EducationForm";
 import { SkillsForm } from "@/components/resume/SkillsForm";
+import { ProjectsForm } from "@/components/resume/ProjectsForm";
+import { CertificationsForm } from "@/components/resume/CertificationsForm";
 import { useNavigate } from "react-router-dom";
 import { Eye } from "lucide-react";
 
 const initialResumeData = {
   personalInfo: {
-    fullName: "Maximilian Murphy",
-    email: "maxkmurphy@gmail.com",
-    phone: "757-620-7239",
-    position: "Director of Product Management",
-    summary: "Highly accomplished product and program leader with a proven track record of driving innovation, leading cross-functional teams, and delivering impactful results. Expert in full-cycle product development, strategic planning, and Agile methodologies. Demonstrated success in transforming ideas into revenue-generating products and optimizing processes for enhanced business performance. Adept at fostering collaboration, managing complex projects, and exceeding business objectives.",
+    fullName: "",
+    email: "",
+    phone: "",
+    phonePrefix: "",
+    location: "",
+    country: "",
+    city: "",
+    address: "",
+    zipCode: "",
+    github: "",
+    linkedin: "",
+    dateOfBirth: "",
   },
-  experience: [
-    {
-      company: "SourceFuse",
-      position: "Director of Product Management (US Market)",
-      startDate: "2025-01",
-      endDate: "",
-      location: "Jacksonville FL (Remote, VA)",
-      description: "Promoted because of my performance in client delivery success, ability to manage large multifaceted teams, juggle high-value responsibilities, and resolve risks in a timely manner.",
-      keyResponsibilities: [
-        "Direct the entire US client portfolio, overseeing a team of 6 direct reports each managing their own client engagements",
-        "Continue to direct full-cycle product development and implementation of key client engagements",
-        "Lead internal product innovation initiatives, building proof-of-concepts (PoCs)",
-        "Identifying strategic use cases of AI, developing new products"
-      ],
-      skillsAcquired: [],
-      industry: ""
-    },
-    {
-      company: "SourceFuse",
-      position: "Senior Program Manager",
-      startDate: "2024-03",
-      endDate: "2025-01",
-      location: "Jacksonville FL (Remote, VA)",
-      description: "Managed a high-value portfolio of clients and delivery programs that generated over $6M in net profit annually for SourceFuse.",
-      keyResponsibilities: [
-        "Served as a strategic partner with clients",
-        "Provided expertise in making technical design decisions",
-        "Authored business requirement documents",
-        "Conducted team meetings to proactively assess project progress"
-      ],
-      skillsAcquired: [],
-      industry: ""
-    }
-  ],
-  education: [
-    {
-      school: "Quantic University",
-      degree: "Masters of Business Administration",
-      field: "MBA",
-      startDate: "2023-01",
-      endDate: "2024-06",
-      location: "Online",
-      finalEvaluationGrade: "",
-      exams: []
-    },
-    {
-      school: "ECPI University",
-      degree: "Bachelors of Science",
-      field: "Computer Science",
-      startDate: "2010-08",
-      endDate: "2014-06",
-      location: "Norfolk VA",
-      finalEvaluationGrade: "",
-      exams: []
-    }
-  ],
-  skills: [
-    "Product Strategy",
-    "Team Collaboration",
-    "Agile Project Management",
-    "AWS Services",
-    "Product Development",
-    "Saas Infrastructure",
-    "Enterprise Architecture",
-    "UX Research",
-    "Systems & Design Thinking",
-    "Front-End & Back-End Web Development",
-    "Marketing Technology",
-    "AI Technology",
-    "Project Delivery",
-    "Change Management",
-    "SDLC",
-    "UX/UI"
-  ],
-  certifications: [
-    {
-      name: "Professional Scrum Product Owner (PSPO I)",
-      issuer: "Scrum.org",
-      year: "2023"
-    },
-    {
-      name: "AWS Cloud Practitioner Certification",
-      issuer: "Amazon Web Services",
-      year: "2021"
-    }
-  ]
+  experience: [],
+  education: [],
+  skills: [],
+  projects: [],
+  certifications: [],
 };
 
 const Builder = () => {
@@ -161,6 +89,24 @@ const Builder = () => {
               />
             )}
             {step === 4 && (
+              <ProjectsForm
+                data={resumeData.projects || []}
+                onSave={(data) => {
+                  updateResumeData("projects", data);
+                  setStep(5);
+                }}
+              />
+            )}
+            {step === 5 && (
+              <CertificationsForm
+                data={resumeData.certifications || []}
+                onSave={(data) => {
+                  updateResumeData("certifications", data);
+                  setStep(6);
+                }}
+              />
+            )}
+            {step === 6 && (
               <SkillsForm
                 data={resumeData.skills || []}
                 onSave={(data) => {
@@ -179,8 +125,8 @@ const Builder = () => {
             Previous
           </Button>
           <Button
-            onClick={() => setStep((prev) => Math.min(4, prev + 1))}
-            disabled={step === 4}
+            onClick={() => setStep((prev) => Math.min(6, prev + 1))}
+            disabled={step === 6}
           >
             Next
           </Button>

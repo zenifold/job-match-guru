@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      certifications: {
+        Row: {
+          created_at: string
+          credential_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuer: string
+          name: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credential_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuer: string
+          name: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuer?: string
+          name?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       job_analyses: {
         Row: {
           analysis_text: string
@@ -89,6 +125,42 @@ export type Database = {
           id?: string
           name?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          technologies: string[] | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          technologies?: string[] | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          technologies?: string[] | null
+          url?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
