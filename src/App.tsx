@@ -9,6 +9,7 @@ import Builder from "./pages/Builder";
 import Preview from "./pages/Preview";
 import Login from "./pages/Login";
 import Resumes from "./pages/Resumes";
+import Jobs from "./pages/Jobs";
 import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/resumes" element={<Resumes />} />
+            <Route path="/jobs" element={<Jobs />} />
             <Route path="/builder" element={<Builder />} />
             <Route path="/preview" element={<Preview />} />
           </Routes>
