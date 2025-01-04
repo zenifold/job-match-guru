@@ -14,9 +14,9 @@ const Index = () => {
           Build and optimize your resume with AI-powered suggestions. Match your skills with job descriptions and get hired faster.
         </p>
         <Button size="lg" asChild>
-          <Link to="/builder">
+          <Link to="/resumes">
             <FileText className="mr-2 h-5 w-5" />
-            Start Building
+            Get Started
           </Link>
         </Button>
       </div>
