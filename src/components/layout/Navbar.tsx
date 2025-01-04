@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Briefcase, FileText, Home, LogIn, LogOut } from "lucide-react";
+import { Briefcase, FileText, LayoutDashboard, LogIn, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,14 +36,14 @@ export const Navbar = () => {
           <span className="font-semibold text-lg">ResumeAI</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" asChild>
-            <Link to="/">
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Link>
-          </Button>
           {session ? (
             <>
+              <Button variant="ghost" asChild>
+                <Link to="/dashboard">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
               <Button variant="ghost" asChild>
                 <Link to="/resumes">
                   <FileText className="h-4 w-4 mr-2" />
