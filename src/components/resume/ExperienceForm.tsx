@@ -22,6 +22,10 @@ export const ExperienceForm = ({ data, onSave }: ExperienceFormProps) => {
             startDate: "",
             endDate: "",
             description: "",
+            location: "",
+            industry: "",
+            keyResponsibilities: [""],
+            skillsAcquired: [""],
           },
         ]
   );
@@ -40,12 +44,28 @@ export const ExperienceForm = ({ data, onSave }: ExperienceFormProps) => {
         startDate: "",
         endDate: "",
         description: "",
+        location: "",
+        industry: "",
+        keyResponsibilities: [""],
+        skillsAcquired: [""],
       },
     ]);
   };
 
   const removeExperience = (index: number) => {
     setExperiences(experiences.filter((_, i) => i !== index));
+  };
+
+  const addResponsibility = (expIndex: number) => {
+    const newExperiences = [...experiences];
+    newExperiences[expIndex].keyResponsibilities.push("");
+    setExperiences(newExperiences);
+  };
+
+  const addSkill = (expIndex: number) => {
+    const newExperiences = [...experiences];
+    newExperiences[expIndex].skillsAcquired.push("");
+    setExperiences(newExperiences);
   };
 
   return (
@@ -67,29 +87,53 @@ export const ExperienceForm = ({ data, onSave }: ExperienceFormProps) => {
             )}
           </div>
           <div className="space-y-4">
-            <div>
-              <Label>Company</Label>
-              <Input
-                value={exp.company}
-                onChange={(e) => {
-                  const newExperiences = [...experiences];
-                  newExperiences[index].company = e.target.value;
-                  setExperiences(newExperiences);
-                }}
-                required
-              />
-            </div>
-            <div>
-              <Label>Position</Label>
-              <Input
-                value={exp.position}
-                onChange={(e) => {
-                  const newExperiences = [...experiences];
-                  newExperiences[index].position = e.target.value;
-                  setExperiences(newExperiences);
-                }}
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Company</Label>
+                <Input
+                  value={exp.company}
+                  onChange={(e) => {
+                    const newExperiences = [...experiences];
+                    newExperiences[index].company = e.target.value;
+                    setExperiences(newExperiences);
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Position</Label>
+                <Input
+                  value={exp.position}
+                  onChange={(e) => {
+                    const newExperiences = [...experiences];
+                    newExperiences[index].position = e.target.value;
+                    setExperiences(newExperiences);
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Location</Label>
+                <Input
+                  value={exp.location}
+                  onChange={(e) => {
+                    const newExperiences = [...experiences];
+                    newExperiences[index].location = e.target.value;
+                    setExperiences(newExperiences);
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Industry</Label>
+                <Input
+                  value={exp.industry}
+                  onChange={(e) => {
+                    const newExperiences = [...experiences];
+                    newExperiences[index].industry = e.target.value;
+                    setExperiences(newExperiences);
+                  }}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -129,6 +173,58 @@ export const ExperienceForm = ({ data, onSave }: ExperienceFormProps) => {
                 }}
                 required
               />
+            </div>
+            <div>
+              <Label>Key Responsibilities</Label>
+              {exp.keyResponsibilities.map((resp: string, respIndex: number) => (
+                <div key={respIndex} className="mt-2">
+                  <Input
+                    value={resp}
+                    onChange={(e) => {
+                      const newExperiences = [...experiences];
+                      newExperiences[index].keyResponsibilities[respIndex] =
+                        e.target.value;
+                      setExperiences(newExperiences);
+                    }}
+                  />
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addResponsibility(index)}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Responsibility
+              </Button>
+            </div>
+            <div>
+              <Label>Skills Acquired</Label>
+              {exp.skillsAcquired.map((skill: string, skillIndex: number) => (
+                <div key={skillIndex} className="mt-2">
+                  <Input
+                    value={skill}
+                    onChange={(e) => {
+                      const newExperiences = [...experiences];
+                      newExperiences[index].skillsAcquired[skillIndex] =
+                        e.target.value;
+                      setExperiences(newExperiences);
+                    }}
+                  />
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addSkill(index)}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Skill
+              </Button>
             </div>
           </div>
         </Card>

@@ -21,6 +21,8 @@ export const EducationForm = ({ data, onSave }: EducationFormProps) => {
             field: "",
             startDate: "",
             endDate: "",
+            finalEvaluationGrade: "",
+            exams: [{ name: "", grade: "" }],
           },
         ]
   );
@@ -39,12 +41,20 @@ export const EducationForm = ({ data, onSave }: EducationFormProps) => {
         field: "",
         startDate: "",
         endDate: "",
+        finalEvaluationGrade: "",
+        exams: [{ name: "", grade: "" }],
       },
     ]);
   };
 
   const removeEducation = (index: number) => {
     setEducation(education.filter((_, i) => i !== index));
+  };
+
+  const addExam = (eduIndex: number) => {
+    const newEducation = [...education];
+    newEducation[eduIndex].exams.push({ name: "", grade: "" });
+    setEducation(newEducation);
   };
 
   return (
@@ -66,41 +76,54 @@ export const EducationForm = ({ data, onSave }: EducationFormProps) => {
             )}
           </div>
           <div className="space-y-4">
-            <div>
-              <Label>School</Label>
-              <Input
-                value={edu.school}
-                onChange={(e) => {
-                  const newEducation = [...education];
-                  newEducation[index].school = e.target.value;
-                  setEducation(newEducation);
-                }}
-                required
-              />
-            </div>
-            <div>
-              <Label>Degree</Label>
-              <Input
-                value={edu.degree}
-                onChange={(e) => {
-                  const newEducation = [...education];
-                  newEducation[index].degree = e.target.value;
-                  setEducation(newEducation);
-                }}
-                required
-              />
-            </div>
-            <div>
-              <Label>Field of Study</Label>
-              <Input
-                value={edu.field}
-                onChange={(e) => {
-                  const newEducation = [...education];
-                  newEducation[index].field = e.target.value;
-                  setEducation(newEducation);
-                }}
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>School/Institution</Label>
+                <Input
+                  value={edu.school}
+                  onChange={(e) => {
+                    const newEducation = [...education];
+                    newEducation[index].school = e.target.value;
+                    setEducation(newEducation);
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Degree</Label>
+                <Input
+                  value={edu.degree}
+                  onChange={(e) => {
+                    const newEducation = [...education];
+                    newEducation[index].degree = e.target.value;
+                    setEducation(newEducation);
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Field of Study</Label>
+                <Input
+                  value={edu.field}
+                  onChange={(e) => {
+                    const newEducation = [...education];
+                    newEducation[index].field = e.target.value;
+                    setEducation(newEducation);
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Final Grade</Label>
+                <Input
+                  value={edu.finalEvaluationGrade}
+                  onChange={(e) => {
+                    const newEducation = [...education];
+                    newEducation[index].finalEvaluationGrade = e.target.value;
+                    setEducation(newEducation);
+                  }}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -128,6 +151,41 @@ export const EducationForm = ({ data, onSave }: EducationFormProps) => {
                   }}
                 />
               </div>
+            </div>
+            <div>
+              <Label>Exams</Label>
+              {edu.exams.map((exam: any, examIndex: number) => (
+                <div key={examIndex} className="grid grid-cols-2 gap-4 mt-2">
+                  <Input
+                    placeholder="Exam Name"
+                    value={exam.name}
+                    onChange={(e) => {
+                      const newEducation = [...education];
+                      newEducation[index].exams[examIndex].name = e.target.value;
+                      setEducation(newEducation);
+                    }}
+                  />
+                  <Input
+                    placeholder="Grade"
+                    value={exam.grade}
+                    onChange={(e) => {
+                      const newEducation = [...education];
+                      newEducation[index].exams[examIndex].grade = e.target.value;
+                      setEducation(newEducation);
+                    }}
+                  />
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addExam(index)}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Exam
+              </Button>
             </div>
           </div>
         </Card>
