@@ -30,20 +30,32 @@ const Jobs = () => {
     queryKey: ["jobs"],
     queryFn: async () => {
       if (!session?.user) return [];
+      
+      console.log("Fetching jobs and analyses...");
+      
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
         .select("*")
         .eq("user_id", session.user.id)
         .order("date_added", { ascending: false });
 
-      if (jobsError) throw jobsError;
+      if (jobsError) {
+        console.error("Error fetching jobs:", jobsError);
+        throw jobsError;
+      }
 
       const { data: analysesData, error: analysesError } = await supabase
         .from("job_analyses")
         .select("*")
         .eq("user_id", session.user.id);
 
-      if (analysesError) throw analysesError;
+      if (analysesError) {
+        console.error("Error fetching analyses:", analysesError);
+        throw analysesError;
+      }
+
+      console.log("Jobs data:", jobsData);
+      console.log("Analyses data:", analysesData);
 
       return jobsData.map(job => ({
         ...job,
@@ -54,25 +66,32 @@ const Jobs = () => {
 
   const analyzeJobMutation = useMutation({
     mutationFn: async (jobId: string) => {
+      console.log("Starting job analysis for job ID:", jobId);
+      
       const response = await supabase.functions.invoke('analyze-job', {
         body: { jobId, userId: session?.user?.id },
       });
       
-      if (response.error) throw response.error;
+      if (response.error) {
+        console.error("Error in analyze-job function:", response.error);
+        throw response.error;
+      }
+      
+      console.log("Analysis response:", response.data);
       return response.data;
     },
     onSuccess: () => {
       refetch();
       toast({
         title: "Success",
-        description: "Job analysis completed",
+        description: "Job analysis completed successfully",
       });
     },
     onError: (error) => {
       console.error("Error analyzing job:", error);
       toast({
         title: "Error",
-        description: "Failed to analyze job",
+        description: "Failed to analyze job. Please try again.",
         variant: "destructive",
       });
     },
@@ -137,10 +156,13 @@ const Jobs = () => {
                   <Button
                     variant="ghost"
                     className="font-medium hover:bg-blue-50"
-                    onClick={() => setSelectedAnalysis({
-                      analysis: job.analysis,
-                      jobTitle: job.title
-                    })}
+                    onClick={() => {
+                      console.log("Opening analysis dialog with data:", job.analysis);
+                      setSelectedAnalysis({
+                        analysis: job.analysis,
+                        jobTitle: job.title
+                      });
+                    }}
                   >
                     {Math.round(job.analysis.match_score)}%
                   </Button>
@@ -148,7 +170,10 @@ const Jobs = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => analyzeJobMutation.mutate(job.id)}
+                    onClick={() => {
+                      console.log("Triggering analysis for job:", job.id);
+                      analyzeJobMutation.mutate(job.id);
+                    }}
                   >
                     Analyze
                   </Button>
