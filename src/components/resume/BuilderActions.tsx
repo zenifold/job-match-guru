@@ -92,7 +92,7 @@ export const BuilderActions = ({
       <div className="flex justify-between mt-6">
         <Button
           variant="outline"
-          onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+          onClick={() => setStep(step - 1)}
           disabled={step === 1}
         >
           Previous
@@ -104,7 +104,7 @@ export const BuilderActions = ({
           </Button>
         ) : (
           <Button
-            onClick={() => setStep((prev) => Math.min(6, prev + 1))}
+            onClick={() => setStep(step + 1)}
             disabled={step === 6}
           >
             Next

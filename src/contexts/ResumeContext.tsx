@@ -17,31 +17,88 @@ type ResumeData = {
   };
   experience: any[];
   education: any[];
-  skills: any[];
+  skills: string[];
   projects: any[];
   certifications: any[];
 };
 
 const initialResumeData = {
   personalInfo: {
-    fullName: "",
-    email: "",
-    phone: "",
-    phonePrefix: "",
-    location: "",
-    country: "",
-    city: "",
+    fullName: "Maximilian Murphy",
+    email: "maxkmurphy@gmail.com",
+    phone: "(757) 620-7239",
+    phonePrefix: "+1",
+    location: "Roanoke, VA, USA",
+    country: "USA",
+    city: "Roanoke",
     address: "",
     zipCode: "",
     github: "",
-    linkedin: "",
+    linkedin: "linkedin.com/in/maximilian-murphy/",
     dateOfBirth: "",
   },
-  experience: [],
-  education: [],
-  skills: [],
-  projects: [],
-  certifications: [],
+  experience: [
+    {
+      company: "SourceFuse",
+      position: "Senior Program Manager",
+      startDate: "2024-01",
+      endDate: "2024-12",
+      description: "Managed a high-value portfolio of clients and delivery programs that generated over $6M in net profit annually for SourceFuse.",
+      location: "Remote",
+      industry: "Technology",
+      keyResponsibilities: [
+        "Served as a strategic partner with clients to translate their complex business requirements into actionable product requirements",
+        "Provided expertise in making technical design decisions",
+        "Authored business requirement documents and drove consensus with leadership"
+      ],
+      skillsAcquired: ["Program Management", "Strategic Planning", "Technical Leadership"]
+    },
+    // ... Add other experiences similarly
+  ],
+  education: [
+    {
+      school: "Quantic University",
+      degree: "MBA",
+      field: "Business",
+      startDate: "2023-02",
+      endDate: "2024-06",
+      finalEvaluationGrade: "",
+      exams: []
+    },
+    {
+      school: "ECPI University",
+      degree: "Bachelor's",
+      field: "Computer Science",
+      startDate: "2010-09",
+      endDate: "2014-06",
+      finalEvaluationGrade: "3.0",
+      exams: []
+    }
+  ],
+  skills: [
+    "Program Management",
+    "Product Management",
+    "Agile/Scrum",
+    "Strategic Planning",
+    "Technical Leadership",
+    "Business Analysis",
+    "Software Development",
+    "Project Management",
+    "Cross-functional Team Leadership",
+    "Digital Transformation"
+  ],
+  projects: [
+    {
+      name: "Oral Genome Mobile App Development",
+      description: "Led the vision and execution of a groundbreaking health tech app for saliva-based diagnostics",
+      startDate: "2024-06",
+      endDate: "2024-12",
+      url: "",
+      technologies: ["Mobile Development", "AI", "Healthcare Tech"]
+    },
+    // ... Add other projects similarly
+  ],
+  certifications: []
 };
 
 type ResumeContextType = {
