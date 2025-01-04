@@ -45,9 +45,9 @@ export const Navbar = () => {
           {session ? (
             <>
               <Button variant="ghost" asChild>
-                <Link to="/builder">
+                <Link to="/resumes">
                   <FileText className="h-4 w-4 mr-2" />
-                  Resume Builder
+                  My Resumes
                 </Link>
               </Button>
               <Button variant="ghost" onClick={handleLogout}>
