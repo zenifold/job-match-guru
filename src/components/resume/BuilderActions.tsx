@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, Download, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useResume } from "@/contexts/ResumeContext";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const BuilderActions = ({ 
   step, 
@@ -20,6 +22,7 @@ export const BuilderActions = ({
   const { toast } = useToast();
   const session = useSession();
   const { resumeData } = useResume();
+  const [resumeName, setResumeName] = useState("My Resume");
 
   const handlePreview = () => {
     navigate("/preview", { state: { resumeData } });
@@ -31,7 +34,7 @@ export const BuilderActions = ({
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "resume-data.json";
+    link.download = `${resumeName}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -59,7 +62,7 @@ export const BuilderActions = ({
         .from("profiles")
         .upsert({
           user_id: session.user.id,
-          name: resumeData.personalInfo.fullName || "My Resume",
+          name: resumeName,
           content: resumeData,
           created_at: new Date().toISOString(),
         });
@@ -73,6 +76,9 @@ export const BuilderActions = ({
         title: "Success",
         description: "Your resume has been saved successfully.",
       });
+      
+      // Navigate to the resumes page after successful save
+      navigate("/resumes");
     } catch (error) {
       console.error("Error in handleSave:", error);
       toast({
@@ -85,6 +91,16 @@ export const BuilderActions = ({
 
   return (
     <>
+      <div className="mb-6">
+        <Label htmlFor="resumeName">Resume Name</Label>
+        <Input
+          id="resumeName"
+          value={resumeName}
+          onChange={(e) => setResumeName(e.target.value)}
+          placeholder="Enter resume name"
+          className="mt-1"
+        />
+      </div>
       <div className="flex gap-2">
         <Button onClick={handlePreview} variant="outline">
           <Eye className="h-4 w-4 mr-2" />
