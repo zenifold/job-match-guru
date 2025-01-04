@@ -19,11 +19,13 @@ const Login = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
-        {/* Animated light rays */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-white/5 rotate-45 transform -translate-x-full animate-[slide-in-right_3s_ease-out_forwards]" />
-          <div className="absolute top-1/4 -right-4 w-72 h-72 bg-white/5 rotate-45 transform translate-x-full animate-[slide-in-right_3s_ease-out_forwards_0.5s]" />
-          <div className="absolute bottom-1/4 -left-4 w-72 h-72 bg-white/5 rotate-45 transform -translate-x-full animate-[slide-in-right_3s_ease-out_forwards_1s]" />
+        {/* Gradient wave animations */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-white/30 to-transparent animate-gradient-wave" />
+            <div className="absolute top-1/3 right-0 w-full h-32 bg-gradient-to-l from-white/20 to-transparent animate-gradient-wave animation-delay-2000" />
+            <div className="absolute bottom-1/4 left-0 w-full h-32 bg-gradient-to-r from-white/25 to-transparent animate-gradient-wave animation-delay-4000" />
+          </div>
         </div>
         
         {/* Auth container */}
