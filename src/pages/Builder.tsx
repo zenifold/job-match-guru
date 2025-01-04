@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, Download, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const initialResumeData = {
   personalInfo: {
@@ -41,7 +41,7 @@ const Builder = () => {
   const [step, setStep] = useState(1);
   const [resumeData, setResumeData] = useState(initialResumeData);
   const { toast } = useToast();
-  const user = useAuth();
+  const session = useSession();
 
   const updateResumeData = (section: string, data: any) => {
     setResumeData((prev) => ({
@@ -73,7 +73,7 @@ const Builder = () => {
   };
 
   const handleSave = async () => {
-    if (!user) {
+    if (!session?.user) {
       toast({
         title: "Error",
         description: "Please sign in to save your resume.",
@@ -86,7 +86,7 @@ const Builder = () => {
       const { error } = await supabase
         .from("profiles")
         .upsert({
-          user_id: user.id,
+          user_id: session.user.id,
           name: resumeData.personalInfo.fullName || "My Resume",
           content: resumeData,
         });
