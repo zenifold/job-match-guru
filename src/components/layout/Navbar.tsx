@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileText, Home, LogIn, LogOut } from "lucide-react";
+import { Briefcase, FileText, Home, LogIn, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +47,13 @@ export const Navbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/resumes">
                   <FileText className="h-4 w-4 mr-2" />
-                  My Resumes
+                  Resumes
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/jobs">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Jobs
                 </Link>
               </Button>
               <Button variant="ghost" onClick={handleLogout}>
