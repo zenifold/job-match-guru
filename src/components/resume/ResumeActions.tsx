@@ -2,13 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Eye, Edit2, Download, Trash2, MoreVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ResumeTemplate } from "@/components/resume/ResumeTemplate";
 
 interface ResumeActionsProps {
   resume: any;
@@ -49,17 +50,10 @@ export const ResumeActions = ({ resume, onDelete }: ResumeActionsProps) => {
     try {
       // Create a temporary div to render the resume
       const tempDiv = document.createElement('div');
-      document.body.appendChild(tempDiv);
-      
-      // Render the ResumeTemplate component into the temporary div
-      const resumeContent = document.createElement('div');
-      resumeContent.style.width = '210mm'; // A4 width
-      resumeContent.style.backgroundColor = 'white';
-      resumeContent.style.padding = '20mm';
-      tempDiv.appendChild(resumeContent);
-      
-      // Render the resume content
-      resumeContent.innerHTML = `
+      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.padding = '20mm';
+      tempDiv.innerHTML = `
         <div style="max-width: 170mm;">
           <h1 style="font-size: 24px; margin-bottom: 16px;">${resume.content.personalInfo?.fullName || ''}</h1>
           <div style="margin-bottom: 24px;">
@@ -98,9 +92,10 @@ export const ResumeActions = ({ resume, onDelete }: ResumeActionsProps) => {
           ` : ''}
         </div>
       `;
+      document.body.appendChild(tempDiv);
 
       // Generate PDF
-      const canvas = await html2canvas(resumeContent, {
+      const canvas = await html2canvas(tempDiv, {
         scale: 2,
         useCORS: true,
         logging: false,
