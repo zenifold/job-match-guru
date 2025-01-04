@@ -80,6 +80,23 @@ export const ResumeActions = ({ resume, onDelete }: ResumeActionsProps) => {
                   </div>
                   <div style="font-size: 15px; color: #4a5568; margin-bottom: 4px;">${exp.company}</div>
                   <div style="font-size: 14px; color: #718096;">${exp.description}</div>
+                  ${exp.keyResponsibilities?.length ? `
+                    <ul style="list-style-type: disc; margin-left: 20px; margin-top: 8px;">
+                      ${exp.keyResponsibilities.map((resp: string) => `
+                        <li style="font-size: 14px; color: #718096; margin-bottom: 4px;">${resp}</li>
+                      `).join('')}
+                    </ul>
+                  ` : ''}
+                  ${exp.skillsAcquired?.length ? `
+                    <div style="margin-top: 8px;">
+                      <div style="font-size: 14px; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Skills Acquired:</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${exp.skillsAcquired.map((skill: string) => `
+                          <span style="background-color: #edf2f7; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #4a5568;">${skill}</span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
                 </div>
               `).join('')}
             </div>
@@ -95,6 +112,59 @@ export const ResumeActions = ({ resume, onDelete }: ResumeActionsProps) => {
                     <div style="color: #718096; font-size: 14px;">${edu.startDate} - ${edu.endDate || 'Present'}</div>
                   </div>
                   <div style="font-size: 15px; color: #4a5568;">${edu.degree} in ${edu.field}</div>
+                  ${edu.finalEvaluationGrade ? `
+                    <div style="font-size: 14px; color: #718096;">Grade: ${edu.finalEvaluationGrade}</div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${resume.content.projects?.length ? `
+            <div style="margin-bottom: 25px;">
+              <h2 style="font-size: 20px; color: #2d3748; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px;">Projects</h2>
+              ${resume.content.projects.map((project: any) => `
+                <div style="margin-bottom: 20px;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <div style="font-weight: bold; font-size: 16px;">${project.name}</div>
+                    <div style="color: #718096; font-size: 14px;">${project.startDate} - ${project.endDate || 'Present'}</div>
+                  </div>
+                  <div style="font-size: 14px; color: #718096; margin-bottom: 4px;">${project.description}</div>
+                  ${project.technologies?.length ? `
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                      ${project.technologies.map((tech: string) => `
+                        <span style="background-color: #edf2f7; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #4a5568;">${tech}</span>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                  ${project.url ? `
+                    <div style="margin-top: 4px;">
+                      <a href="${project.url}" style="color: #4299e1; font-size: 14px; text-decoration: none;">Project Link</a>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${resume.content.certifications?.length ? `
+            <div style="margin-bottom: 25px;">
+              <h2 style="font-size: 20px; color: #2d3748; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px;">Certifications</h2>
+              ${resume.content.certifications.map((cert: any) => `
+                <div style="margin-bottom: 20px;">
+                  <div style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${cert.name}</div>
+                  <div style="font-size: 15px; color: #4a5568; margin-bottom: 4px;">${cert.issuer}</div>
+                  <div style="color: #718096; font-size: 14px;">
+                    Issued: ${cert.issue_date}${cert.expiry_date ? ` · Expires: ${cert.expiry_date}` : ''}
+                  </div>
+                  ${cert.credential_id ? `
+                    <div style="font-size: 14px; color: #718096;">Credential ID: ${cert.credential_id}</div>
+                  ` : ''}
+                  ${cert.url ? `
+                    <div style="margin-top: 4px;">
+                      <a href="${cert.url}" style="color: #4299e1; font-size: 14px; text-decoration: none;">View Certificate</a>
+                    </div>
+                  ` : ''}
                 </div>
               `).join('')}
             </div>
