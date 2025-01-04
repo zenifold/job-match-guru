@@ -1,21 +1,23 @@
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Mail, Phone, MapPin, Github, Linkedin } from "lucide-react";
+import { ResumeThemeStyles } from "./ResumeThemeStyles";
+import { useResumeTheme } from "@/contexts/ThemeContext";
 
 interface ResumeTemplateProps {
   data: any;
 }
 
 export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
+  const { theme } = useResumeTheme();
+  const styles = getThemeStyles(theme);
+
   const downloadPDF = () => {
-    // Create a new window with just the resume content
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert('Please allow popups for this website');
       return;
     }
 
-    // Write the HTML content
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -30,8 +32,21 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
               margin: 40px auto;
               padding: 20px;
             }
+            ${theme === 'modern' ? `
+              h1 { color: #6366f1; }
+              .section-heading { color: #6366f1; border-bottom: 2px solid #6366f1; }
+            ` : theme === 'classic' ? `
+              h1 { font-family: Georgia, serif; }
+              .section-heading { font-family: Georgia, serif; border-bottom: 1px solid #333; }
+            ` : theme === 'minimal' ? `
+              h1 { font-weight: 300; }
+              .section-heading { font-weight: 300; }
+            ` : `
+              h1 { color: #2563eb; }
+              .section-heading { color: #2563eb; border-bottom: 2px solid #2563eb; }
+            `}
             h1 { font-size: 24px; margin-bottom: 8px; }
-            h2 { font-size: 20px; margin-top: 24px; margin-bottom: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+            h2 { font-size: 20px; margin-top: 24px; margin-bottom: 16px; padding-bottom: 8px; }
             .contact-info { color: #666; margin-bottom: 24px; }
             .experience-item, .education-item { margin-bottom: 20px; }
             .date { color: #666; font-size: 14px; }
@@ -120,7 +135,7 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white">
+    <ResumeThemeStyles>
       <div className="flex justify-end mb-4">
         <Button onClick={downloadPDF} variant="outline">
           <Download className="h-4 w-4 mr-2" />
@@ -129,13 +144,12 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
       </div>
 
       <div id="resume-content" className="space-y-8">
-        {/* Header */}
         {data.personalInfo && (
-          <div className="border-b pb-6">
-            <h1 className="text-4xl font-bold tracking-tight mb-4">
+          <div className={styles.header}>
+            <h1 className={styles.heading}>
               {data.personalInfo.fullName}
             </h1>
-            <div className="flex flex-wrap gap-4 text-muted-foreground">
+            <div className={styles.contactInfo}>
               {data.personalInfo.email && (
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-2" />
@@ -174,13 +188,12 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
           </div>
         )}
 
-        {/* Experience */}
         {data.experience && data.experience.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold tracking-tight">Experience</h2>
+            <h2 className={styles.sectionHeading}>Experience</h2>
             <div className="space-y-6">
               {data.experience.map((exp: any, index: number) => (
-                <div key={index} className="space-y-2">
+                <div key={index} className={styles.experienceItem}>
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-medium text-lg">{exp.position}</h3>
@@ -240,6 +253,6 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
           </div>
         )}
       </div>
-    </div>
+    </ResumeThemeStyles>
   );
 };
