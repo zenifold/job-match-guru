@@ -75,8 +75,8 @@ const Jobs = () => {
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Date Added</TableHead>
+            <TableHead className="text-center">Status</TableHead>
+            <TableHead className="text-center">Date Added</TableHead>
             <TableHead className="text-right w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -84,8 +84,8 @@ const Jobs = () => {
           {jobs?.map((job) => (
             <TableRow key={job.id}>
               <TableCell className="text-left">{job.title}</TableCell>
-              <TableCell>{job.status}</TableCell>
-              <TableCell>
+              <TableCell className="text-center">{job.status}</TableCell>
+              <TableCell className="text-center">
                 {new Date(job.date_added).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
