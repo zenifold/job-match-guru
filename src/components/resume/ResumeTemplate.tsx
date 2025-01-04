@@ -1,15 +1,30 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Mail, Phone, MapPin, Github, Linkedin } from "lucide-react";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface ResumeTemplateProps {
   data: any;
 }
 
 export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
-  const downloadPDF = () => {
-    // TODO: Implement PDF download
-    console.log("Downloading PDF...", data);
+  const downloadPDF = async () => {
+    const element = document.getElementById('resume-content');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('resume.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   return (
@@ -21,7 +36,7 @@ export const ResumeTemplate = ({ data }: ResumeTemplateProps) => {
         </Button>
       </div>
 
-      <div className="space-y-8">
+      <div id="resume-content" className="space-y-8">
         {/* Header */}
         {data.personalInfo && (
           <div className="border-b pb-6">

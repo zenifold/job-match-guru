@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Save } from "lucide-react";
+import { Eye, Download, Save, FileJson } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,7 @@ export const BuilderActions = ({
     navigate("/preview", { state: { resumeData } });
   };
 
-  const handleExport = () => {
+  const handleExportJSON = () => {
     const dataStr = JSON.stringify(resumeData, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
@@ -42,7 +42,7 @@ export const BuilderActions = ({
     
     toast({
       title: "Resume Exported",
-      description: "Your resume data has been exported successfully.",
+      description: "Your resume data has been exported as JSON.",
     });
   };
 
@@ -77,7 +77,6 @@ export const BuilderActions = ({
         description: "Your resume has been saved successfully.",
       });
       
-      // Navigate to the resumes page after successful save
       navigate("/resumes");
     } catch (error) {
       console.error("Error in handleSave:", error);
@@ -106,9 +105,9 @@ export const BuilderActions = ({
           <Eye className="h-4 w-4 mr-2" />
           Preview
         </Button>
-        <Button onClick={handleExport} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export
+        <Button onClick={handleExportJSON} variant="outline">
+          <FileJson className="h-4 w-4 mr-2" />
+          Export JSON
         </Button>
       </div>
       <div className="flex justify-between mt-6">
