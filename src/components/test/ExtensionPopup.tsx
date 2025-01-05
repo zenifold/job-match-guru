@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Loader2, FileText, FormInput } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export function ExtensionPopup() {
+interface ExtensionPopupProps {
+  resumeData: any;
+}
+
+export function ExtensionPopup({ resumeData }: ExtensionPopupProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAutofilling, setIsAutofilling] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -25,18 +29,7 @@ export function ExtensionPopup() {
         suggestions: [
           "Add more details about state management experience",
           "Highlight any remote work experience"
-        ],
-        personalInfo: {
-          firstName: "John",
-          lastName: "Doe",
-          email: "john@example.com",
-          phone: "+1 (555) 000-0000"
-        },
-        professionalInfo: {
-          yearsOfExperience: "5-10",
-          visaStatus: "citizen",
-          willingToRelocate: true
-        }
+        ]
       });
     } finally {
       setIsAnalyzing(false);
@@ -46,10 +39,46 @@ export function ExtensionPopup() {
   const handleAutofill = async () => {
     setIsAutofilling(true);
     try {
-      // Simulate autofill delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // In a real extension, this would interact with the page
-      console.log("Autofilling form with data:", analysisResult);
+      // Get all form inputs
+      const inputs = document.querySelectorAll('input, textarea');
+      
+      // Map resume data to form fields
+      inputs.forEach((input: HTMLInputElement | HTMLTextAreaElement) => {
+        const name = input.name?.toLowerCase();
+        if (!name) return;
+
+        let value = '';
+        
+        // Map fields based on name
+        if (name.includes('firstname')) {
+          value = resumeData.personalInfo?.fullName?.split(' ')[0] || '';
+        } else if (name.includes('lastname')) {
+          value = resumeData.personalInfo?.fullName?.split(' ').slice(1).join(' ') || '';
+        } else if (name === 'email') {
+          value = resumeData.personalInfo?.email || '';
+        } else if (name === 'phone') {
+          value = resumeData.personalInfo?.phone || '';
+        } else if (name === 'linkedin') {
+          value = resumeData.personalInfo?.linkedin || '';
+        } else if (name === 'experience') {
+          value = resumeData.experience?.map((exp: any) => 
+            `${exp.position} at ${exp.company} (${exp.startDate} - ${exp.endDate || 'Present'})\n${exp.description}`
+          ).join('\n\n') || '';
+        } else if (name === 'education') {
+          value = resumeData.education?.map((edu: any) =>
+            `${edu.degree} in ${edu.field} from ${edu.school} (${edu.startDate} - ${edu.endDate || 'Present'})`
+          ).join('\n\n') || '';
+        } else if (name === 'skills') {
+          value = resumeData.skills?.join(', ') || '';
+        }
+
+        // Set value and dispatch events
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      console.log('Form autofilled with resume data:', resumeData);
     } finally {
       setIsAutofilling(false);
     }
@@ -130,7 +159,7 @@ export function ExtensionPopup() {
             <div className="space-y-4">
               <Button
                 onClick={handleAutofill}
-                disabled={isAutofilling || !analysisResult}
+                disabled={isAutofilling}
                 className="w-full"
               >
                 {isAutofilling ? (
@@ -143,25 +172,17 @@ export function ExtensionPopup() {
                 )}
               </Button>
 
-              {!analysisResult && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Please analyze the job first to enable auto-fill
-                </p>
-              )}
-
-              {analysisResult && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-lg space-y-3">
-                  <div className="text-sm">
-                    <div className="font-medium mb-2">Data ready to auto-fill:</div>
-                    <ul className="space-y-1 text-slate-600">
-                      <li>• Personal Information</li>
-                      <li>• Professional Experience</li>
-                      <li>• Education History</li>
-                      <li>• Skills & Qualifications</li>
-                    </ul>
-                  </div>
+              <div className="mt-4 p-4 bg-slate-50 rounded-lg space-y-3">
+                <div className="text-sm">
+                  <div className="font-medium mb-2">Data ready to auto-fill:</div>
+                  <ul className="space-y-1 text-slate-600">
+                    <li>• Personal Information</li>
+                    <li>• Professional Experience</li>
+                    <li>• Education History</li>
+                    <li>• Skills & Qualifications</li>
+                  </ul>
                 </div>
-              )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>

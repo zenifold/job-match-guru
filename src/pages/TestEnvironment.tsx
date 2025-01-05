@@ -5,9 +5,11 @@ import { ExtensionPopup } from "@/components/test/ExtensionPopup";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useResume } from "@/contexts/ResumeContext";
 
 export default function TestEnvironment() {
   const [showPopup, setShowPopup] = useState(false);
+  const { resumeData } = useResume();
 
   return (
     <MainLayout>
@@ -22,11 +24,11 @@ export default function TestEnvironment() {
 
           <div className="mt-4 relative">
             <TabsContent value="linkedin">
-              <MockJobPage platform="linkedin" />
+              <MockJobPage platform="linkedin" resumeData={resumeData} />
             </TabsContent>
             
             <TabsContent value="indeed">
-              <MockJobPage platform="indeed" />
+              <MockJobPage platform="indeed" resumeData={resumeData} />
             </TabsContent>
 
             <Card className="fixed top-4 right-4 p-4 shadow-lg">
@@ -40,7 +42,7 @@ export default function TestEnvironment() {
               
               {showPopup && (
                 <div className="absolute top-full right-0 mt-2">
-                  <ExtensionPopup />
+                  <ExtensionPopup resumeData={resumeData} />
                 </div>
               )}
             </Card>
