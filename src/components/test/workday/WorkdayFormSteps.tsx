@@ -1,4 +1,4 @@
-import { WorkdayFormData } from "@/types/workdayForm";
+import { WorkdayFormData, SectionProps } from "@/types/workdayForm";
 import { SourceSection } from "./SourceSection";
 import { LegalNameSection } from "./LegalNameSection";
 import { AddressSection } from "./AddressSection";

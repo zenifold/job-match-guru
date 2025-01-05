@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { Steps } from "@/components/ui/steps";
 import { useToast } from "@/hooks/use-toast";
 import { WorkdayTemplateSelector } from "../workday/WorkdayTemplateSelector";
