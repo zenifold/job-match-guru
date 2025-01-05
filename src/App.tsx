@@ -21,10 +21,16 @@ import WorkdayProfile from "@/pages/WorkdayProfile";
 import TestEnvironment from "@/pages/TestEnvironment";
 
 const queryClient = new QueryClient();
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+
+// Ensure environment variables are defined
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function App() {
   return (
