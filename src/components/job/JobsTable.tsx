@@ -23,7 +23,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           </TableRow>
         </TableHeader>
         <TableBody>
-          <Accordion type="single" collapsible>
+          <Accordion type="single" collapsible className="w-full">
             {jobs?.map((job) => (
               <AccordionItem value={job.id} key={job.id} className="border-b-0">
                 <TableRow>
@@ -44,17 +44,20 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                 </TableRow>
                 <TableRow>
                   <TableCell colSpan={4} className="p-0">
-                    <AccordionContent className="px-4 py-2 bg-slate-50">
-                      <div className="space-y-4">
+                    <AccordionContent className="px-6 py-4 bg-slate-50">
+                      <div className="space-y-6">
                         {job.analysis ? (
                           <>
-                            <div className="space-y-2">
-                              <h3 className="text-lg font-semibold">Analysis Results</h3>
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold text-slate-900">Analysis Results</h3>
                               <div className="flex items-center gap-4">
-                                <span className="text-sm font-medium">Match Score: {Math.round(job.analysis.match_score)}%</span>
+                                <div className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                                  Match Score: {Math.round(job.analysis.match_score)}%
+                                </div>
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="hover:bg-slate-100"
                                   onClick={() => {
                                     console.log("Optimizing resume for job:", job.id);
                                   }}
@@ -62,14 +65,16 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                                   Optimize Resume
                                 </Button>
                               </div>
-                              <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                                {job.analysis.analysis_text}
-                              </p>
+                              <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+                                <p className="text-sm text-slate-600 whitespace-pre-wrap">
+                                  {job.analysis.analysis_text}
+                                </p>
+                              </div>
                             </div>
                           </>
                         ) : (
                           <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600">No analysis available</span>
+                            <span className="text-sm text-slate-600">No analysis available</span>
                             <Button
                               variant="outline"
                               size="sm"
