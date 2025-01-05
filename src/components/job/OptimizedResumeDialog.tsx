@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { OptimizationWizard } from "@/components/resume/OptimizationWizard";
+import { Loader2 } from "lucide-react";
 
 interface OptimizedResumeDialogProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export function OptimizedResumeDialog({
   const session = useSession();
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
       if (!session?.user) return null;
@@ -47,18 +48,37 @@ export function OptimizedResumeDialog({
     });
   };
 
-  if (!profile) return null;
+  if (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load profile data. Please try again.",
+      variant: "destructive",
+    });
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <OptimizationWizard
-          isOpen={isOpen}
-          onClose={handleComplete}
-          originalResume={profile.content}
-          jobTitle={jobTitle}
-          jobId={jobId}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : !profile ? (
+          <div className="text-center p-8">
+            <p className="text-sm text-muted-foreground">
+              Please create a profile first to optimize your resume.
+            </p>
+          </div>
+        ) : (
+          <OptimizationWizard
+            isOpen={isOpen}
+            onClose={handleComplete}
+            originalResume={profile.content}
+            jobTitle={jobTitle}
+            jobId={jobId}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
