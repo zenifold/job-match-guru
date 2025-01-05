@@ -30,6 +30,9 @@ interface ModelSelectorFormValues {
   model: string;
 }
 
+const DEFAULT_MODEL = "google/gemini-2.0-flash-exp:free";
+const FALLBACK_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
+
 export function ModelSelector() {
   const [models, setModels] = useState<Model[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +40,7 @@ export function ModelSelector() {
   
   const form = useForm<ModelSelectorFormValues>({
     defaultValues: {
-      model: localStorage.getItem('selectedModel') || "",
+      model: localStorage.getItem('selectedModel') || DEFAULT_MODEL,
     },
   });
 
@@ -65,11 +68,38 @@ export function ModelSelector() {
         const data = await response.json();
         console.log("Fetched models:", data);
         
-        setModels(data.data.map((model: any) => ({
+        const availableModels = data.data.map((model: any) => ({
           id: model.id,
           name: model.name,
           description: model.description || 'No description available'
-        })));
+        }));
+
+        // Check if default or fallback models are available
+        const hasDefaultModel = availableModels.some(model => model.id === DEFAULT_MODEL);
+        const hasFallbackModel = availableModels.some(model => model.id === FALLBACK_MODEL);
+
+        if (!hasDefaultModel && !hasFallbackModel) {
+          toast({
+            title: "Warning",
+            description: "Preferred models not available. Using first available model.",
+            variant: "destructive",
+          });
+        }
+
+        setModels(availableModels);
+
+        // Set initial model if none selected
+        const currentModel = localStorage.getItem('selectedModel');
+        if (!currentModel) {
+          const modelToUse = hasDefaultModel ? DEFAULT_MODEL : 
+                           hasFallbackModel ? FALLBACK_MODEL : 
+                           availableModels[0]?.id;
+          
+          if (modelToUse) {
+            localStorage.setItem('selectedModel', modelToUse);
+            form.setValue('model', modelToUse);
+          }
+        }
       } catch (error) {
         console.error("Error fetching models:", error);
         toast({
@@ -83,7 +113,7 @@ export function ModelSelector() {
     };
 
     fetchModels();
-  }, [toast]);
+  }, [toast, form]);
 
   const onSubmit = async (data: ModelSelectorFormValues) => {
     try {
