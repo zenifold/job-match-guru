@@ -27,7 +27,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
             {jobs?.map((job) => (
               <AccordionItem value={job.id} key={job.id} className="border-b-0">
                 <TableRow>
-                  <TableCell className="text-left">
+                  <TableCell className="text-left font-medium">
                     <AccordionTrigger className="hover:no-underline">
                       {job.title}
                     </AccordionTrigger>
