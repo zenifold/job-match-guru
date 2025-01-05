@@ -5,68 +5,79 @@ export const KEYWORD_CATEGORIES: { [key: string]: KeywordCategory } = {
   technical_skills: {
     weight: 1.5, // Higher weight for technical skills
     keywords: [
-      // Programming Languages
-      "python", "javascript", "typescript", "java", "c++", "ruby", "php", "swift", "kotlin", "go",
+      // Programming Languages & Frameworks
+      "javascript", "typescript", "python", "java", "c#", "ruby", "rust", "php",
+      "jquery", ".net", "vue.js", "ruby on rails", "flutter", "d3.js",
+      
       // Web Technologies
-      "react", "angular", "vue.js", "node.js", "express.js", "django", "flask",
+      "html/css", "web development", "rest apis", "firebase", "vercel",
+      
       // Cloud & Infrastructure
-      "aws", "azure", "gcp", "docker", "kubernetes", "terraform", "jenkins",
+      "aws", "google cloud platform", "terraform", "firebase", "blockchain",
+      "development operations", "devops",
+      
       // Data & Analytics
-      "sql", "nosql", "mongodb", "postgresql", "mysql", "data engineering", "etl",
-      "data warehouse", "big data", "spark", "hadoop", "airflow", "kafka",
-      "elasticsearch", "tableau", "power bi", "data visualization",
-      // AI & ML
-      "machine learning", "artificial intelligence", "deep learning", "nlp",
-      "computer vision", "tensorflow", "pytorch", "scikit-learn",
-      // DevOps & Tools
-      "git", "ci/cd", "devops", "agile", "jira", "confluence", "bitbucket",
-      // Architecture
-      "microservices", "rest api", "graphql", "system design", "distributed systems"
+      "sql", "mysql", "mongodb", "bigquery", "snowflake", "rdbms",
+      "data structures", "algorithms", "data science", "data analysis",
+      "natural language processing", "nlp", "tensorflow",
+      
+      // Tools & Platforms
+      "github", "gitlab", "bitbucket", "datadog", "netlify", "docker",
+      "kubernetes", "jenkins", "circleci", "nginx", "redis"
+    ]
+  },
+  analytics_tools: {
+    weight: 1.4,
+    keywords: [
+      "tableau", "power bi", "looker", "qlikview", "amazon quicksight",
+      "google analytics", "mixpanel", "amplitude", "hotjar", "segment",
+      "google adwords", "search ads 360", "google analytics"
     ]
   },
   product_management: {
     weight: 1.4,
     keywords: [
-      "product strategy", "product roadmap", "product development", "product lifecycle",
-      "market analysis", "competitive analysis", "user research", "user stories",
-      "product metrics", "okrs", "kpis", "ab testing", "feature prioritization",
-      "stakeholder management", "product vision", "go to market", "product launch",
-      "customer journey", "user experience", "product analytics", "product marketing",
-      "agile methodologies", "scrum", "kanban", "sprint planning", "backlog grooming",
-      "requirements gathering", "product specifications", "mvp", "product innovation"
+      "product management", "product design", "agile", "scrum", "jira",
+      "confluence", "asana", "product strategy", "roadmap", "backlog",
+      "user stories", "sprint planning", "product metrics", "okrs",
+      "stakeholder management", "product vision", "go to market",
+      "usability testing", "user research", "wireframe", "figma",
+      "information architecture", "ui/ux design", "interaction design"
     ]
   },
   business_skills: {
     weight: 1.3,
     keywords: [
-      "business strategy", "strategic planning", "business development",
-      "revenue growth", "market expansion", "partnership development",
-      "business analytics", "financial analysis", "budget management",
-      "risk management", "operations management", "process improvement",
-      "change management", "digital transformation", "customer success",
-      "sales strategy", "marketing strategy", "growth hacking",
-      "business intelligence", "data driven decision making"
+      "business strategy", "business analytics", "market research",
+      "lead generation", "operations research", "financial analysis",
+      "mergers & acquisitions", "m&a", "supply chain management",
+      "inventory management", "sales", "branding", "brand strategy",
+      "marketing", "seo", "social media", "communications"
+    ]
+  },
+  enterprise_software: {
+    weight: 1.3,
+    keywords: [
+      "salesforce", "servicenow", "sap", "netsuite", "workday",
+      "hris", "hubspot", "zapier", "hootsuite", "atlassian",
+      "wordpress", "webflow", "canva", "adobe after effects"
     ]
   },
   soft_skills: {
     weight: 1.2,
     keywords: [
-      "leadership", "communication", "problem solving", "critical thinking",
-      "teamwork", "collaboration", "project management", "time management",
-      "analytical skills", "strategic thinking", "innovation", "creativity",
-      "attention to detail", "presentation skills", "negotiation",
-      "mentoring", "team building", "adaptability", "emotional intelligence",
-      "conflict resolution", "decision making", "interpersonal skills"
+      "leadership", "management", "communication", "problem solving",
+      "critical thinking", "teamwork", "collaboration", "project management",
+      "time management", "analytical skills", "strategic thinking",
+      "innovation", "creativity", "presentation skills", "negotiation"
     ]
   },
-  industry_knowledge: {
+  quality_assurance: {
     weight: 1.3,
     keywords: [
-      "saas", "fintech", "healthtech", "e commerce", "cybersecurity",
-      "blockchain", "cryptocurrency", "iot", "augmented reality", "virtual reality",
-      "mobile development", "web development", "cloud computing",
-      "data privacy", "gdpr", "compliance", "information security",
-      "digital marketing", "social media", "content strategy"
+      "quality assurance", "qa", "software testing", "test automation",
+      "selenium", "cypress", "jest", "unit testing", "integration testing",
+      "performance testing", "load testing", "stress testing", "regression testing"
     ]
   }
 };
