@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, FormInput } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ExtensionPopupProps {
   resumeData: any;
@@ -118,7 +119,13 @@ export function ExtensionPopup({ resumeData }: ExtensionPopupProps) {
                 )}
               </Button>
 
-              {analysisResult && (
+              {isAnalyzing ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : analysisResult && (
                 <div className="mt-4 p-4 bg-slate-50 rounded-lg space-y-3">
                   <div>
                     <div className="text-sm text-slate-600">Match Score</div>
@@ -173,15 +180,29 @@ export function ExtensionPopup({ resumeData }: ExtensionPopupProps) {
               </Button>
 
               <div className="mt-4 p-4 bg-slate-50 rounded-lg space-y-3">
-                <div className="text-sm">
-                  <div className="font-medium mb-2">Data ready to auto-fill:</div>
-                  <ul className="space-y-1 text-slate-600">
-                    <li>• Personal Information</li>
-                    <li>• Professional Experience</li>
-                    <li>• Education History</li>
-                    <li>• Skills & Qualifications</li>
-                  </ul>
-                </div>
+                {isAutofilling ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <p className="text-sm text-blue-600">Filling form fields...</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm">
+                    <div className="font-medium mb-2">Data ready to auto-fill:</div>
+                    <ul className="space-y-1 text-slate-600">
+                      <li>• Personal Information</li>
+                      <li>• Professional Experience</li>
+                      <li>• Education History</li>
+                      <li>• Skills & Qualifications</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
