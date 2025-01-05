@@ -45,10 +45,17 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
 
   const updateLanguage = (index: number, field: keyof Language, value: string | boolean) => {
     const newLanguages = [...languages];
-    newLanguages[index] = {
-      ...newLanguages[index],
-      [field]: value
-    };
+    if (field === 'isNative') {
+      newLanguages[index] = {
+        ...newLanguages[index],
+        [field]: value as boolean
+      };
+    } else {
+      newLanguages[index] = {
+        ...newLanguages[index],
+        [field]: value as string
+      };
+    }
     setLanguages(newLanguages);
     onChange?.({ languages: newLanguages });
   };
@@ -128,4 +135,3 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
     </div>
   );
 };
-
