@@ -96,7 +96,9 @@ const Jobs = () => {
         title: "Success",
         description: "Job deleted successfully",
       });
-      return refetch(); // Return the Promise from refetch
+      
+      await refetch();
+      return Promise.resolve();
     } catch (error) {
       console.error("Error deleting job:", error);
       toast({
