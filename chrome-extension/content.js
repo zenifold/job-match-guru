@@ -1,3 +1,5 @@
+import { mapProfileToWorkdayFields } from './profileUtils.js';
+
 // Helper function to detect page type
 function detectWorkdayPage() {
   const url = window.location.href;
@@ -24,18 +26,31 @@ async function extractJobDetails() {
 }
 
 // Function to handle form filling
+
 async function fillApplicationForm(resumeData) {
   console.log("Filling application form with data:", resumeData);
+  
+  // Get profile data from storage
+  const { profileData } = await chrome.storage.local.get(['profileData']);
+  if (!profileData) {
+    throw new Error('No profile data found');
+  }
+
+  // Map profile data to Workday fields
+  const mappedData = mapProfileToWorkdayFields(profileData);
+  if (!mappedData) {
+    throw new Error('Failed to map profile data');
+  }
 
   // Map resume data to Workday fields
   const fieldMappings = {
-    'input[data-automation-id="firstName"]': resumeData.personalInfo?.firstName,
-    'input[data-automation-id="lastName"]': resumeData.personalInfo?.lastName,
-    'input[data-automation-id="email"]': resumeData.personalInfo?.email,
-    'input[data-automation-id="phone"]': resumeData.personalInfo?.phone,
-    'input[data-automation-id="address"]': resumeData.personalInfo?.address,
-    'input[data-automation-id="city"]': resumeData.personalInfo?.city,
-    'input[data-automation-id="postalCode"]': resumeData.personalInfo?.zipCode,
+    'input[data-automation-id="firstName"]': mappedData.personalInfo.firstName,
+    'input[data-automation-id="lastName"]': mappedData.personalInfo.lastName,
+    'input[data-automation-id="email"]': mappedData.personalInfo.email,
+    'input[data-automation-id="phone"]': mappedData.personalInfo.phone,
+    'input[data-automation-id="address"]': mappedData.personalInfo.address,
+    'input[data-automation-id="city"]': mappedData.personalInfo.city,
+    'input[data-automation-id="postalCode"]': mappedData.personalInfo.zipCode,
   };
 
   // Fill each field if it exists

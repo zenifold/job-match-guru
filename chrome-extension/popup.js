@@ -1,4 +1,3 @@
-// Initialize UI elements
 document.addEventListener('DOMContentLoaded', async () => {
   const analyzeBtn = document.getElementById('analyzeJob');
   const autoFillBtn = document.getElementById('autoFill');
@@ -12,8 +11,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusDiv.className = isError ? 'text-red-500' : 'text-green-500';
   }
 
-  // Check auth state
+  // Check auth state and load profile data
   const { authToken } = await chrome.storage.local.get(['authToken']);
+  if (authToken) {
+    chrome.runtime.sendMessage({ type: "GET_PROFILE" }, (response) => {
+      if (response?.success) {
+        console.log('Profile data loaded successfully');
+      } else {
+        updateStatus('Failed to load profile data', true);
+      }
+    });
+  }
   updateAuthUI(!!authToken);
 
   // Handle login button click
