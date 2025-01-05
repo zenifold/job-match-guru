@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,12 +17,10 @@ serve(async (req) => {
     
     console.log(`Starting resume optimization for job ${jobId} and user ${userId}`);
     
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch job analysis
     const { data: analysis, error: analysisError } = await supabase
       .from('job_analyses')
       .select('*')
@@ -34,7 +31,6 @@ serve(async (req) => {
     if (analysisError) throw analysisError;
     if (!analysis) throw new Error('No analysis found for this job');
 
-    // Fetch original resume
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -44,14 +40,17 @@ serve(async (req) => {
     if (profileError) throw profileError;
     if (!profile) throw new Error('No profile found for this user');
 
-    // Fetch job details
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('title')
+      .select('title, description')
       .eq('id', jobId)
       .single();
 
     if (jobError) throw jobError;
+
+    // Extract missing keywords from analysis text
+    const missingKeywords = extractMissingKeywords(analysis.analysis_text);
+    console.log('Missing keywords:', missingKeywords);
 
     // Check if an optimized resume already exists
     const { data: existingOptimizedResume, error: existingError } = await supabase
@@ -61,7 +60,7 @@ serve(async (req) => {
       .eq('job_id', jobId)
       .single();
 
-    if (existingError && existingError.code !== 'PGRST116') { // PGRST116 means no rows found
+    if (existingError && existingError.code !== 'PGRST116') {
       throw existingError;
     }
 
@@ -70,14 +69,13 @@ serve(async (req) => {
     const optimizedContent = {
       ...resumeContent,
       skills: [...new Set([...resumeContent.skills, ...extractSkillsFromAnalysis(analysis.analysis_text)])],
-      experience: optimizeExperience(resumeContent.experience, analysis.analysis_text),
+      experience: optimizeExperience(resumeContent.experience, missingKeywords, job.description),
     };
 
     let optimizedResume;
     
     if (existingOptimizedResume) {
       console.log(`Updating existing optimized resume for job ${jobId}`);
-      // Update existing optimized resume
       const { data: updatedResume, error: updateError } = await supabase
         .from('optimized_resumes')
         .update({
@@ -94,7 +92,6 @@ serve(async (req) => {
       optimizedResume = updatedResume;
     } else {
       console.log(`Creating new optimized resume for job ${jobId}`);
-      // Store new optimized resume
       const { data: newResume, error: insertError } = await supabase
         .from('optimized_resumes')
         .insert({
@@ -151,7 +148,7 @@ function extractSkillsFromAnalysis(analysisText: string): string[] {
       continue;
     }
     if (isMatchedSection && line.startsWith('✓')) {
-      const skill = line.replace('✓', '').trim();
+      const skill = line.replace('✓', '').split('(')[0].trim();
       skills.push(skill);
     }
   }
@@ -159,21 +156,89 @@ function extractSkillsFromAnalysis(analysisText: string): string[] {
   return skills;
 }
 
+// Helper function to extract missing keywords from analysis text
+function extractMissingKeywords(analysisText: string): { keyword: string, priority: string }[] {
+  const lines = analysisText.split('\n');
+  const keywords: { keyword: string, priority: string }[] = [];
+  
+  let isSuggestedSection = false;
+  for (const line of lines) {
+    if (line.includes('Suggested Improvements:')) {
+      isSuggestedSection = true;
+      continue;
+    }
+    if (line.includes('Recommendations:')) {
+      isSuggestedSection = false;
+      continue;
+    }
+    if (isSuggestedSection && line.includes('Consider adding experience or skills related to:')) {
+      const parts = line.split(':')[1].split('(');
+      const keyword = parts[0].trim();
+      const priority = parts[1]?.split(')')[0].trim() || 'Standard';
+      keywords.push({ keyword, priority });
+    }
+  }
+  
+  return keywords;
+}
+
 // Helper function to optimize experience entries
-function optimizeExperience(experience: any[], analysisText: string): any[] {
+function optimizeExperience(experience: any[], missingKeywords: { keyword: string, priority: string }[], jobDescription: string): any[] {
   return experience.map(exp => {
-    // Enhance description with relevant keywords from analysis
-    const enhancedDescription = exp.description;
-    
-    // Enhance responsibilities based on analysis
+    // Enhance existing responsibilities with relevant keywords
     const enhancedResponsibilities = exp.keyResponsibilities.map((resp: string) => {
-      return resp;
+      let enhanced = resp;
+      missingKeywords.forEach(({ keyword }) => {
+        if (jobDescription.toLowerCase().includes(keyword.toLowerCase()) &&
+            !enhanced.toLowerCase().includes(keyword.toLowerCase())) {
+          // Add keyword naturally to the responsibility
+          enhanced = enhanced.replace(/\.$/, '') + ` utilizing ${keyword}.`;
+        }
+      });
+      return enhanced;
     });
+
+    // Add new responsibilities based on missing keywords
+    const newResponsibilities = missingKeywords
+      .filter(({ keyword, priority }) => 
+        priority === 'Critical' || priority === 'High' &&
+        !exp.keyResponsibilities.some((resp: string) => 
+          resp.toLowerCase().includes(keyword.toLowerCase())
+        )
+      )
+      .map(({ keyword }) => {
+        const contextWords = extractContextWords(jobDescription, keyword);
+        return generateResponsibility(keyword, contextWords, exp.position);
+      });
 
     return {
       ...exp,
-      description: enhancedDescription,
-      keyResponsibilities: enhancedResponsibilities
+      keyResponsibilities: [...enhancedResponsibilities, ...newResponsibilities]
     };
   });
+}
+
+// Helper function to extract context words around a keyword
+function extractContextWords(text: string, keyword: string): string[] {
+  const words = text.toLowerCase().split(/\s+/);
+  const keywordIndex = words.findIndex(w => w.includes(keyword.toLowerCase()));
+  if (keywordIndex === -1) return [];
+  
+  const start = Math.max(0, keywordIndex - 3);
+  const end = Math.min(words.length, keywordIndex + 4);
+  return words.slice(start, end);
+}
+
+// Helper function to generate a new responsibility based on keyword and context
+function generateResponsibility(keyword: string, context: string[], position: string): string {
+  const templates = [
+    `Led initiatives to implement ${keyword} solutions, improving team efficiency and project outcomes`,
+    `Developed and executed ${keyword} strategies aligned with business objectives`,
+    `Collaborated with cross-functional teams to integrate ${keyword} best practices`,
+    `Spearheaded the adoption of ${keyword} methodologies to enhance project delivery`,
+  ];
+
+  // Select template based on position and context
+  const template = templates[Math.floor(Math.random() * templates.length)];
+  return template;
 }
