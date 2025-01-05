@@ -19,6 +19,12 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+
+    if (!openRouterApiKey) {
+      throw new Error('OpenRouter API key not found');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch job details
@@ -53,62 +59,57 @@ serve(async (req) => {
       ...(resumeContent.projects || []).map((proj: any) => proj.description)
     ].join(' ');
 
-    // Analyze keywords with importance
-    const jobKeywords = analyzeKeywordImportance(job.description, job.title);
-    console.log('Analyzed job keywords:', jobKeywords);
+    // Use AI to analyze the job and resume
+    const systemPrompt = `You are an AI assistant analyzing job requirements and resume match.
+    
+    Job Title: ${job.title}
+    Job Description: ${job.description}
+    
+    Resume Content: ${resumeText}
+    
+    Analyze the match between the job requirements and resume. Focus on:
+    1. Key skills and experience required by the job
+    2. Matching skills found in the resume
+    3. Missing skills or areas for improvement
+    4. Priority level of each skill (Critical, High, Medium, Standard)
+    
+    Format the response as follows:
+    - Start with "Match Score Analysis:"
+    - Include an "Overall Match" percentage
+    - List "Strong Matches:" with ✓ prefix and priority in parentheses
+    - List "Suggested Improvements:" with bullet points and priority in parentheses`;
 
-    // Calculate match score
-    let totalWeight = 0;
-    let matchedWeight = 0;
-    const matched: string[] = [];
-    const missing: string[] = [];
-    const importance: { [key: string]: string } = {};
+    console.log('Sending analysis request to OpenRouter API');
 
-    jobKeywords.forEach(({ keyword, weight }) => {
-      totalWeight += weight;
-      const normalizedKeyword = keyword.toLowerCase();
-      const normalizedResumeText = resumeText.toLowerCase();
-      
-      if (normalizedResumeText.includes(normalizedKeyword)) {
-        matched.push(keyword);
-        matchedWeight += weight;
-        console.log(`Matched keyword: ${keyword} with weight ${weight}`);
-      } else {
-        missing.push(keyword);
-        console.log(`Missing keyword: ${keyword} with weight ${weight}`);
-      }
-
-      // Categorize importance based on weight
-      if (weight >= 2.0) importance[keyword] = "Critical";
-      else if (weight >= 1.5) importance[keyword] = "High";
-      else if (weight >= 1.2) importance[keyword] = "Medium";
-      else importance[keyword] = "Standard";
+    const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openRouterApiKey}`,
+        'HTTP-Referer': 'https://lovable.dev',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-exp:free',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: 'Analyze the job match and provide detailed feedback.' }
+        ]
+      })
     });
 
-    const matchScore = totalWeight > 0 ? (matchedWeight / totalWeight) * 100 : 0;
-    console.log(`Final match score: ${matchScore}%`);
+    if (!aiResponse.ok) {
+      const errorData = await aiResponse.text();
+      console.error('OpenRouter API Error:', errorData);
+      throw new Error('Failed to get AI analysis');
+    }
 
-    // Generate analysis text
-    let analysisText = `Match Score Analysis:\n\nOverall Match: ${Math.round(matchScore)}%\n\n`;
-    
-    if (matched.length > 0) {
-      analysisText += `Strong Matches:\n`;
-      matched.forEach(keyword => {
-        analysisText += `✓ ${keyword} (${importance[keyword]} Priority)\n`;
-      });
-    }
-    
-    if (missing.length > 0) {
-      analysisText += `\nSuggested Improvements:\n`;
-      missing
-        .sort((a, b) => {
-          const importanceOrder = { "Critical": 0, "High": 1, "Medium": 2, "Standard": 3 };
-          return importanceOrder[importance[a]] - importanceOrder[importance[b]];
-        })
-        .forEach(keyword => {
-          analysisText += `• Consider adding experience or skills related to: ${keyword} (${importance[keyword]} Priority)\n`;
-        });
-    }
+    const aiData = await aiResponse.json();
+    const analysisText = aiData.choices[0].message.content;
+    console.log('AI Analysis:', analysisText);
+
+    // Extract match score from AI response
+    const matchScoreMatch = analysisText.match(/Overall Match: (\d+)%/);
+    const matchScore = matchScoreMatch ? parseInt(matchScoreMatch[1]) : 0;
 
     // Store analysis results
     const { error: analysisError } = await supabase
@@ -117,7 +118,7 @@ serve(async (req) => {
         job_id: jobId,
         user_id: userId,
         analysis_text: analysisText,
-        match_score: Math.round(matchScore)
+        match_score: matchScore
       });
 
     if (analysisError) {
@@ -130,10 +131,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'Analysis completed successfully',
-        matchScore: Math.round(matchScore),
-        matched,
-        missing,
-        importance
+        matchScore,
+        analysisText
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
