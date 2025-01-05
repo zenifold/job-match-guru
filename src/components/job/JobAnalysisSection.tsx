@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart2, Check, Info, RefreshCw, AlertTriangle, AlertOctagon, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { BarChart2, Check, Info, RefreshCw, AlertTriangle, AlertOctagon, AlertCircle, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface JobAnalysisSectionProps {
@@ -47,6 +48,9 @@ export function JobAnalysisSection({
       });
   };
 
+  const matchedKeywords = parseKeywords(job.analysis.analysis_text, 'matched');
+  const missingKeywords = parseKeywords(job.analysis.analysis_text, 'missing');
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -75,19 +79,11 @@ export function JobAnalysisSection({
           </Button>
         </h3>
         <div className="flex items-center gap-4">
-          <div className={cn(
-            "px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2",
-            job.analysis.match_score >= 70 
-              ? "bg-green-100 text-green-700" 
-              : job.analysis.match_score >= 50 
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-red-100 text-red-700"
-          )}>
-            {isAnalyzing ? (
-              <div className="animate-pulse">Analyzing...</div>
-            ) : (
-              `Match Score: ${Math.round(job.analysis.match_score)}%`
-            )}
+          <div className="text-center px-4 py-2 bg-slate-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">
+              {Math.round(job.analysis.match_score)}%
+            </div>
+            <div className="text-sm text-slate-600">Match Score</div>
           </div>
           <Button
             variant="outline"
@@ -95,7 +91,7 @@ export function JobAnalysisSection({
             className="hover:bg-slate-100 flex items-center gap-2"
             onClick={onOptimize}
           >
-            <RefreshCw className="h-4 w-4" />
+            <Target className="h-4 w-4" />
             Optimize Resume
           </Button>
         </div>
@@ -109,23 +105,25 @@ export function JobAnalysisSection({
               Strong Matches
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-1.5">
+          <CardContent>
             {isAnalyzing ? (
-              <div className="w-full space-y-2">
-                <div className="h-8 bg-slate-100 rounded-full animate-pulse w-3/4" />
-                <div className="h-8 bg-slate-100 rounded-full animate-pulse w-1/2" />
+              <div className="space-y-2 animate-pulse">
+                <div className="h-8 bg-slate-100 rounded-full w-3/4" />
+                <div className="h-8 bg-slate-100 rounded-full w-1/2" />
               </div>
             ) : (
-              parseKeywords(job.analysis.analysis_text, 'matched').map(({ keyword, priority }, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100"
-                >
-                  <Check className="h-4 w-4 text-green-500" />
-                  {keyword}
-                  <PriorityIcon priority={priority} />
-                </div>
-              ))
+              <div className="flex flex-wrap gap-2">
+                {matchedKeywords.map(({ keyword, priority }, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100"
+                  >
+                    <Check className="h-4 w-4 text-green-500" />
+                    {keyword}
+                    <PriorityIcon priority={priority} />
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -134,25 +132,27 @@ export function JobAnalysisSection({
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold text-slate-900 text-left flex items-center gap-2">
               <Info className="h-5 w-5 text-amber-500" />
-              Missing Keywords
+              Skills to Develop
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-1.5">
+          <CardContent>
             {isAnalyzing ? (
-              <div className="w-full space-y-2">
-                <div className="h-8 bg-slate-100 rounded-full animate-pulse w-2/3" />
-                <div className="h-8 bg-slate-100 rounded-full animate-pulse w-1/2" />
+              <div className="space-y-2 animate-pulse">
+                <div className="h-8 bg-slate-100 rounded-full w-2/3" />
+                <div className="h-8 bg-slate-100 rounded-full w-1/2" />
               </div>
             ) : (
-              parseKeywords(job.analysis.analysis_text, 'missing').map(({ keyword, priority }, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-slate-700 border border-amber-100"
-                >
-                  {keyword}
-                  <PriorityIcon priority={priority} />
-                </div>
-              ))
+              <div className="flex flex-wrap gap-2">
+                {missingKeywords.map(({ keyword, priority }, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-slate-700 border border-amber-100"
+                  >
+                    {keyword}
+                    <PriorityIcon priority={priority} />
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
