@@ -111,7 +111,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'anthropic/claude-2.1',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
@@ -128,19 +128,12 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     console.log('AI Response:', aiData);
 
-    // Handle OpenRouter's specific response format
-    let analysisText;
-    if (aiData.choices?.[0]?.message?.content) {
-      analysisText = aiData.choices[0].message.content;
-    } else if (aiData.choices?.[0]?.content) {
-      analysisText = aiData.choices[0].content;
-    } else if (typeof aiData.choices?.[0] === 'string') {
-      analysisText = aiData.choices[0];
-    } else {
+    if (!aiData?.choices?.[0]?.message?.content) {
       console.error('Unexpected AI response format:', aiData);
-      throw new Error('Unexpected AI response format. Response: ' + JSON.stringify(aiData));
+      throw new Error('Invalid AI response format. Response: ' + JSON.stringify(aiData));
     }
 
+    const analysisText = aiData.choices[0].message.content;
     console.log('AI Analysis:', analysisText);
 
     // Extract match score from AI response
