@@ -1,8 +1,10 @@
 // Initialize UI elements
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const analyzeBtn = document.getElementById('analyzeJob');
   const autoFillBtn = document.getElementById('autoFill');
   const statusDiv = document.getElementById('status');
+  const loginBtn = document.getElementById('login');
+  const logoutBtn = document.getElementById('logout');
   
   // Helper function to update status
   function updateStatus(message, isError = false) {
@@ -10,8 +12,31 @@ document.addEventListener('DOMContentLoaded', () => {
     statusDiv.className = isError ? 'text-red-500' : 'text-green-500';
   }
 
+  // Check auth state
+  const { authToken } = await chrome.storage.local.get(['authToken']);
+  updateAuthUI(!!authToken);
+
+  // Handle login button click
+  loginBtn?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: "AUTH_REQUEST" }, (response) => {
+      if (response?.success) {
+        updateStatus('Successfully logged in');
+        updateAuthUI(true);
+      } else {
+        updateStatus(response?.error || 'Failed to login', true);
+      }
+    });
+  });
+
+  // Handle logout button click
+  logoutBtn?.addEventListener('click', async () => {
+    await chrome.storage.local.remove(['authToken']);
+    updateStatus('Logged out successfully');
+    updateAuthUI(false);
+  });
+
   // Handle analyze job button click
-  analyzeBtn.addEventListener('click', () => {
+  analyzeBtn?.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, {action: "analyzeJob"}, (response) => {
         if (chrome.runtime.lastError) {
@@ -29,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Handle auto-fill button click
-  autoFillBtn.addEventListener('click', () => {
+  autoFillBtn?.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, {action: "autoFill"}, (response) => {
         if (chrome.runtime.lastError) {
@@ -45,4 +70,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
+
+  function updateAuthUI(isAuthenticated) {
+    if (isAuthenticated) {
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'block';
+      analyzeBtn.disabled = false;
+      autoFillBtn.disabled = false;
+    } else {
+      loginBtn.style.display = 'block';
+      logoutBtn.style.display = 'none';
+      analyzeBtn.disabled = true;
+      autoFillBtn.disabled = true;
+    }
+  }
 });

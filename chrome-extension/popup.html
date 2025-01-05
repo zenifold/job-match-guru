@@ -2,64 +2,55 @@
 <html>
 <head>
   <title>Resume Optimizer</title>
+  <meta charset="UTF-8">
   <style>
     body {
       width: 300px;
       padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
     }
-    
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
     button {
-      background-color: #6366f1;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
       cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.2s;
     }
-    
-    button:hover {
-      background-color: #4f46e5;
-    }
-    
     button:disabled {
-      background-color: #cbd5e1;
+      opacity: 0.5;
       cursor: not-allowed;
     }
-    
+    button:hover:not(:disabled) {
+      background: #f0f0f0;
+    }
     #status {
-      margin-top: 12px;
+      margin: 8px 0;
       padding: 8px;
       border-radius: 4px;
-      font-size: 14px;
     }
-    
     .text-red-500 {
       color: #ef4444;
-      background-color: #fee2e2;
     }
-    
     .text-green-500 {
       color: #22c55e;
-      background-color: #dcfce7;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 style="margin: 0 0 8px 0;">Resume Optimizer</h2>
-    <button id="analyzeJob">Analyze Job</button>
-    <button id="autoFill">Auto-fill Application</button>
-    <div id="status"></div>
+  <h2>Resume Optimizer</h2>
+  
+  <div id="authSection">
+    <button id="login">Login with Supabase</button>
+    <button id="logout" style="display: none;">Logout</button>
   </div>
+
+  <div id="status"></div>
+  
+  <button id="analyzeJob" disabled>Analyze Job & Optimize Resume</button>
+  <button id="autoFill" disabled>Auto-fill Application</button>
+
   <script src="popup.js"></script>
 </body>
 </html>

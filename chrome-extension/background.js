@@ -4,7 +4,8 @@ chrome.runtime.onInstalled.addListener(() => {
   // Initialize storage with empty state
   chrome.storage.local.set({
     optimizedResume: null,
-    currentJob: null
+    currentJob: null,
+    authToken: null
   });
 });
 
@@ -14,6 +15,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Content script log:", request.message);
   } else if (request.type === "ANALYZE_JOB") {
     handleJobAnalysis(request.data);
+  } else if (request.type === "AUTH_REQUEST") {
+    handleAuthRequest(sendResponse);
+    return true; // Keep the message channel open for async response
   }
 });
 
@@ -24,8 +28,13 @@ async function handleJobAnalysis(jobData) {
     // Store the current job data
     await chrome.storage.local.set({ currentJob: jobData });
     
-    // TODO: Integrate with your backend API to analyze the job and get optimized resume
-    // For now, we'll just store some mock data
+    // Get auth token
+    const { authToken } = await chrome.storage.local.get(['authToken']);
+    if (!authToken) {
+      throw new Error('Not authenticated');
+    }
+
+    // TODO: Fetch profile data from Supabase using authToken
     const mockOptimizedResume = {
       personalInfo: {
         firstName: "John",
@@ -53,5 +62,31 @@ async function handleJobAnalysis(jobData) {
       success: false,
       error: error.message
     });
+  }
+}
+
+async function handleAuthRequest(sendResponse) {
+  try {
+    // Create a new window for Supabase auth
+    const authURL = 'https://your-app-url.com/auth'; // Replace with your auth page URL
+    const authWindow = await chrome.windows.create({
+      url: authURL,
+      type: 'popup',
+      width: 500,
+      height: 600
+    });
+
+    // Listen for auth completion message
+    chrome.runtime.onMessage.addListener(function authListener(msg) {
+      if (msg.type === "AUTH_COMPLETE" && msg.token) {
+        chrome.storage.local.set({ authToken: msg.token });
+        chrome.windows.remove(authWindow.id);
+        sendResponse({ success: true });
+        chrome.runtime.onMessage.removeListener(authListener);
+      }
+    });
+  } catch (error) {
+    console.error("Auth error:", error);
+    sendResponse({ success: false, error: error.message });
   }
 }

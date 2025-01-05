@@ -54,6 +54,13 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   const pageType = detectWorkdayPage();
   console.log("Current page type:", pageType);
 
+  // Check authentication first
+  const { authToken } = await chrome.storage.local.get(['authToken']);
+  if (!authToken && request.action !== 'checkAuth') {
+    sendResponse({ success: false, error: 'Not authenticated' });
+    return true;
+  }
+
   if (request.action === "analyzeJob" && pageType === 'jobDetails') {
     try {
       const jobDetails = await extractJobDetails();
