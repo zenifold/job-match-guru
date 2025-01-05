@@ -1,6 +1,6 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { ResumeActions } from "@/components/resume/ResumeActions";
 import { Badge } from "@/components/ui/badge";
+import { ThemeCustomizerDialog } from "@/components/resume/theme/ThemeCustomizerDialog";
+import { useState } from "react";
 
 type RegularResume = {
   type: 'regular';
@@ -46,6 +48,7 @@ type CombinedResume = RegularResume | OptimizedResume;
 const Resumes = () => {
   const session = useSession();
   const { toast } = useToast();
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   const { data: allResumes, refetch } = useQuery({
     queryKey: ["all-resumes"],
@@ -118,12 +121,18 @@ const Resumes = () => {
     <MainLayout>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">My Resumes</h1>
-        <Button asChild>
-          <Link to="/builder">
-            <FileText className="mr-2 h-4 w-4" />
-            Create New Resume
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsCustomizerOpen(true)}>
+            <Palette className="mr-2 h-4 w-4" />
+            Customize Templates
+          </Button>
+          <Button asChild>
+            <Link to="/builder">
+              <FileText className="mr-2 h-4 w-4" />
+              Create New Resume
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Table>
@@ -161,6 +170,11 @@ const Resumes = () => {
           ))}
         </TableBody>
       </Table>
+
+      <ThemeCustomizerDialog 
+        open={isCustomizerOpen} 
+        onOpenChange={setIsCustomizerOpen} 
+      />
     </MainLayout>
   );
 };
