@@ -17,11 +17,12 @@ serve(async (req) => {
   }
 
   try {
-    const { jobId, userId } = await req.json();
+    const { jobId, userId, sections, originalResume } = await req.json();
     console.log(`Starting resume optimization for job ${jobId} and user ${userId}`);
+    console.log('Selected sections:', sections);
 
-    if (!jobId || !userId) {
-      throw new Error('Missing required parameters: jobId and userId are required');
+    if (!jobId || !userId || !sections || !originalResume) {
+      throw new Error('Missing required parameters: jobId, userId, sections, and originalResume are required');
     }
 
     // Get all necessary data
@@ -36,10 +37,11 @@ serve(async (req) => {
     console.log('Missing keywords:', missingKeywords);
 
     const optimizedContent = await optimizeContent(
-      profile.content, 
+      originalResume,
       missingKeywords, 
       job.description,
-      analysis
+      analysis,
+      sections
     );
 
     // Check for existing optimized resume

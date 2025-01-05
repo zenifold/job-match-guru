@@ -25,14 +25,34 @@ export function extractMissingKeywords(analysisText: string): { keyword: string;
   return keywords;
 }
 
-async function getAIOptimizedContent(resumeContent: any, jobDescription: string, analysis: JobAnalysis) {
+async function getAIOptimizedContent(
+  resumeContent: any, 
+  jobDescription: string, 
+  analysis: JobAnalysis,
+  selectedSections: string[]
+) {
   const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
   const selectedModel = Deno.env.get('SELECTED_MODEL') || 'google/gemini-2.0-flash-exp:free';
 
   console.log('Using AI model:', selectedModel);
+  console.log('Selected sections for optimization:', selectedSections);
+
+  const sectionInstructions = selectedSections.map(section => {
+    switch(section) {
+      case 'summary':
+        return "- Enhance the summary to better align with the job requirements while maintaining authenticity";
+      case 'experience':
+        return "- Rewrite experience descriptions to highlight relevant skills and achievements that match the job requirements";
+      case 'skills':
+        return "- Add relevant missing skills and reorder existing skills based on job importance";
+      default:
+        return `- Optimize the ${section} section to better match the job requirements`;
+    }
+  }).join('\n');
 
   const prompt = `
-    As an AI resume optimizer, analyze this job description and resume, then suggest specific improvements:
+    As an AI resume optimizer, analyze this job description and resume, then optimize ONLY the following sections:
+    ${sectionInstructions}
 
     Job Description:
     ${jobDescription}
@@ -43,13 +63,23 @@ async function getAIOptimizedContent(resumeContent: any, jobDescription: string,
     Analysis Results:
     ${analysis.analysis_text}
 
-    Please optimize the resume content to better match the job requirements while maintaining truthfulness and professional standards. Focus on:
-    1. Enhancing skill descriptions
-    2. Rephrasing experience to highlight relevant capabilities
-    3. Adding missing keywords naturally
-    4. Maintaining the original structure and truthfulness
+    Important Guidelines:
+    1. Only modify the sections specified above
+    2. Maintain truthfulness and professional standards
+    3. Keep the same structure and format
+    4. Preserve all other sections exactly as they are
+    5. For experience entries:
+       - Highlight relevant achievements
+       - Use strong action verbs
+       - Quantify results where possible
+    6. For skills:
+       - Add missing relevant skills
+       - Prioritize skills mentioned in the job description
+    7. For summary:
+       - Focus on relevant experience and skills
+       - Keep it concise and impactful
 
-    Return only the optimized resume content in valid JSON format, matching the original structure.
+    Return only the optimized resume content in valid JSON format, matching the original structure exactly.
   `;
 
   try {
@@ -75,6 +105,7 @@ async function getAIOptimizedContent(resumeContent: any, jobDescription: string,
     }
 
     const data = await response.json();
+    console.log('AI Response received, parsing optimized content...');
     const optimizedContent = JSON.parse(data.choices[0].message.content);
     return optimizedContent;
   } catch (error) {
@@ -83,27 +114,55 @@ async function getAIOptimizedContent(resumeContent: any, jobDescription: string,
   }
 }
 
-export async function optimizeContent(resumeContent: any, missingKeywords: { keyword: string; priority: string }[], jobDescription: string, analysis: JobAnalysis) {
+export async function optimizeContent(
+  resumeContent: any, 
+  missingKeywords: { keyword: string; priority: string }[], 
+  jobDescription: string, 
+  analysis: JobAnalysis,
+  selectedSections: string[]
+) {
   console.log('Starting resume optimization with AI...');
+  console.log('Selected sections:', selectedSections);
   
   try {
-    // Get AI-optimized content
-    const aiOptimizedContent = await getAIOptimizedContent(resumeContent, jobDescription, analysis);
+    // Get AI-optimized content with selected sections
+    const aiOptimizedContent = await getAIOptimizedContent(
+      resumeContent, 
+      jobDescription, 
+      analysis,
+      selectedSections
+    );
     
-    // Ensure all missing keywords are included
-    const finalContent = {
-      ...aiOptimizedContent,
-      skills: [...new Set([...aiOptimizedContent.skills, ...missingKeywords.map(k => k.keyword)])],
-    };
+    // Merge the optimized content with original content
+    const finalContent = { ...resumeContent };
+    
+    // Only update the selected sections
+    selectedSections.forEach(section => {
+      if (aiOptimizedContent[section]) {
+        finalContent[section] = aiOptimizedContent[section];
+      }
+    });
+
+    // Always ensure skills are properly merged
+    if (selectedSections.includes('skills')) {
+      finalContent.skills = [...new Set([
+        ...(finalContent.skills || []),
+        ...missingKeywords.map(k => k.keyword)
+      ])];
+    }
 
     console.log('Resume optimization completed successfully');
     return finalContent;
   } catch (error) {
     console.error('Failed to optimize resume with AI:', error);
     // Fallback to basic optimization if AI fails
-    return {
-      ...resumeContent,
-      skills: [...new Set([...resumeContent.skills, ...missingKeywords.map(k => k.keyword)])],
-    };
+    const finalContent = { ...resumeContent };
+    if (selectedSections.includes('skills')) {
+      finalContent.skills = [...new Set([
+        ...(resumeContent.skills || []),
+        ...missingKeywords.map(k => k.keyword)
+      ])];
+    }
+    return finalContent;
   }
 }
