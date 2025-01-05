@@ -120,20 +120,31 @@ export function useJobs() {
       
       console.log("Starting job analysis for job ID:", jobId);
       
-      const response = await supabase.functions.invoke('analyze-job', {
-        body: { jobId, userId: session.user.id },
-      });
-      
-      if (response.error) {
-        if (response.error.status === 429) {
-          throw new Error("Rate limit reached. Please wait a moment and try again.");
+      try {
+        const response = await supabase.functions.invoke('analyze-job', {
+          body: { jobId, userId: session.user.id },
+        });
+        
+        if (response.error) {
+          // Handle rate limit error specifically
+          if (response.error.status === 429) {
+            const retryAfter = 60; // Default to 60 seconds if not provided
+            throw new Error(`Rate limit reached. Please try again in ${retryAfter} seconds.`);
+          }
+          console.error("Error in analyze-job function:", response.error);
+          throw response.error;
         }
-        console.error("Error in analyze-job function:", response.error);
-        throw response.error;
+        
+        console.log("Analysis response:", response.data);
+        return response.data;
+      } catch (error: any) {
+        // If it's already a rate limit error, rethrow it
+        if (error.message.includes('Rate limit')) {
+          throw error;
+        }
+        // For other errors, throw a generic error
+        throw new Error("Failed to analyze job. Please try again.");
       }
-      
-      console.log("Analysis response:", response.data);
-      return response.data;
     },
     onSuccess: () => {
       refetch();
@@ -142,11 +153,11 @@ export function useJobs() {
         description: "Job analysis completed successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Error analyzing job:", error);
       toast({
         title: "Analysis Error",
-        description: error.message || "Failed to analyze job. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     },

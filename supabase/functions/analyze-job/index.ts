@@ -8,6 +8,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple rate limiting implementation
+const RATE_LIMIT_WINDOW = 60000; // 1 minute in milliseconds
+const RATE_LIMIT_MAX_REQUESTS = 5; // Maximum requests per window
+const requestLog = new Map<string, number[]>();
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const userRequests = requestLog.get(userId) || [];
+  
+  // Clean up old requests
+  const recentRequests = userRequests.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
+  requestLog.set(userId, recentRequests);
+  
+  return recentRequests.length >= RATE_LIMIT_MAX_REQUESTS;
+}
+
+function logRequest(userId: string) {
+  const userRequests = requestLog.get(userId) || [];
+  userRequests.push(Date.now());
+  requestLog.set(userId, userRequests);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,6 +38,29 @@ serve(async (req) => {
   try {
     const { jobId, userId } = await req.json();
     console.log(`Starting analysis for job ${jobId} and user ${userId}`);
+    
+    // Check rate limit
+    if (isRateLimited(userId)) {
+      console.log(`Rate limit exceeded for user ${userId}`);
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          message: 'Please wait a moment and try again',
+          retryAfter: 60,
+        }),
+        { 
+          status: 429,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+
+    // Log the request
+    logRequest(userId);
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
