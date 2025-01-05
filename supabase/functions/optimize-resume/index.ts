@@ -19,38 +19,86 @@ serve(async (req) => {
       throw new Error('Missing required parameters: jobId or userId')
     }
 
-    // Fetch required data
-    const [jobAnalysisResult, profileResult, jobResult] = await Promise.all([
-      fetchJobAnalysis(jobId, userId),
+    // Fetch job analysis first
+    const jobAnalysisResult = await fetchJobAnalysis(jobId, userId)
+    console.log('Job analysis result:', jobAnalysisResult)
+    
+    if (jobAnalysisResult.error) {
+      console.error('Error fetching job analysis:', jobAnalysisResult.error)
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to fetch job analysis',
+          details: jobAnalysisResult.error
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
+
+    if (!jobAnalysisResult.data) {
+      console.error('No job analysis found')
+      return new Response(
+        JSON.stringify({
+          error: 'No job analysis found. Please analyze the job first.',
+          details: null
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404
+        }
+      )
+    }
+
+    // Fetch profile and job in parallel after confirming job analysis exists
+    const [profileResult, jobResult] = await Promise.all([
       fetchProfile(userId),
       fetchJob(jobId),
     ])
 
-    // Handle potential errors
-    if (jobAnalysisResult.error) {
-      console.error('Error fetching job analysis:', jobAnalysisResult.error)
-      throw new Error('Failed to fetch job analysis')
-    }
-
+    // Handle profile error
     if (profileResult.error) {
       console.error('Error fetching profile:', profileResult.error)
-      throw new Error('Failed to fetch profile')
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to fetch profile',
+          details: profileResult.error
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
     }
 
+    // Handle job error
     if (jobResult.error) {
       console.error('Error fetching job:', jobResult.error)
-      throw new Error('Failed to fetch job')
-    }
-
-    // Validate required data
-    if (!jobAnalysisResult.data) {
-      console.error('No job analysis found')
-      throw new Error('No job analysis found. Please analyze the job first.')
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to fetch job',
+          details: jobResult.error
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
     }
 
     if (!jobResult.data) {
       console.error('No job found')
-      throw new Error('Job not found')
+      return new Response(
+        JSON.stringify({
+          error: 'Job not found',
+          details: null
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404
+        }
+      )
     }
 
     console.log('Successfully fetched all required data')
@@ -59,54 +107,63 @@ serve(async (req) => {
     const existingResumeResult = await checkExistingOptimizedResume(jobId, userId)
     console.log('Existing resume check:', existingResumeResult.data ? 'Found' : 'Not found')
 
-    // Generate optimized content
-    const optimizedContent = await generateOptimizedResume(
-      originalResume || profileResult.data?.content,
-      jobResult.data,
-      jobAnalysisResult.data.analysis_text
-    )
+    try {
+      // Generate optimized content
+      const optimizedContent = await generateOptimizedResume(
+        originalResume || profileResult.data?.content,
+        jobResult.data,
+        jobAnalysisResult.data.analysis_text
+      )
 
-    // Prepare resume data
-    const resumeData = {
-      user_id: userId,
-      job_id: jobId,
-      content: optimizedContent,
-      match_score: jobAnalysisResult.data.match_score || 0,
-      optimization_status: 'completed',
-      version_name: 'Optimized Resume',
+      // Prepare resume data
+      const resumeData = {
+        user_id: userId,
+        job_id: jobId,
+        content: optimizedContent,
+        match_score: jobAnalysisResult.data.match_score || 0,
+        optimization_status: 'completed',
+        version_name: 'Optimized Resume',
+      }
+
+      // Update or create optimized resume
+      let result
+      if (existingResumeResult.data?.id) {
+        console.log('Updating existing optimized resume')
+        result = await updateOptimizedResume(existingResumeResult.data.id, resumeData)
+      } else {
+        console.log('Creating new optimized resume')
+        result = await createOptimizedResume(resumeData)
+      }
+
+      if (result.error) {
+        throw result.error
+      }
+
+      console.log('Successfully saved optimized resume')
+
+      return new Response(
+        JSON.stringify({
+          optimizedResume: result.data,
+          message: 'Resume optimization completed successfully'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    } catch (error) {
+      console.error('Error in resume optimization:', error)
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to optimize resume',
+          details: error.message
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        }
+      )
     }
-
-    // Update or create optimized resume
-    let result
-    if (existingResumeResult.data?.id) {
-      console.log('Updating existing optimized resume')
-      result = await updateOptimizedResume(existingResumeResult.data.id, resumeData)
-    } else {
-      console.log('Creating new optimized resume')
-      result = await createOptimizedResume(resumeData)
-    }
-
-    if (result.error) {
-      throw result.error
-    }
-
-    if (!result.data) {
-      throw new Error('Failed to save optimized resume')
-    }
-
-    console.log('Successfully saved optimized resume')
-
-    return new Response(
-      JSON.stringify({
-        optimizedResume: result.data,
-        message: 'Resume optimization completed successfully'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
-    )
-
   } catch (error) {
     console.error('Error in optimize-resume function:', error)
     
