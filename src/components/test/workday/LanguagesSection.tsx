@@ -97,13 +97,13 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id={`nativeLanguage-${index}`} 
-                checked={lang.isNative} 
+                checked={lang.isNative}
                 onCheckedChange={(checked) => updateLanguage(index, 'isNative', Boolean(checked))}
               />
               <Label htmlFor={`nativeLanguage-${index}`}>I am fluent in this language.</Label>
             </div>
 
-            {['Reading', 'Speaking', 'Translation', 'Writing'].map((type, idx) => (
+            {['Reading', 'Speaking', 'Translation', 'Writing'].map((type) => (
               <div key={type}>
                 <Label>
                   {type} Proficiency <span className="text-red-500">*</span>
@@ -112,7 +112,7 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
                   value={lang[`${type.toLowerCase()}Proficiency` as keyof Language]}
                   onValueChange={(value) => updateLanguage(index, `${type.toLowerCase()}Proficiency` as keyof Language, value)}
                 >
-                  <SelectTrigger data-automation-id={`languageProficiency-${index}-${idx}`}>
+                  <SelectTrigger data-automation-id={`languageProficiency-${index}-${type}`}>
                     <SelectValue placeholder="Select proficiency" />
                   </SelectTrigger>
                   <SelectContent>
