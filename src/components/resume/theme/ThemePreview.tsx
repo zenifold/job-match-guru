@@ -12,6 +12,7 @@ export function ThemePreview({ settings }: ThemePreviewProps) {
       email: "john@example.com",
       phone: "(555) 123-4567",
       location: "New York, NY",
+      summary: "Experienced professional with a track record of success",
     },
     experience: [
       {
@@ -19,7 +20,12 @@ export function ThemePreview({ settings }: ThemePreviewProps) {
         position: "Senior Developer",
         startDate: "2020",
         endDate: "Present",
-        description: "Led development of key features",
+        description: "Led development of key features and managed team initiatives",
+        keyResponsibilities: [
+          "Managed team of 5 developers",
+          "Implemented new features",
+          "Improved performance by 50%"
+        ]
       },
     ],
     education: [
@@ -31,13 +37,16 @@ export function ThemePreview({ settings }: ThemePreviewProps) {
         endDate: "2020",
       },
     ],
-    skills: ["JavaScript", "React", "Node.js", "TypeScript"],
+    skills: ["JavaScript", "React", "Node.js", "TypeScript", "UI/UX Design"],
   };
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="bg-white shadow rounded-lg">
-        <ResumeTemplate data={previewData} themeSettings={settings} />
+      <div className="bg-white shadow rounded-lg transform scale-[0.8] origin-top">
+        <ResumeTemplate 
+          data={previewData} 
+          themeSettings={settings} 
+        />
       </div>
     </div>
   );

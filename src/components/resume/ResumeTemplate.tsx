@@ -28,21 +28,21 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
           <title>${data.personalInfo?.fullName || 'Resume'}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
+              font-family: ${themeSettings?.font?.family || 'Arial'}, sans-serif;
+              line-height: ${themeSettings?.spacing?.lineHeight || '1.6'};
+              color: ${themeSettings?.colors?.primary || '#333'};
               max-width: 800px;
               margin: 40px auto;
               padding: 20px;
             }
-            h1 { font-size: 24px; margin-bottom: 8px; }
-            h2 { font-size: 20px; margin-top: 24px; margin-bottom: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-            .contact-info { color: #666; margin-bottom: 24px; }
+            h1 { font-size: ${themeSettings?.font?.size?.heading || '24px'}; margin-bottom: 8px; }
+            h2 { font-size: ${themeSettings?.font?.size?.subheading || '20px'}; margin-top: 24px; margin-bottom: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+            .contact-info { color: ${themeSettings?.colors?.secondary || '#666'}; margin-bottom: 24px; }
             .experience-item, .education-item { margin-bottom: 20px; }
-            .date { color: #666; font-size: 14px; }
+            .date { color: ${themeSettings?.colors?.secondary || '#666'}; font-size: 14px; }
             .skills { display: flex; flex-wrap: wrap; gap: 8px; }
             .skill-tag {
-              background: #f3f4f6;
+              background: ${themeSettings?.colors?.accent ? themeSettings.colors.accent + '20' : '#f3f4f6'};
               padding: 4px 12px;
               border-radius: 4px;
               font-size: 14px;
@@ -57,7 +57,6 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
           <div class="no-print" style="margin-bottom: 20px;">
             <button onclick="window.print()">Print/Save as PDF</button>
           </div>
-
           ${data.personalInfo ? `
             <header>
               <h1>${data.personalInfo.fullName}</h1>
@@ -137,7 +136,7 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
       color: themeSettings?.colors?.primary || '#1a1a1a'
     },
     mainContent: columns === 2 ? 'w-2/3 pr-6' : 'w-full',
-    sidebar: columns === 2 ? 'w-1/3 pl-6 bg-[#F1F0FB] p-4 rounded-lg' : ''
+    sidebar: columns === 2 ? `w-1/3 pl-6 ${themeSettings?.colors?.sidebar ? 'bg-[' + themeSettings.colors.sidebar + ']' : 'bg-[#F1F0FB]'} p-4 rounded-lg` : ''
   };
 
   return (
@@ -150,24 +149,42 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
       </div>
 
       <div id="resume-content">
-        <ResumeHeader data={data.personalInfo} themeSettings={themeSettings} />
+        <ResumeHeader 
+          data={data.personalInfo} 
+          themeSettings={themeSettings} 
+        />
         
         <div className={`mt-6 ${columns === 2 ? 'flex gap-6' : ''}`}>
           <div className={styles.mainContent}>
-            <ResumeExperience data={data.experience} themeSettings={themeSettings} />
+            <ResumeExperience 
+              data={data.experience} 
+              themeSettings={themeSettings} 
+            />
             {columns === 1 && (
               <>
-                <ResumeEducation data={data.education} themeSettings={themeSettings} />
-                <ResumeSkills data={data.skills} themeSettings={themeSettings} />
+                <ResumeEducation 
+                  data={data.education} 
+                  themeSettings={themeSettings} 
+                />
+                <ResumeSkills 
+                  data={data.skills} 
+                  themeSettings={themeSettings} 
+                />
               </>
             )}
           </div>
           
           {columns === 2 && (
             <div className={styles.sidebar}>
-              <ResumeEducation data={data.education} themeSettings={themeSettings} />
+              <ResumeEducation 
+                data={data.education} 
+                themeSettings={themeSettings} 
+              />
               <div className="mt-6">
-                <ResumeSkills data={data.skills} themeSettings={themeSettings} />
+                <ResumeSkills 
+                  data={data.skills} 
+                  themeSettings={themeSettings} 
+                />
               </div>
             </div>
           )}
