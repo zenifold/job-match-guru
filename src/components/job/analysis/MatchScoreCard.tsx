@@ -6,9 +6,15 @@ interface MatchScoreCardProps {
   matchScore: number;
   matchedCount: number;
   missingCount: number;
+  totalRequirements: number;
 }
 
-export function MatchScoreCard({ matchScore, matchedCount, missingCount }: MatchScoreCardProps) {
+export function MatchScoreCard({ 
+  matchScore, 
+  matchedCount, 
+  missingCount,
+  totalRequirements 
+}: MatchScoreCardProps) {
   const getMatchScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
@@ -41,9 +47,7 @@ export function MatchScoreCard({ matchScore, matchedCount, missingCount }: Match
             <div className="text-sm text-slate-600">Missing Skills</div>
           </div>
           <div className="text-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">
-              {matchedCount + missingCount}
-            </div>
+            <div className="text-2xl font-bold text-blue-600">{totalRequirements}</div>
             <div className="text-sm text-slate-600">Total Requirements</div>
           </div>
         </div>

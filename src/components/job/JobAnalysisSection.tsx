@@ -55,6 +55,37 @@ export function JobAnalysisSection({
     }
   });
 
+  // Calculate match statistics
+  const totalRequirements = targetKeywords.length;
+  const matchedCount = matchedKeywords.length;
+  const missingCount = Math.max(0, totalRequirements - matchedCount);
+
+  // Calculate weighted match score
+  const calculateWeightedScore = () => {
+    if (totalRequirements === 0) return 0;
+
+    const weights = {
+      critical: 1.5,
+      high: 1.25,
+      medium: 1,
+      standard: 0.75
+    };
+
+    const totalWeightedMatches = matchedKeywords.reduce((acc, { priority }) => {
+      return acc + (weights[priority as keyof typeof weights] || weights.standard);
+    }, 0);
+
+    const totalPossibleWeight = targetKeywords.reduce((acc, { priority }) => {
+      return acc + (weights[priority as keyof typeof weights] || weights.standard);
+    }, 0);
+
+    return totalPossibleWeight > 0 
+      ? (totalWeightedMatches / totalPossibleWeight) * 100 
+      : 0;
+  };
+
+  const matchScore = calculateWeightedScore();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -89,9 +120,10 @@ export function JobAnalysisSection({
       
       <div className="space-y-6">
         <MatchScoreCard 
-          matchScore={job.analysis.match_score}
-          matchedCount={matchedKeywords.length}
-          missingCount={0}
+          matchScore={matchScore}
+          matchedCount={matchedCount}
+          missingCount={missingCount}
+          totalRequirements={totalRequirements}
         />
 
         <div className="grid grid-cols-1 gap-6">
@@ -105,7 +137,7 @@ export function JobAnalysisSection({
 
         <AIAssistantChat
           jobTitle={job.title}
-          matchScore={job.analysis.match_score}
+          matchScore={matchScore}
           matchedKeywords={matchedKeywords}
           missingKeywords={[]}
         />
