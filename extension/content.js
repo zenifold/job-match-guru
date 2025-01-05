@@ -1,9 +1,7 @@
-import { selectors } from './utils/selectors';
+import { formDetectionService } from './services/formDetectionService';
+import { dataTransformService } from './services/dataTransformService';
 import { findContent, extractStructuredData, extractRequirements } from './utils/contentExtractor';
-import { fieldMap, fillFormField } from './utils/formFiller';
-import { handleSpecialInputs } from './utils/specialInputHandler';
-import { formatFormData } from './utils/dataFormatter';
-import { calculateYearsOfExperience } from './utils/experienceCalculator';
+import { selectors } from './utils/selectors';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'extractJobDetails') {
@@ -52,18 +50,54 @@ function extractJobDetails() {
 function autofillForm(data) {
   console.log('Starting form autofill with data:', data);
   
-  const formData = formatFormData(data);
+  try {
+    // Transform the resume data
+    const transformedData = dataTransformService.transformResumeData(data);
+    
+    // Detect form fields
+    const detectedFields = formDetectionService.detectFormFields();
+    
+    // Fill each detected field
+    detectedFields.forEach(field => {
+      const elements = document.querySelectorAll(field.selector);
+      elements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          const value = field.dataPath.reduce((obj, key) => obj?.[key], transformedData);
+          
+          if (value !== undefined && formDetectionService.validateField(element, value)) {
+            fillFormField(element, value, field.type);
+          }
+        }
+      });
+    });
 
-  // Attempt to fill each field type
-  Object.entries(fieldMap).forEach(([field, selectors]) => {
-    console.log(`Attempting to fill ${field} field`);
-    for (const selector of selectors) {
-      fillFormField(selector, formData[field]);
-    }
-  });
+    console.log('Form autofill completed successfully');
+  } catch (error) {
+    console.error('Error during form autofill:', error);
+  }
+}
 
-  // Handle special cases like radio buttons and checkboxes
-  handleSpecialInputs(data);
-
-  console.log('Form autofill completed');
+function fillFormField(element: HTMLElement, value: any, type: string) {
+  switch (type) {
+    case 'text':
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+        element.value = value;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      break;
+    case 'select':
+      if (element instanceof HTMLSelectElement) {
+        const options = Array.from(element.options);
+        const bestMatch = options.find(option => 
+          option.text.toLowerCase().includes(String(value).toLowerCase())
+        );
+        if (bestMatch) {
+          element.value = bestMatch.value;
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+      break;
+    // Add more cases for other input types
+  }
 }
