@@ -9,10 +9,7 @@
     "scripting"
   ],
   "host_permissions": [
-    "*://*.linkedin.com/*",
-    "*://*.indeed.com/*",
-    "*://*.workday.com/*",
-    "*://*.greenhouse.io/*"
+    "*://*.workday.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -25,10 +22,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.linkedin.com/*",
-        "*://*.indeed.com/*",
-        "*://*.workday.com/*",
-        "*://*.greenhouse.io/*"
+        "*://*.workday.com/*"
       ],
       "js": ["content.js"]
     }
