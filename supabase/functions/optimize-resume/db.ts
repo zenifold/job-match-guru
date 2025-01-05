@@ -12,7 +12,8 @@ export async function getJobAnalysis(jobId: string, userId: string): Promise<Job
     .select('analysis_text, match_score')
     .eq('job_id', jobId)
     .eq('user_id', userId)
-    .maybeSingle();
+    .order('created_at', { ascending: false })  // Get the most recent analysis
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error fetching job analysis:', error);
@@ -32,7 +33,7 @@ export async function getProfile(userId: string): Promise<Profile> {
     .from('profiles')
     .select('content')
     .eq('user_id', userId)
-    .maybeSingle();
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error fetching profile:', error);
@@ -52,7 +53,7 @@ export async function getJob(jobId: string): Promise<Job> {
     .from('jobs')
     .select('title, description')
     .eq('id', jobId)
-    .maybeSingle();
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error fetching job:', error);
@@ -75,7 +76,7 @@ export async function getExistingOptimizedResume(userId: string, jobId: string):
     .eq('job_id', jobId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error checking for existing optimized resume:', error);
@@ -91,7 +92,7 @@ export async function updateOptimizedResume(id: string, data: Partial<OptimizedR
     .update(data)
     .eq('id', id)
     .select()
-    .maybeSingle();
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error updating optimized resume:', error);
@@ -114,7 +115,7 @@ export async function createOptimizedResume(data: {
     .from('optimized_resumes')
     .insert(data)
     .select()
-    .maybeSingle();
+    .maybeSingle();  // Changed from single() to maybeSingle()
 
   if (error) {
     console.error('Error creating optimized resume:', error);
