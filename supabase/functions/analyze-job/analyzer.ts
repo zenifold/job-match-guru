@@ -13,41 +13,37 @@ Then analyze the match between the job requirements and resume, focusing on:
 3. Soft skills and qualifications
 4. Years of experience if specified
 
-Provide a detailed analysis in the following format:
+You MUST provide the analysis in EXACTLY this format:
 
-"Company:" (if found in the description)
-- List the company name, or "Not specified" if not found
+Company: [Company Name or "Not specified"]
 
-"Match Score Analysis:"
-- Calculate and show "Overall Match: X%" based on skills and experience match
+Match Score Analysis:
+Overall Match: [X]%
 
-Then list sections in this order:
+Strong Matches:
+✓ [Matching skill/experience] (Priority Level)
+[List each match with ✓ prefix and priority level in parentheses]
 
-"Strong Matches:"
-- List each matching skill/experience with ✓ prefix
-- Include priority level in parentheses (Critical, High, Medium, Standard)
-- Group by type: Technical Skills, Industry Experience, Soft Skills
+Target Keywords:
+- [Required skill/keyword] (Priority Level)
+[List each keyword with - prefix and priority level in parentheses]
 
-"Target Keywords:"
-- List specific technical skills and software from the job description
-- Include priority level in parentheses
-- Focus on concrete, actionable skills
+Required Experience:
+- [Required experience] (Priority Level)
+[List each experience with - prefix and priority level in parentheses]
 
-"Required Experience:"
-- List specific industry experience or expertise needed
-- Include years of experience if mentioned
-- Include priority level in parentheses
+Suggested Improvements:
+- [Improvement suggestion] (Priority Level)
+[List each suggestion with - prefix and priority level in parentheses]
 
-"Suggested Improvements:"
-- List missing skills or areas for improvement with bullet points
-- Include priority level in parentheses
-- Focus on actionable items
-
-Keep the format consistent and structured for parsing. Use priority levels (Critical, High, Medium, Standard) for all items.
-Prioritize technical skills and specific experience requirements over generic terms.`;
+Priority levels MUST be one of: Critical, High, Medium, or Standard.
+Each section MUST be present and formatted exactly as shown above.
+Use clear section headers and consistent formatting throughout.`;
 }
 
 export function parseAIResponse(aiData: any): string {
+  console.log('Parsing AI response:', aiData);
+  
   if (aiData.choices?.[0]?.message?.content) {
     return aiData.choices[0].message.content;
   } 
@@ -57,18 +53,26 @@ export function parseAIResponse(aiData: any): string {
   if (typeof aiData.choices?.[0] === 'string') {
     return aiData.choices[0];
   }
+  
   console.error('Unexpected AI response format:', aiData);
   throw new Error('Invalid AI response format');
 }
 
 export function extractMatchScore(analysisText: string): number {
   const matchScoreMatch = analysisText.match(/Overall Match: (\d+)%/);
-  return matchScoreMatch ? parseInt(matchScoreMatch[1]) : 0;
+  if (!matchScoreMatch) {
+    console.error('Failed to extract match score from:', analysisText);
+    throw new Error('Invalid analysis format - missing match score');
+  }
+  return parseInt(matchScoreMatch[1]);
 }
 
 export function extractCompany(analysisText: string): string | null {
   const companySection = analysisText.split('\n').find(line => line.startsWith('Company:'));
-  if (!companySection) return null;
+  if (!companySection) {
+    console.error('Failed to extract company from:', analysisText);
+    throw new Error('Invalid analysis format - missing company section');
+  }
   
   const company = companySection.replace('Company:', '').trim();
   return company === 'Not specified' ? null : company;

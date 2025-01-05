@@ -41,7 +41,7 @@ serve(async (req) => {
       );
     }
 
-    // Check rate limit only for new analyses
+    // Check rate limit
     const isRateLimited = await checkRateLimit(supabase, userId);
     if (isRateLimited) {
       console.log(`Rate limit exceeded for user ${userId}`);
@@ -108,47 +108,57 @@ serve(async (req) => {
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
-        ]
+        ],
+        temperature: 0.7, // Add temperature for more consistent outputs
+        max_tokens: 1000, // Limit response length
       })
     });
 
-    const aiData = await aiResponse.json();
-    console.log('AI Response:', aiData);
-
     if (!aiResponse.ok) {
-      console.error('OpenRouter API Error:', aiData);
-      throw new Error(`Failed to get AI analysis: ${JSON.stringify(aiData)}`);
+      console.error('OpenRouter API Error:', await aiResponse.text());
+      throw new Error(`OpenRouter API error: ${aiResponse.status}`);
     }
 
-    const analysisText = parseAIResponse(aiData);
-    const matchScore = extractMatchScore(analysisText);
-    const company = extractCompany(analysisText);
+    const aiData = await aiResponse.json();
+    console.log('Raw AI Response:', JSON.stringify(aiData, null, 2));
 
-    // Cache the results
-    await cacheAnalysis(supabase, jobId, userId, analysisText, matchScore);
+    try {
+      const analysisText = parseAIResponse(aiData);
+      
+      // Validate analysis text format
+      if (!analysisText.includes('Match Score Analysis:') || 
+          !analysisText.includes('Strong Matches:') ||
+          !analysisText.includes('Target Keywords:') ||
+          !analysisText.includes('Required Experience:')) {
+        console.error('Invalid analysis format:', analysisText);
+        throw new Error('Invalid analysis format - missing required sections');
+      }
 
-    // Update job with company if found
-    if (company) {
-      await supabase
-        .from('jobs')
-        .update({ company })
-        .eq('id', jobId);
+      const matchScore = extractMatchScore(analysisText);
+      const company = extractCompany(analysisText);
+
+      // Cache the results
+      await cacheAnalysis(supabase, jobId, userId, analysisText, matchScore);
+
+      return new Response(
+        JSON.stringify({ 
+          message: 'Analysis completed successfully',
+          analysisText,
+          matchScore,
+          company
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (parseError) {
+      console.error('Error parsing AI response:', parseError);
+      throw new Error(`Failed to parse AI response: ${parseError.message}`);
     }
 
-    return new Response(
-      JSON.stringify({ 
-        message: 'Analysis completed successfully',
-        analysisText,
-        matchScore,
-        company
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
     console.error('Error in analyze-job function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error.message || 'Internal server error',
         details: error.toString()
       }),
       { 
