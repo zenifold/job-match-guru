@@ -2,7 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { analyzeKeywordImportance } from './keywordExtractor.ts';
-import { JobAnalysis } from './types.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,7 +17,6 @@ serve(async (req) => {
     const { jobId, userId } = await req.json();
     console.log(`Starting analysis for job ${jobId} and user ${userId}`);
     
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -35,11 +32,6 @@ serve(async (req) => {
       console.error('Error fetching job:', jobError);
       throw jobError;
     }
-
-    console.log('Job details:', {
-      title: job.title,
-      descriptionLength: job.description.length
-    });
 
     // Fetch user's resume data
     const { data: profile, error: profileError } = await supabase
@@ -60,8 +52,6 @@ serve(async (req) => {
       ...(resumeContent.experience || []).map((exp: any) => exp.description),
       ...(resumeContent.projects || []).map((proj: any) => proj.description)
     ].join(' ');
-    
-    console.log('Resume text length:', resumeText.length);
 
     // Analyze keywords with importance
     const jobKeywords = analyzeKeywordImportance(job.description, job.title);
@@ -76,8 +66,10 @@ serve(async (req) => {
 
     jobKeywords.forEach(({ keyword, weight }) => {
       totalWeight += weight;
+      const normalizedKeyword = keyword.toLowerCase();
+      const normalizedResumeText = resumeText.toLowerCase();
       
-      if (resumeText.toLowerCase().includes(keyword.toLowerCase())) {
+      if (normalizedResumeText.includes(normalizedKeyword)) {
         matched.push(keyword);
         matchedWeight += weight;
         console.log(`Matched keyword: ${keyword} with weight ${weight}`);
@@ -89,7 +81,7 @@ serve(async (req) => {
       // Categorize importance based on weight
       if (weight >= 2.0) importance[keyword] = "Critical";
       else if (weight >= 1.5) importance[keyword] = "High";
-      else if (weight >= 1.0) importance[keyword] = "Medium";
+      else if (weight >= 1.2) importance[keyword] = "Medium";
       else importance[keyword] = "Standard";
     });
 
@@ -117,16 +109,6 @@ serve(async (req) => {
           analysisText += `• Consider adding experience or skills related to: ${keyword} (${importance[keyword]} Priority)\n`;
         });
     }
-    
-    analysisText += `\nRecommendations:\n`;
-    const criticalMissing = missing
-      .filter(k => importance[k] === "Critical" || importance[k] === "High")
-      .slice(0, 2);
-    
-    if (criticalMissing.length > 0) {
-      analysisText += `• Focus on acquiring skills in: ${criticalMissing.join(', ')}\n`;
-    }
-    analysisText += `• Consider taking relevant courses or certifications\n`;
 
     // Store analysis results
     const { error: analysisError } = await supabase
@@ -145,16 +127,14 @@ serve(async (req) => {
 
     console.log('Analysis completed and stored successfully');
 
-    const response: JobAnalysis = {
-      score: Math.round(matchScore),
-      message: 'Analysis completed successfully',
-      matched,
-      missing,
-      importance
-    };
-
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({ 
+        message: 'Analysis completed successfully',
+        matchScore: Math.round(matchScore),
+        matched,
+        missing,
+        importance
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

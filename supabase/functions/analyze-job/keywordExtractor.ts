@@ -7,7 +7,8 @@ export const KEYWORD_CATEGORIES: { [key: string]: KeywordCategory } = {
     keywords: [
       "Python", "Java", "JavaScript", "SQL", "C++", "HTML", "CSS", "Git", 
       "AWS", "Docker", "Linux", "React", "Angular", "Node.js", "TypeScript",
-      "AutoCAD", "CAD", "CNC Programming", "SCADA"
+      "AutoCAD", "CAD", "CNC Programming", "SCADA", "API", "Cloud", "DevOps",
+      "Kubernetes", "Microservices", "REST", "GraphQL", "CI/CD", "Jenkins"
     ]
   },
   business_skills: {
@@ -15,15 +16,8 @@ export const KEYWORD_CATEGORIES: { [key: string]: KeywordCategory } = {
     keywords: [
       "Project Management", "Business Development", "Strategic Planning",
       "Business Strategy", "Leadership", "Negotiation", "Business Intelligence",
-      "Change Management", "Risk Management", "Business Analysis"
-    ]
-  },
-  industry_knowledge: {
-    weight: 1.3,
-    keywords: [
-      "Manufacturing", "Supply Chain", "Logistics", "Healthcare", "Finance",
-      "Retail", "Construction", "Automotive", "Energy", "Telecommunications",
-      "Maritime", "Aviation", "Real Estate", "Mining"
+      "Change Management", "Risk Management", "Business Analysis", "Agile",
+      "Scrum", "Product Management", "Process Improvement", "Six Sigma"
     ]
   },
   soft_skills: {
@@ -31,53 +25,34 @@ export const KEYWORD_CATEGORIES: { [key: string]: KeywordCategory } = {
     keywords: [
       "Communication", "Problem Solving", "Team Leadership", "Analytical Skills",
       "Customer Service", "Time Management", "Collaboration", "Innovation",
-      "Adaptability", "Critical Thinking"
-    ]
-  },
-  certifications: {
-    weight: 1.6,
-    keywords: [
-      "PMP", "Six Sigma", "ITIL", "CISSP", "CPA", "AWS Certified",
-      "Scrum Master", "Professional Engineer", "ISO"
+      "Adaptability", "Critical Thinking", "Interpersonal Skills", "Mentoring"
     ]
   }
 };
 
 function normalizeText(text: string): string {
-  return text.toLowerCase().replace(/[^\w\s]/g, ' ');
+  return text.toLowerCase()
+    .replace(/[^\w\s-]/g, ' ')  // Replace non-word chars (except hyphen) with space
+    .replace(/\s+/g, ' ')       // Replace multiple spaces with single space
+    .trim();
 }
 
-export function extractSpecializedKeywords(title: string, description: string): KeywordWithWeight[] {
-  console.log('Extracting specialized keywords from:', { title, descriptionLength: description.length });
+// New function to handle multi-word keywords
+function findKeywordMatches(normalizedText: string, keyword: string): number {
+  const normalizedKeyword = normalizeText(keyword);
+  const keywordWords = normalizedKeyword.split(' ');
   
-  const specializedKeywords: KeywordWithWeight[] = [];
-  const normalizedTitle = normalizeText(title);
-  const normalizedDesc = normalizeText(description);
+  // For single-word keywords, use word boundary check
+  if (keywordWords.length === 1) {
+    const regex = new RegExp(`\\b${normalizedKeyword}\\b`, 'gi');
+    const matches = normalizedText.match(regex);
+    return matches ? matches.length : 0;
+  }
   
-  // Create a frequency map for all words
-  const wordFrequency: { [key: string]: number } = {};
-  const words = [...normalizedTitle.split(/\s+/), ...normalizedDesc.split(/\s+/)]
-    .filter(word => word.length > 2);
-  
-  words.forEach(word => {
-    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
-  });
-
-  // Add high-frequency words as specialized keywords
-  Object.entries(wordFrequency)
-    .filter(([word, freq]) => {
-      const commonWords = new Set(['the', 'and', 'for', 'with', 'this', 'that', 'have', 'will']);
-      return !commonWords.has(word) && freq >= 2;
-    })
-    .forEach(([word, freq]) => {
-      const weight = 1.0 + (freq * 0.1); // Base weight plus frequency bonus
-      specializedKeywords.push({
-        keyword: word,
-        weight: Math.min(weight, 2.0) // Cap weight at 2.0
-      });
-    });
-
-  return specializedKeywords;
+  // For multi-word keywords, check for exact phrase
+  const regex = new RegExp(normalizedKeyword, 'gi');
+  const matches = normalizedText.match(regex);
+  return matches ? matches.length : 0;
 }
 
 export function analyzeKeywordImportance(text: string, jobTitle: string): KeywordWithWeight[] {
@@ -89,42 +64,58 @@ export function analyzeKeywordImportance(text: string, jobTitle: string): Keywor
   // Process predefined keywords from categories
   Object.entries(KEYWORD_CATEGORIES).forEach(([category, { keywords, weight }]) => {
     keywords.forEach(keyword => {
-      const normalizedKeyword = normalizeText(keyword);
+      const matches = findKeywordMatches(normalizedText, keyword);
       
-      if (normalizedText.includes(normalizedKeyword)) {
+      if (matches > 0) {
         // Calculate base score from category weight
         let score = weight;
         
-        // Boost score based on frequency
-        const keywordRegex = new RegExp(`\\b${normalizedKeyword}\\b`, 'gi');
-        const frequency = (text.match(keywordRegex) || []).length;
-        score *= (1 + (frequency - 1) * 0.1); // Diminishing returns for frequency
+        // Boost score based on frequency with diminishing returns
+        score *= (1 + Math.log(matches + 1));
         
         // Boost score if keyword appears in title
-        if (normalizedTitle.includes(normalizedKeyword)) {
+        if (findKeywordMatches(normalizedTitle, keyword) > 0) {
           score *= 1.5;
         }
         
         // Additional context-based boosts
         if (category === 'technical_skills' && normalizedTitle.includes('engineer')) {
           score *= 1.2;
-        } else if (category === 'business_skills' && normalizedTitle.includes('manager')) {
+        } else if (category === 'business_skills' && 
+                  (normalizedTitle.includes('manager') || normalizedTitle.includes('lead'))) {
           score *= 1.2;
         }
         
         keywordScores[keyword] = score;
-        console.log(`Found keyword: ${keyword} (${category}) with score: ${score}`);
+        console.log(`Found keyword: ${keyword} (${category}) with score: ${score} (${matches} matches)`);
       }
     });
   });
 
-  // Add specialized keywords
-  const specializedKeywords = extractSpecializedKeywords(jobTitle, text);
-  specializedKeywords.forEach(({ keyword, weight }) => {
-    if (normalizedText.includes(normalizeText(keyword))) {
-      keywordScores[keyword] = (keywordScores[keyword] || 0) + weight;
+  // Extract specialized keywords from the job description
+  const words = normalizedText.split(/\s+/);
+  const wordFrequency: { [key: string]: number } = {};
+  
+  words.forEach(word => {
+    if (word.length > 3) { // Ignore very short words
+      wordFrequency[word] = (wordFrequency[word] || 0) + 1;
     }
   });
+
+  // Add high-frequency specialized keywords
+  Object.entries(wordFrequency)
+    .filter(([word, freq]) => {
+      const commonWords = new Set(['the', 'and', 'for', 'with', 'this', 'that', 'have', 'will', 'about']);
+      return !commonWords.has(word) && freq >= 2;
+    })
+    .forEach(([word, freq]) => {
+      if (!Object.values(KEYWORD_CATEGORIES).some(cat => 
+        cat.keywords.some(k => normalizeText(k).includes(word))
+      )) {
+        const weight = 1.0 + (Math.log(freq) * 0.1);
+        keywordScores[word] = Math.min(weight, 2.0);
+      }
+    });
 
   // Sort keywords by score and return
   return Object.entries(keywordScores)
