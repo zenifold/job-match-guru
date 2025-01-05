@@ -74,6 +74,8 @@ async function autofillForm(data) {
     const transformedData = dataTransformService.transformResumeData(data);
     console.log('Transformed data:', transformedData);
     
+    let detectedFields;
+    
     // Check if this is a Workday page
     if (workdayFormService.isWorkdayPage()) {
       console.log('Detected Workday application form');
@@ -82,7 +84,7 @@ async function autofillForm(data) {
       await workdayFormService.navigateWorkdayForm();
       
       // Get Workday-specific field mappings
-      const detectedFields = workdayFormService.getWorkdayFields();
+      detectedFields = workdayFormService.getWorkdayFields();
       console.log('Detected Workday fields:', detectedFields);
       
       // Handle Workday-specific elements
@@ -90,17 +92,17 @@ async function autofillForm(data) {
     } else {
       // Use default form detection for non-Workday sites
       console.log('Using default form detection...');
-      const detectedFields = formDetectionService.detectFormFields();
+      detectedFields = formDetectionService.detectFormFields();
       console.log('Detected fields:', detectedFields);
     }
 
     // Fill each detected field
     let filledFields = 0;
-    detectedFields.forEach(field => {
+    for (const field of detectedFields) {
       const elements = document.querySelectorAll(field.selector);
       console.log(`Found ${elements.length} elements for selector: ${field.selector}`);
       
-      elements.forEach(element => {
+      for (const element of elements) {
         if (element instanceof HTMLElement) {
           const value = field.dataPath.reduce((obj, key) => obj?.[key], transformedData);
           console.log(`Attempting to fill field ${field.selector} with value:`, value);
@@ -110,8 +112,8 @@ async function autofillForm(data) {
             filledFields++;
           }
         }
-      });
-    });
+      }
+    }
 
     console.log(`Successfully filled ${filledFields} fields`);
 

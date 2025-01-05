@@ -18,61 +18,51 @@ class WorkdayFormService {
   }
 
   public getWorkdayFields(): FormFieldMapping[] {
-    console.log('Detecting Workday form fields...');
+    console.log('Detecting Workday form fields for My Information page...');
     
     return [
-      // Personal Information
+      // Personal Information Section
       {
-        selector: 'input[data-automation-id*="firstName"], input[name*="firstName"]',
+        selector: '[data-automation-id="firstName"], input[name*="firstName"], [aria-label*="First Name"]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'firstName']
       },
       {
-        selector: 'input[data-automation-id*="lastName"], input[name*="lastName"]',
+        selector: '[data-automation-id="lastName"], input[name*="lastName"], [aria-label*="Last Name"]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'lastName']
       },
       {
-        selector: 'input[data-automation-id*="email"], input[type="email"]',
+        selector: '[data-automation-id="addressLine1"], input[name*="addressLine1"], [aria-label*="Address Line 1"]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['personalInfo', 'address']
+      },
+      {
+        selector: '[data-automation-id="city"], input[name*="city"], [aria-label*="City"]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['personalInfo', 'city']
+      },
+      {
+        selector: '[data-automation-id="postalCode"], input[name*="postalCode"], [aria-label*="Postal Code"]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['personalInfo', 'zipCode']
+      },
+      {
+        selector: '[data-automation-id="email"], input[type="email"], [aria-label*="Email"]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'email']
       },
       {
-        selector: 'input[data-automation-id*="phone"], input[type="tel"]',
+        selector: '[data-automation-id="phone"], input[type="tel"], [aria-label*="Phone Number"]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'phone']
-      },
-      // Experience
-      {
-        selector: 'textarea[data-automation-id*="experience"], textarea[name*="workExperience"]',
-        type: 'text',
-        valueType: 'string',
-        dataPath: ['experience']
-      },
-      // Education
-      {
-        selector: 'textarea[data-automation-id*="education"], textarea[name*="education"]',
-        type: 'text',
-        valueType: 'string',
-        dataPath: ['education']
-      },
-      // Skills
-      {
-        selector: 'textarea[data-automation-id*="skills"], textarea[name*="skills"]',
-        type: 'text',
-        valueType: 'string',
-        dataPath: ['skills']
-      },
-      // Resume Upload
-      {
-        selector: 'input[type="file"][data-automation-id*="resume"], input[type="file"][accept*=".pdf"]',
-        type: 'file',
-        valueType: 'file',
-        dataPath: ['resume']
       }
     ];
   }
@@ -80,22 +70,69 @@ class WorkdayFormService {
   public async navigateWorkdayForm(): Promise<void> {
     console.log('Navigating Workday form sections...');
     
-    const sections = Array.from(document.querySelectorAll('[data-automation-id*="section"]'));
-    
-    for (const section of sections) {
-      try {
-        // Click to expand section if needed
-        if (section instanceof HTMLElement) {
-          section.click();
-          // Wait for section to expand
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-        console.log('Navigated to section:', section.textContent);
-      } catch (error) {
-        console.error('Error navigating section:', error);
+    // Handle radio button for previous employment
+    const previousEmploymentNo = document.querySelector('input[type="radio"][value="No"]');
+    if (previousEmploymentNo instanceof HTMLInputElement) {
+      previousEmploymentNo.click();
+      console.log('Selected "No" for previous employment');
+    }
+
+    // Handle phone type dropdown
+    const phoneTypeDropdown = document.querySelector('[data-automation-id="phoneDeviceType"]');
+    if (phoneTypeDropdown instanceof HTMLElement) {
+      phoneTypeDropdown.click();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const mobileOption = document.querySelector('[data-automation-id*="mobile"]');
+      if (mobileOption instanceof HTMLElement) {
+        mobileOption.click();
+        console.log('Selected Mobile as phone type');
       }
     }
+
+    // Handle country code selection
+    const countryCodeDropdown = document.querySelector('[data-automation-id="countryPhoneCode"]');
+    if (countryCodeDropdown instanceof HTMLElement) {
+      countryCodeDropdown.click();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const usOption = document.querySelector('[data-automation-id*="United States"]');
+      if (usOption instanceof HTMLElement) {
+        usOption.click();
+        console.log('Selected United States phone code');
+      }
+    }
+
+    // Handle state selection
+    const stateDropdown = document.querySelector('[data-automation-id="state"]');
+    if (stateDropdown instanceof HTMLElement) {
+      stateDropdown.click();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get state from personal info and select it
+      const stateOption = document.querySelector(`[data-automation-id*="${this.getStateFromPersonalInfo()}"]`);
+      if (stateOption instanceof HTMLElement) {
+        stateOption.click();
+        console.log('Selected state from personal info');
+      }
+    }
+  }
+
+  private getStateFromPersonalInfo(): string {
+    // Extract state from location string (e.g., "Roanoke, VA, USA" -> "Virginia")
+    const stateAbbreviations: { [key: string]: string } = {
+      'VA': 'Virginia',
+      // Add more state mappings as needed
+    };
+
+    const location = document.querySelector('[data-automation-id="location"]')?.textContent;
+    if (location) {
+      const match = location.match(/,\s*([A-Z]{2}),/);
+      if (match && match[1] in stateAbbreviations) {
+        return stateAbbreviations[match[1]];
+      }
+    }
+    return '';
   }
 
   public async handleWorkdaySpecifics(): Promise<void> {
@@ -128,6 +165,8 @@ class WorkdayFormService {
 
     // Initial check
     handleDialog();
+
+    console.log('Workday specific handlers set up successfully');
   }
 }
 
