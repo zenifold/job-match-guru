@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin, Github, Linkedin } from "lucide-react";
+import { CSSProperties } from "react";
 
 interface ResumeHeaderProps {
   data: any;
@@ -10,7 +11,11 @@ export const ResumeHeader = ({ data, themeSettings }: ResumeHeaderProps) => {
 
   const headerStyle = themeSettings?.layout?.headerStyle || 'left-aligned';
   
-  const styles = {
+  const styles: {
+    container: string;
+    heading: CSSProperties;
+    contactInfo: CSSProperties;
+  } = {
     container: `border-b pb-6 ${
       headerStyle === 'centered' ? 'text-center' : ''
     }`,
@@ -22,7 +27,7 @@ export const ResumeHeader = ({ data, themeSettings }: ResumeHeaderProps) => {
     contactInfo: {
       color: themeSettings?.colors?.secondary || '#4a4a4a',
       display: 'flex',
-      flexWrap: 'wrap',
+      flexWrap: 'wrap' as const,
       gap: '1rem',
       justifyContent: headerStyle === 'centered' ? 'center' : 'flex-start'
     }
