@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 interface OptimizedResumeDialogProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function OptimizedResumeDialog({
 }: OptimizedResumeDialogProps) {
   const { toast } = useToast();
   const session = useSession();
+  const navigate = useNavigate();
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   const { data: profile } = useQuery({
@@ -43,42 +45,21 @@ export function OptimizedResumeDialog({
 
     setIsOptimizing(true);
     try {
-      const { data: existingOptimized, error: checkError } = await supabase
-        .from("optimized_resumes")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .eq("job_id", jobId)
-        .maybeSingle();
+      console.log("Starting resume optimization for job:", jobId);
+      
+      const response = await supabase.functions.invoke('optimize-resume', {
+        body: { jobId, userId: session.user.id }
+      });
 
-      if (checkError && checkError.code !== "PGRST116") {
-        throw checkError;
-      }
-
-      if (existingOptimized) {
-        toast({
-          title: "Resume already optimized",
-          description: "An optimized version already exists for this job.",
-        });
-        return;
-      }
-
-      const { error: insertError } = await supabase
-        .from("optimized_resumes")
-        .insert({
-          user_id: session.user.id,
-          job_id: jobId,
-          original_resume_id: profile.id,
-          content: profile.content,
-          version_name: `Optimized for ${jobTitle}`,
-        });
-
-      if (insertError) throw insertError;
+      if (response.error) throw response.error;
 
       toast({
         title: "Success",
-        description: "Resume optimization started. Check the Resumes page for the optimized version.",
+        description: "Resume has been optimized successfully. View it in the Resumes page.",
       });
+      
       onClose();
+      navigate("/resumes");
     } catch (error) {
       console.error("Error optimizing resume:", error);
       toast({

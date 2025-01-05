@@ -1,9 +1,11 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { JobActions } from "@/components/job/JobActions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { BarChart2, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface JobsTableProps {
   jobs: any[];
@@ -13,6 +15,9 @@ interface JobsTableProps {
 }
 
 export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableProps) {
+  const [selectedJob, setSelectedJob] = useState<{ id: string; title: string } | null>(null);
+  const { toast } = useToast();
+
   return (
     <div className="w-full overflow-hidden">
       <div className="min-w-full">
@@ -69,7 +74,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                             size="sm"
                             className="hover:bg-slate-100 flex items-center gap-2"
                             onClick={() => {
-                              console.log("Optimizing resume for job:", job.id);
+                              setSelectedJob({ id: job.id, title: job.title });
                             }}
                           >
                             <RefreshCw className="h-4 w-4" />
@@ -148,6 +153,15 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           ))}
         </Accordion>
       </div>
+
+      {selectedJob && (
+        <OptimizedResumeDialog
+          isOpen={!!selectedJob}
+          onClose={() => setSelectedJob(null)}
+          jobId={selectedJob.id}
+          jobTitle={selectedJob.title}
+        />
+      )}
     </div>
   );
 }
