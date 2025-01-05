@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createSystemPrompt, parseAIResponse, extractMatchScore } from './analyzer.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,10 +39,6 @@ serve(async (req) => {
       throw jobError;
     }
 
-    if (!job) {
-      throw new Error('Job not found');
-    }
-
     // Fetch user's resume data
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -54,10 +51,6 @@ serve(async (req) => {
       throw profileError;
     }
 
-    if (!profile) {
-      throw new Error('Profile not found');
-    }
-
     // Extract resume text
     const resumeContent = profile.content;
     const resumeText = [
@@ -66,40 +59,7 @@ serve(async (req) => {
       ...(resumeContent.projects || []).map((proj: any) => proj.description || '')
     ].filter(Boolean).join(' ');
 
-    // Enhanced system prompt for better structured analysis
-    const systemPrompt = `You are an AI assistant analyzing job requirements and resume match.
-    
-    Job Title: ${job.title}
-    Job Description: ${job.description}
-    
-    Resume Content: ${resumeText}
-    
-    Analyze the match between the job requirements and resume. Provide a detailed analysis in the following format:
-
-    1. Start with "Match Score Analysis:"
-    2. Calculate and show "Overall Match: X%" based on skills and experience match
-    3. List sections in this order:
-
-    "Strong Matches:"
-    - List each matching skill/experience with ✓ prefix
-    - Include priority level in parentheses (Critical, High, Medium, Standard)
-    
-    "Target Keywords:"
-    - List specific technical skills and keywords from the job description
-    - Include priority level in parentheses
-    - Focus on concrete, actionable skills
-    
-    "Required Experience:"
-    - List specific experience areas or subject matter expertise needed
-    - Include years of experience if mentioned
-    - Include priority level in parentheses
-    
-    "Suggested Improvements:"
-    - List missing skills or areas for improvement with bullet points
-    - Include priority level in parentheses
-    - Focus on actionable items
-
-    Keep the format consistent and structured for parsing. Use priority levels (Critical, High, Medium, Standard) for all items.`;
+    const systemPrompt = createSystemPrompt(job.title, job.description, resumeText);
 
     console.log('Sending analysis request to OpenRouter API');
 
@@ -128,7 +88,7 @@ serve(async (req) => {
         JSON.stringify({
           error: 'Rate limit exceeded',
           message: 'Please wait a moment and try again',
-          retryAfter: 60, // Suggest waiting 60 seconds
+          retryAfter: 60,
         }),
         { 
           status: 429,
@@ -141,30 +101,15 @@ serve(async (req) => {
       );
     }
 
-    // Handle other potential errors
     if (!aiResponse.ok) {
       console.error('OpenRouter API Error:', aiData);
       throw new Error(`Failed to get AI analysis: ${JSON.stringify(aiData)}`);
     }
 
-    // Handle OpenRouter's specific response format for Gemini
-    let analysisText;
-    if (aiData.choices?.[0]?.message?.content) {
-      analysisText = aiData.choices[0].message.content;
-    } else if (aiData.choices?.[0]?.content) {
-      analysisText = aiData.choices[0].content;
-    } else if (typeof aiData.choices?.[0] === 'string') {
-      analysisText = aiData.choices[0];
-    } else {
-      console.error('Unexpected AI response format:', aiData);
-      throw new Error('Invalid AI response format');
-    }
-
+    const analysisText = parseAIResponse(aiData);
     console.log('AI Analysis:', analysisText);
 
-    // Extract match score from AI response
-    const matchScoreMatch = analysisText.match(/Overall Match: (\d+)%/);
-    const matchScore = matchScoreMatch ? parseInt(matchScoreMatch[1]) : 0;
+    const matchScore = extractMatchScore(analysisText);
 
     // Store analysis results
     const { error: analysisError } = await supabase
