@@ -14,6 +14,7 @@ import Preview from "./pages/Preview"
 import Resumes from "./pages/Resumes"
 import Dashboard from "./pages/Dashboard"
 import Settings from "./pages/Settings"
+import TestEnvironment from "./pages/TestEnvironment"
 
 import "./App.css"
 
@@ -35,6 +36,7 @@ function App() {
               <Route path="/preview" element={<Preview />} />
               <Route path="/resumes" element={<Resumes />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/test-environment" element={<TestEnvironment />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
