@@ -70,9 +70,5 @@ export interface SectionProps {
 }
 
 export interface ApplicationQuestionsSectionProps extends SectionProps {
-  value?: { [key: string]: string };
-}
-
-export interface VoluntaryDisclosuresSectionProps extends SectionProps {
-  value?: { [key: string]: boolean | string };
+  employer?: string;
 }
