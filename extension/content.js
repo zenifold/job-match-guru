@@ -64,7 +64,9 @@ function autofillForm(data) {
     education: data.education?.map(edu =>
       `${edu.degree} in ${edu.field} from ${edu.school} (${edu.startDate} - ${edu.endDate || 'Present'})`
     ).join('\n\n'),
-    skills: data.skills?.join(', ') || ''
+    skills: data.skills?.join(', ') || '',
+    visaStatus: data.personalInfo?.visaStatus || '',
+    yearsOfExperience: calculateYearsOfExperience(data.experience)
   };
 
   // Attempt to fill each field type
@@ -75,5 +77,57 @@ function autofillForm(data) {
     }
   });
 
+  // Handle special cases like radio buttons and checkboxes
+  handleSpecialInputs(data);
+
   console.log('Form autofill completed');
+}
+
+function calculateYearsOfExperience(experience) {
+  if (!experience?.length) return '0-2';
+  
+  const totalMonths = experience.reduce((total, exp) => {
+    const startDate = new Date(exp.startDate);
+    const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+    const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                  (endDate.getMonth() - startDate.getMonth());
+    return total + months;
+  }, 0);
+  
+  const years = Math.floor(totalMonths / 12);
+  
+  if (years < 2) return '0-2';
+  if (years < 5) return '3-5';
+  if (years < 10) return '5-10';
+  return '10+';
+}
+
+function handleSpecialInputs(data) {
+  // Handle radio buttons
+  const radioGroups = document.querySelectorAll('input[type="radio"]');
+  radioGroups.forEach(radio => {
+    const name = radio.getAttribute('name')?.toLowerCase();
+    if (!name) return;
+    
+    if (name.includes('visa') || name.includes('work')) {
+      const value = radio.value.toLowerCase();
+      if (value.includes(data.personalInfo?.visaStatus?.toLowerCase())) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  });
+
+  // Handle checkboxes
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    const label = checkbox.parentElement?.textContent?.toLowerCase();
+    if (!label) return;
+    
+    // Match skills
+    if (data.skills?.some(skill => label.includes(skill.toLowerCase()))) {
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
 }

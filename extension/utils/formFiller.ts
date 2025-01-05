@@ -26,16 +26,21 @@ export const fieldMap = {
     '#input-phone',
     '[data-test="application-phone"]'
   ],
-  resume: [
-    'textarea[name*="resume" i]',
-    'textarea[id*="resume" i]',
-    'textarea[placeholder*="resume" i]',
-    'textarea[aria-label*="resume" i]',
-    '.ql-editor',
-    '[contenteditable="true"]',
-    '[data-test-form-element="resume-input"]',
-    '#input-resume',
-    '[data-test="application-resume"]'
+  linkedin: [
+    'input[name*="linkedin" i]',
+    'input[placeholder*="linkedin" i]',
+    'input[aria-label*="linkedin" i]',
+    '[data-test-form-element="linkedin-input"]',
+    '#input-linkedin',
+    '[data-test="application-linkedin"]'
+  ],
+  website: [
+    'input[name*="website" i]',
+    'input[placeholder*="website" i]',
+    'input[aria-label*="website" i]',
+    '[data-test-form-element="website-input"]',
+    '#input-website',
+    '[data-test="application-website"]'
   ],
   experience: [
     'textarea[name*="experience" i]',
@@ -63,22 +68,6 @@ export const fieldMap = {
     '#input-skills',
     '[data-test="application-skills"]',
     'div[contenteditable][aria-label*="skills" i]'
-  ],
-  linkedin: [
-    'input[name*="linkedin" i]',
-    'input[placeholder*="linkedin" i]',
-    'input[aria-label*="linkedin" i]',
-    '[data-test-form-element="linkedin-input"]',
-    '#input-linkedin',
-    '[data-test="application-linkedin"]'
-  ],
-  website: [
-    'input[name*="website" i]',
-    'input[placeholder*="website" i]',
-    'input[aria-label*="website" i]',
-    '[data-test-form-element="website-input"]',
-    '#input-website',
-    '[data-test="application-website"]'
   ],
   visaStatus: [
     'select[name*="visa" i]',

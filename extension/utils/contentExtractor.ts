@@ -21,12 +21,21 @@ export function extractStructuredData(): any {
 }
 
 export function extractRequirements(): string {
-  return Array.from(document.querySelectorAll('ul li, ol li'))
+  const requirementsList = Array.from(document.querySelectorAll('ul li, ol li'))
     .map(li => li.innerText.trim())
     .filter(text => 
       text.toLowerCase().includes('require') || 
       text.toLowerCase().includes('skill') ||
       text.toLowerCase().includes('experience')
-    )
-    .join('\n');
+    );
+
+  // Also check for requirements in paragraphs
+  const requirementsParagraphs = Array.from(document.querySelectorAll('p'))
+    .map(p => p.innerText.trim())
+    .filter(text => 
+      text.toLowerCase().includes('requirements:') || 
+      text.toLowerCase().includes('qualifications:')
+    );
+
+  return [...requirementsList, ...requirementsParagraphs].join('\n');
 }
