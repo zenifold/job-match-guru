@@ -53,6 +53,18 @@ serve(async (req) => {
 
     if (jobError) throw jobError;
 
+    // Check if an optimized resume already exists
+    const { data: existingOptimizedResume, error: existingError } = await supabase
+      .from('optimized_resumes')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('job_id', jobId)
+      .single();
+
+    if (existingError && existingError.code !== 'PGRST116') { // PGRST116 means no rows found
+      throw existingError;
+    }
+
     // Create optimized version of the resume content
     const resumeContent = profile.content;
     const optimizedContent = {
@@ -61,22 +73,45 @@ serve(async (req) => {
       experience: optimizeExperience(resumeContent.experience, analysis.analysis_text),
     };
 
-    // Store optimized resume
-    const { data: optimizedResume, error: insertError } = await supabase
-      .from('optimized_resumes')
-      .insert({
-        user_id: userId,
-        job_id: jobId,
-        original_resume_id: profile.id,
-        content: optimizedContent,
-        match_score: analysis.match_score,
-        version_name: `Optimized for ${job.title}`,
-        optimization_status: 'completed'
-      })
-      .select()
-      .single();
+    let optimizedResume;
+    
+    if (existingOptimizedResume) {
+      console.log(`Updating existing optimized resume for job ${jobId}`);
+      // Update existing optimized resume
+      const { data: updatedResume, error: updateError } = await supabase
+        .from('optimized_resumes')
+        .update({
+          content: optimizedContent,
+          match_score: analysis.match_score,
+          optimization_status: 'completed',
+          version_name: `Optimized for ${job.title} (Updated)`
+        })
+        .eq('id', existingOptimizedResume.id)
+        .select()
+        .single();
 
-    if (insertError) throw insertError;
+      if (updateError) throw updateError;
+      optimizedResume = updatedResume;
+    } else {
+      console.log(`Creating new optimized resume for job ${jobId}`);
+      // Store new optimized resume
+      const { data: newResume, error: insertError } = await supabase
+        .from('optimized_resumes')
+        .insert({
+          user_id: userId,
+          job_id: jobId,
+          original_resume_id: profile.id,
+          content: optimizedContent,
+          match_score: analysis.match_score,
+          version_name: `Optimized for ${job.title}`,
+          optimization_status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      optimizedResume = newResume;
+    }
 
     console.log(`Resume optimization completed for job ${jobId}`);
 
