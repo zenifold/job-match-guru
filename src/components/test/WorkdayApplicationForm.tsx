@@ -2,30 +2,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { SourceSection } from "./workday/SourceSection";
-import { LegalNameSection } from "./workday/LegalNameSection";
-import { AddressSection } from "./workday/AddressSection";
-import { ContactSection } from "./workday/ContactSection";
-import { ExperienceSection } from "./workday/ExperienceSection";
-import { EducationSection } from "./workday/EducationSection";
-import { LanguagesSection } from "./workday/LanguagesSection";
-import { WebsitesSection } from "./workday/WebsitesSection";
-import { ApplicationQuestionsSection } from "./workday/ApplicationQuestionsSection";
-import { VoluntaryDisclosuresSection } from "./workday/VoluntaryDisclosuresSection";
 import { WorkdayTemplateSelector } from "../workday/WorkdayTemplateSelector";
 import { useToast } from "@/hooks/use-toast";
 import { validateWorkdayForm } from "@/utils/workdayFormValidation";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
+import { WorkdayFormData } from "@/types/workdayForm";
+import { WorkdayFormSteps } from "./workday/WorkdayFormSteps";
 
 export function WorkdayApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<WorkdayFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const session = useSession();
 
-  const handleTemplateLoad = (templateData: any) => {
+  const handleTemplateLoad = (templateData: WorkdayFormData) => {
     setFormData(templateData);
     toast({
       title: "Template Loaded",
@@ -33,13 +25,13 @@ export function WorkdayApplicationForm() {
     });
   };
 
-  const handleFormChange = (newData: any) => {
+  const handleFormChange = (newData: Partial<WorkdayFormData>) => {
     const updatedFormData = { ...formData, ...newData };
     setFormData(updatedFormData);
     autoSaveForm(updatedFormData);
   };
 
-  const autoSaveForm = async (data: any) => {
+  const autoSaveForm = async (data: WorkdayFormData) => {
     if (!session?.user?.id) return;
 
     try {
@@ -106,47 +98,6 @@ export function WorkdayApplicationForm() {
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <>
-            <SourceSection onChange={handleFormChange} value={formData.source} />
-            <div className="border-t pt-6">
-              <LegalNameSection onChange={handleFormChange} value={formData.personalInfo} />
-            </div>
-            <div className="border-t pt-6">
-              <AddressSection onChange={handleFormChange} value={formData.address} />
-            </div>
-            <div className="border-t pt-6">
-              <ContactSection onChange={handleFormChange} value={formData.contact} />
-            </div>
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <ExperienceSection onChange={handleFormChange} value={formData.experience} />
-            <div className="border-t pt-6">
-              <EducationSection onChange={handleFormChange} value={formData.education} />
-            </div>
-            <div className="border-t pt-6">
-              <LanguagesSection onChange={handleFormChange} value={formData.languages} />
-            </div>
-            <div className="border-t pt-6">
-              <WebsitesSection onChange={handleFormChange} value={formData.websites} />
-            </div>
-          </>
-        );
-      case 3:
-        return <ApplicationQuestionsSection onChange={handleFormChange} value={formData.applicationQuestions} />;
-      case 4:
-        return <VoluntaryDisclosuresSection onChange={handleFormChange} value={formData.voluntaryDisclosures} />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <Card className="p-6">
       <div className="space-y-6">
@@ -173,7 +124,11 @@ export function WorkdayApplicationForm() {
         />
 
         <form className="space-y-8">
-          {renderStep()}
+          <WorkdayFormSteps 
+            currentStep={currentStep}
+            formData={formData}
+            onChange={handleFormChange}
+          />
 
           <div className="flex justify-between pt-4 border-t">
             <Button
