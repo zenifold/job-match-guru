@@ -22,8 +22,24 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
   const { toast } = useToast();
 
   const handleUpdate = () => {
-    // Trigger a refetch of the jobs data
     window.location.reload();
+  };
+
+  const handleReanalyze = async (jobId: string) => {
+    try {
+      await onAnalyze(jobId);
+      toast({
+        title: "Analysis Complete",
+        description: "Job has been re-analyzed successfully.",
+      });
+    } catch (error) {
+      console.error("Error re-analyzing job:", error);
+      toast({
+        title: "Analysis Error",
+        description: "Failed to re-analyze job. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -72,6 +88,18 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                             onClick={() => setShowAnalysisInfo({ jobId: job.id, title: job.title })}
                           >
                             <Info className="h-4 w-4 text-slate-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="ml-2"
+                            onClick={() => handleReanalyze(job.id)}
+                            disabled={isAnalyzing}
+                          >
+                            <RefreshCw className={cn(
+                              "h-4 w-4 text-slate-600",
+                              isAnalyzing && "animate-spin"
+                            )} />
                           </Button>
                         </h3>
                         <div className="flex items-center gap-4">
