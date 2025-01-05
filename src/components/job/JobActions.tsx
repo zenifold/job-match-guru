@@ -8,6 +8,7 @@ import {
 import { MoreHorizontal, Trash, FileText } from "lucide-react";
 import { useState } from "react";
 import { JobDetailsDialog } from "./JobDetailsDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Job {
   id: string;
@@ -19,12 +20,34 @@ interface Job {
 
 interface JobActionsProps {
   job: Job;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
   onUpdate: () => void;
 }
 
 export const JobActions = ({ job, onDelete, onUpdate }: JobActionsProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete(job.id);
+      toast({
+        title: "Success",
+        description: "Job deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete job. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <>
@@ -42,10 +65,11 @@ export const JobActions = ({ job, onDelete, onUpdate }: JobActionsProps) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
-            onClick={() => onDelete(job.id)}
+            onClick={handleDelete}
+            disabled={isDeleting}
           >
             <Trash className="mr-2 h-4 w-4" />
-            Delete
+            {isDeleting ? "Deleting..." : "Delete"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
