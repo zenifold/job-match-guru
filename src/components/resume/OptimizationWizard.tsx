@@ -64,6 +64,50 @@ export function OptimizationWizard({
     );
   };
 
+  const optimizeResume = async () => {
+    setIsOptimizing(true);
+    try {
+      console.log("Starting optimization with sections:", selectedSections);
+      console.log("Original resume being sent:", originalResume);
+      
+      const response = await supabase.functions.invoke('optimize-resume', {
+        body: { 
+          jobId,
+          userId: session?.user?.id,
+          sections: selectedSections,
+          originalResume
+        }
+      });
+
+      if (response.error) {
+        console.error('Optimization error:', response.error);
+        throw response.error;
+      }
+      
+      console.log("Optimization response:", response.data);
+      
+      if (!response.data?.optimizedResume) {
+        throw new Error('No optimized resume data received');
+      }
+
+      setOptimizedResume(response.data.optimizedResume);
+      
+      toast({
+        title: "Success",
+        description: "Your resume has been optimized successfully.",
+      });
+    } catch (error) {
+      console.error('Error optimizing resume:', error);
+      toast({
+        title: "Optimization failed",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   const handleNext = async () => {
     if (currentStep === 0 && selectedSections.length === 0) {
       toast({
@@ -75,49 +119,8 @@ export function OptimizationWizard({
     }
 
     if (currentStep === 0) {
-      setIsOptimizing(true);
       setCurrentStep(currentStep + 1);
-      
-      try {
-        console.log("Starting optimization with sections:", selectedSections);
-        console.log("Original resume being sent:", originalResume);
-        
-        const response = await supabase.functions.invoke('optimize-resume', {
-          body: { 
-            jobId,
-            userId: session?.user?.id,
-            sections: selectedSections,
-            originalResume
-          }
-        });
-
-        if (response.error) {
-          console.error('Optimization error:', response.error);
-          throw response.error;
-        }
-        
-        console.log("Optimization response:", response.data);
-        
-        if (!response.data?.optimizedResume) {
-          throw new Error('No optimized resume data received');
-        }
-
-        setOptimizedResume(response.data.optimizedResume);
-        
-        toast({
-          title: "Success",
-          description: "Your resume has been optimized successfully.",
-        });
-      } catch (error) {
-        console.error('Error optimizing resume:', error);
-        toast({
-          title: "Optimization failed",
-          description: "Please try again later",
-          variant: "destructive",
-        });
-      } finally {
-        setIsOptimizing(false);
-      }
+      await optimizeResume();
     } else {
       setCurrentStep(currentStep + 1);
     }
@@ -154,6 +157,7 @@ export function OptimizationWizard({
                 originalResume={originalResume}
                 optimizedResume={optimizedResume}
                 isLoading={isOptimizing}
+                onRefresh={optimizeResume}
               />
             )}
 
