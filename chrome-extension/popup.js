@@ -7,7 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Helper function to update status
   function updateStatus(message, isError = false) {
     statusDiv.textContent = message;
-    statusDiv.className = isError ? 'text-red-500' : 'text-green-500';
+    statusDiv.className = isError ? 'text-error' : 'text-success';
+    
+    // Auto-hide status after 5 seconds
+    setTimeout(() => {
+      statusDiv.textContent = '';
+      statusDiv.className = '';
+    }, 5000);
   }
 
   // Handle analyze job button click
