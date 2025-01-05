@@ -10,6 +10,7 @@ import { ExperienceSection } from "./workday/ExperienceSection";
 import { EducationSection } from "./workday/EducationSection";
 import { LanguagesSection } from "./workday/LanguagesSection";
 import { WebsitesSection } from "./workday/WebsitesSection";
+import { ApplicationQuestionsSection } from "./workday/ApplicationQuestionsSection";
 
 export function WorkdayApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -46,6 +47,8 @@ export function WorkdayApplicationForm() {
             </div>
           </>
         );
+      case 3:
+        return <ApplicationQuestionsSection employer="Walmart" />;
       default:
         return null;
     }
@@ -58,7 +61,14 @@ export function WorkdayApplicationForm() {
           <h2 className="text-xl font-bold">Workday Application</h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Check className="w-4 h-4" />
-            <span>Step {currentStep} of 2: {currentStep === 1 ? 'My Information' : 'My Experience'}</span>
+            <span>
+              Step {currentStep} of 3:{" "}
+              {currentStep === 1
+                ? "My Information"
+                : currentStep === 2
+                ? "My Experience"
+                : "Application Questions"}
+            </span>
           </div>
         </div>
 
@@ -69,7 +79,7 @@ export function WorkdayApplicationForm() {
             <Button
               variant="outline"
               type="button"
-              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
               disabled={currentStep === 1}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -77,10 +87,10 @@ export function WorkdayApplicationForm() {
             </Button>
             <Button
               type="button"
-              onClick={() => setCurrentStep(prev => Math.min(2, prev + 1))}
+              onClick={() => setCurrentStep((prev) => Math.min(3, prev + 1))}
             >
-              {currentStep === 2 ? 'Submit' : 'Next'}
-              {currentStep < 2 && <ArrowRight className="w-4 h-4 ml-2" />}
+              {currentStep === 3 ? "Submit" : "Next"}
+              {currentStep < 3 && <ArrowRight className="w-4 h-4 ml-2" />}
             </Button>
           </div>
         </form>
