@@ -95,8 +95,8 @@ export const VoluntaryDisclosuresSection = ({ onChange, value = {} }: VoluntaryD
           <Checkbox 
             id="terms" 
             data-automation-id="agreementCheckbox"
-            checked={value.terms || false}
-            onCheckedChange={(checked) => onChange?.({ ...value, terms: checked })}
+            checked={value.terms === true}
+            onCheckedChange={(checked) => onChange?.({ ...value, terms: checked === true })}
           />
           <Label htmlFor="terms" className="text-sm">
             Yes, I have read and consent to the Terms and Conditions

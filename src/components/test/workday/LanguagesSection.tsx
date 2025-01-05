@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { SectionProps } from "@/types/workdayForm";
+import { useState } from "react";
 
 interface Language {
   language: string;
@@ -127,3 +128,4 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
     </div>
   );
 };
+

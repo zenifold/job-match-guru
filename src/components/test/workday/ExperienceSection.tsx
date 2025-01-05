@@ -67,7 +67,16 @@ export const ExperienceSection = ({ onChange, value = [] }: ExperienceSectionPro
       [field]: value
     };
     setExperiences(newExperiences);
-    onChange?.({ experience: newExperiences });
+    onChange?.({ 
+      experience: newExperiences.map(exp => ({
+        title: exp.jobTitle,
+        company: exp.company,
+        startDate: exp.startDate,
+        endDate: exp.endDate,
+        current: exp.currentlyWorkHere,
+        description: exp.description
+      }))
+    });
   };
 
   return (

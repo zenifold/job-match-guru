@@ -17,6 +17,18 @@ interface WorkdayFormStepsProps {
 }
 
 export const WorkdayFormSteps = ({ currentStep, formData, onChange }: WorkdayFormStepsProps) => {
+  const mapExperienceData = (data: any[]) => {
+    return data.map(exp => ({
+      jobTitle: exp.title,
+      company: exp.company,
+      location: "",
+      currentlyWorkHere: exp.current,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      description: exp.description
+    }));
+  };
+
   switch (currentStep) {
     case 1:
       return (
@@ -36,7 +48,7 @@ export const WorkdayFormSteps = ({ currentStep, formData, onChange }: WorkdayFor
     case 2:
       return (
         <>
-          <ExperienceSection onChange={onChange} value={formData.experience} />
+          <ExperienceSection onChange={onChange} value={mapExperienceData(formData.experience || [])} />
           <div className="border-t pt-6">
             <EducationSection onChange={onChange} value={formData.education} />
           </div>
