@@ -37,3 +37,20 @@ export interface FormFieldMapping {
   valueType: 'string' | 'date' | 'boolean';
   dataPath: string[];
 }
+
+export interface AnalysisResult {
+  success: boolean;
+  matchScore: number;
+  matches: string[];
+  suggestions?: string[];
+  personalInfo?: {
+    fullName: string;
+    email: string;
+    phone: string;
+  };
+  professionalInfo?: {
+    yearsOfExperience: string;
+    visaStatus: string;
+    willingToRelocate: boolean;
+  };
+}

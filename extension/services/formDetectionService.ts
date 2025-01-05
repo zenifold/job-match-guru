@@ -19,18 +19,47 @@ class FormDetectionService {
   private initializeFieldMappings() {
     this.fieldMappings = [
       {
-        selector: 'input[name*="name" i], input[id*="name" i]',
+        selector: 'input[name*="name" i], input[id*="name" i], input[placeholder*="name" i]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'fullName']
       },
       {
-        selector: 'input[type="email"], input[name*="email" i]',
+        selector: 'input[type="email"], input[name*="email" i], input[placeholder*="email" i]',
         type: 'text',
         valueType: 'string',
         dataPath: ['personalInfo', 'email']
       },
-      // Add more field mappings as needed
+      {
+        selector: 'input[type="tel"], input[name*="phone" i], input[placeholder*="phone" i]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['personalInfo', 'phone']
+      },
+      {
+        selector: 'input[name*="linkedin" i], input[placeholder*="linkedin" i]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['personalInfo', 'linkedin']
+      },
+      {
+        selector: 'textarea[name*="experience" i], textarea[placeholder*="experience" i]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['experience']
+      },
+      {
+        selector: 'textarea[name*="education" i], textarea[placeholder*="education" i]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['education']
+      },
+      {
+        selector: 'textarea[name*="skills" i], textarea[placeholder*="skills" i]',
+        type: 'text',
+        valueType: 'string',
+        dataPath: ['skills']
+      }
     ];
   }
 
@@ -48,7 +77,16 @@ class FormDetectionService {
   }
 
   public validateField(element: HTMLElement, value: any): boolean {
-    // Add validation logic here
+    if (element instanceof HTMLInputElement) {
+      switch (element.type) {
+        case 'email':
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value));
+        case 'tel':
+          return /^[\d\s\-+()]+$/.test(String(value));
+        default:
+          return true;
+      }
+    }
     return true;
   }
 }

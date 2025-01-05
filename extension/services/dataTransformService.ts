@@ -1,4 +1,4 @@
-import { ResumeData, JobDetails } from '../types';
+import { ResumeData } from '../types';
 
 class DataTransformService {
   private static instance: DataTransformService;

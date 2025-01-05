@@ -2,6 +2,7 @@ import { formDetectionService } from './services/formDetectionService';
 import { dataTransformService } from './services/dataTransformService';
 import { findContent, extractStructuredData, extractRequirements } from './utils/contentExtractor';
 import { selectors } from './utils/selectors';
+import { handleSpecialInputs } from './utils/specialInputHandler';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'extractJobDetails') {
@@ -71,13 +72,16 @@ function autofillForm(data) {
       });
     });
 
+    // Handle special inputs like radio buttons and checkboxes
+    handleSpecialInputs(data);
+
     console.log('Form autofill completed successfully');
   } catch (error) {
     console.error('Error during form autofill:', error);
   }
 }
 
-function fillFormField(element: HTMLElement, value: any, type: string) {
+function fillFormField(element, value, type) {
   switch (type) {
     case 'text':
       if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
@@ -98,6 +102,5 @@ function fillFormField(element: HTMLElement, value: any, type: string) {
         }
       }
       break;
-    // Add more cases for other input types
   }
 }
