@@ -87,7 +87,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                       <div className="space-y-6">
                         <Card className="bg-white">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold text-slate-900">
+                            <CardTitle className="text-base font-semibold text-slate-900 text-left">
                               Strong Matches
                             </CardTitle>
                           </CardHeader>
@@ -98,7 +98,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                               .map((match: string, idx: number) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200"
+                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-green-50 text-slate-700 border border-green-200"
                                 >
                                   {match.replace('✓', '').trim()}
                                 </span>
@@ -108,7 +108,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
 
                         <Card className="bg-white">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold text-slate-900">
+                            <CardTitle className="text-base font-semibold text-slate-900 text-left">
                               Suggested Improvements
                             </CardTitle>
                           </CardHeader>
@@ -119,7 +119,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                               .map((improvement: string, idx: number) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200"
+                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-50 text-slate-700 border border-blue-200"
                                 >
                                   {improvement.replace('•', '').trim()}
                                 </span>
