@@ -1,16 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ThemeSelector } from "./ThemeSelector";
-import { FontCustomizer } from "./FontCustomizer";
-import { ColorSchemeSelector } from "./ColorSchemeSelector";
-import { LayoutCustomizer } from "./LayoutCustomizer";
-import { SpacingCustomizer } from "./SpacingCustomizer";
-import { ThemePreview } from "./ThemePreview";
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { CustomizerTabs } from "./CustomizerTabs";
+import { ThemePreview } from "./ThemePreview";
 
 interface ThemeCustomizerDialogProps {
   open: boolean;
@@ -23,7 +18,6 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
   const [activeTheme, setActiveTheme] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
 
-  // Load initial theme settings
   useEffect(() => {
     if (open && session?.user?.id) {
       const loadDefaultTheme = async () => {
@@ -43,12 +37,6 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
       loadDefaultTheme();
     }
   }, [open, session?.user?.id]);
-
-  const handleThemeSelect = (theme: any) => {
-    console.log("Selected theme:", theme);
-    setActiveTheme(theme);
-    setSettings(theme.settings);
-  };
 
   const handleSave = async () => {
     try {
@@ -86,62 +74,15 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
         
         <div className="grid grid-cols-2 gap-6 h-full overflow-hidden">
           <div className="space-y-6 overflow-y-auto pr-4">
-            <Tabs defaultValue="theme" className="w-full">
-              <TabsList className="w-full">
-                <TabsTrigger value="theme">Theme</TabsTrigger>
-                <TabsTrigger value="fonts">Fonts</TabsTrigger>
-                <TabsTrigger value="colors">Colors</TabsTrigger>
-                <TabsTrigger value="layout">Layout</TabsTrigger>
-                <TabsTrigger value="spacing">Spacing</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="theme">
-                <ThemeSelector 
-                  activeTheme={activeTheme} 
-                  onThemeSelect={handleThemeSelect}
-                />
-              </TabsContent>
-              
-              <TabsContent value="fonts">
-                <FontCustomizer 
-                  settings={settings} 
-                  onUpdate={(fontSettings) => setSettings({ 
-                    ...settings, 
-                    font: fontSettings 
-                  })} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="colors">
-                <ColorSchemeSelector 
-                  settings={settings} 
-                  onUpdate={(colorSettings) => setSettings({ 
-                    ...settings, 
-                    colors: colorSettings 
-                  })} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="layout">
-                <LayoutCustomizer 
-                  settings={settings} 
-                  onUpdate={(layoutSettings) => setSettings({ 
-                    ...settings, 
-                    layout: layoutSettings 
-                  })} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="spacing">
-                <SpacingCustomizer 
-                  settings={settings} 
-                  onUpdate={(spacingSettings) => setSettings({ 
-                    ...settings, 
-                    spacing: spacingSettings 
-                  })} 
-                />
-              </TabsContent>
-            </Tabs>
+            <CustomizerTabs 
+              activeTheme={activeTheme}
+              settings={settings}
+              onThemeSelect={(theme) => {
+                setActiveTheme(theme);
+                setSettings(theme.settings);
+              }}
+              onSettingsUpdate={setSettings}
+            />
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
