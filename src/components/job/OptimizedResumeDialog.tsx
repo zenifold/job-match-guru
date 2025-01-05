@@ -40,42 +40,6 @@ export function OptimizedResumeDialog({
     },
   });
 
-  const handleOptimize = async (sections: string[]) => {
-    if (!session?.user || !profile) return;
-
-    try {
-      console.log("Starting resume optimization for job:", jobId);
-      console.log("Optimizing sections:", sections);
-      
-      const response = await supabase.functions.invoke('optimize-resume', {
-        body: { 
-          jobId, 
-          userId: session.user.id,
-          sections 
-        }
-      });
-
-      if (response.error) throw response.error;
-
-      setOptimizationResult(response.data.optimizedResume);
-      
-      toast({
-        title: "Success",
-        description: "Resume has been optimized successfully.",
-      });
-
-      return response.data.optimizedResume;
-    } catch (error) {
-      console.error("Error optimizing resume:", error);
-      toast({
-        title: "Error",
-        description: "Failed to optimize resume. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   const handleComplete = () => {
     onClose();
     navigate("/resumes", { replace: true });
@@ -90,7 +54,7 @@ export function OptimizedResumeDialog({
       onClose={handleComplete}
       originalResume={profile.content}
       jobTitle={jobTitle}
-      onOptimize={handleOptimize}
+      jobId={jobId}
     />
   );
 }
