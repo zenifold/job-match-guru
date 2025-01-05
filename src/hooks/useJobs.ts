@@ -64,12 +64,38 @@ export function useJobs() {
 
   const deleteJobMutation = useMutation({
     mutationFn: async (jobId: string) => {
-      const { error } = await supabase
+      // First, delete related optimized resumes
+      const { error: resumesError } = await supabase
+        .from("optimized_resumes")
+        .delete()
+        .eq("job_id", jobId);
+
+      if (resumesError) {
+        console.error("Error deleting optimized resumes:", resumesError);
+        throw resumesError;
+      }
+
+      // Then, delete related job analyses
+      const { error: analysesError } = await supabase
+        .from("job_analyses")
+        .delete()
+        .eq("job_id", jobId);
+
+      if (analysesError) {
+        console.error("Error deleting job analyses:", analysesError);
+        throw analysesError;
+      }
+
+      // Finally, delete the job itself
+      const { error: jobError } = await supabase
         .from("jobs")
         .delete()
         .eq("id", jobId);
 
-      if (error) throw error;
+      if (jobError) {
+        console.error("Error deleting job:", jobError);
+        throw jobError;
+      }
     },
     onSuccess: () => {
       toast({
@@ -99,7 +125,6 @@ export function useJobs() {
       });
       
       if (response.error) {
-        // Check if it's a rate limit error
         if (response.error.status === 429) {
           throw new Error("Rate limit reached. Please wait a moment and try again.");
         }
