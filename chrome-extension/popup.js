@@ -84,4 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       autoFillBtn.disabled = true;
     }
   }
+
+  // Listen for auth status changes
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === "AUTH_STATUS_CHANGED") {
+      updateAuthUI(message.isAuthenticated);
+    }
+  });
 });

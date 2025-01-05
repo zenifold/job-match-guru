@@ -6,10 +6,12 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "identity"
   ],
   "host_permissions": [
-    "*://*.workday.com/*"
+    "*://*.workday.com/*",
+    "http://localhost:5173/*"
   ],
   "action": {
     "default_popup": "popup.html",
