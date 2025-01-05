@@ -4,123 +4,60 @@
   <title>Resume Optimizer</title>
   <style>
     body {
-      width: 320px;
-      padding: 20px;
+      width: 300px;
+      padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #FFFFFF;
-      color: #222222;
     }
     
     .container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-    
-    .header {
-      display: flex;
-      align-items: center;
       gap: 12px;
-      margin-bottom: 8px;
-    }
-    
-    .header h2 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #222222;
-    }
-    
-    .icon {
-      width: 24px;
-      height: 24px;
     }
     
     button {
-      background-color: #222222;
+      background-color: #6366f1;
       color: white;
       border: none;
-      padding: 12px 16px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s;
     }
     
     button:hover {
-      background-color: #403E43;
+      background-color: #4f46e5;
     }
     
     button:disabled {
-      background-color: #C8C8C9;
+      background-color: #cbd5e1;
       cursor: not-allowed;
     }
     
     #status {
       margin-top: 12px;
-      padding: 12px;
-      border-radius: 6px;
+      padding: 8px;
+      border-radius: 4px;
       font-size: 14px;
-      line-height: 1.4;
     }
     
-    .text-error {
-      color: #DC2626;
-      background-color: #FEE2E2;
+    .text-red-500 {
+      color: #ef4444;
+      background-color: #fee2e2;
     }
     
-    .text-success {
-      color: #059669;
-      background-color: #D1FAE5;
-    }
-
-    .divider {
-      height: 1px;
-      background-color: #E5E7EB;
-      margin: 8px 0;
-    }
-
-    .button-icon {
-      width: 16px;
-      height: 16px;
+    .text-green-500 {
+      color: #22c55e;
+      background-color: #dcfce7;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
-      </svg>
-      <h2>Resume Optimizer</h2>
-    </div>
-    
-    <button id="analyzeJob">
-      <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      Analyze Job
-    </button>
-    
-    <div class="divider"></div>
-    
-    <button id="autoFill">
-      <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-      </svg>
-      Auto-fill Application
-    </button>
-    
+    <h2 style="margin: 0 0 8px 0;">Resume Optimizer</h2>
+    <button id="analyzeJob">Analyze Job</button>
+    <button id="autoFill">Auto-fill Application</button>
     <div id="status"></div>
   </div>
   <script src="popup.js"></script>

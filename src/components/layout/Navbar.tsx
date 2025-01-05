@@ -75,7 +75,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <FileText className="h-6 w-6" />
-          <span className="font-semibold text-lg">Claire</span>
+          <span className="font-semibold text-lg">ResumeAI</span>
         </Link>
         
         {session ? (

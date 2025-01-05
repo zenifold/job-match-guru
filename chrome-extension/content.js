@@ -45,84 +45,7 @@ async function fillApplicationForm(resumeData) {
       element.value = value;
       // Trigger change event to ensure Workday registers the input
       element.dispatchEvent(new Event('change', { bubbles: true }));
-      
-      // Highlight the filled field
-      element.classList.add('resume-optimizer-highlight');
-      
-      // Add tooltip
-      const tooltip = document.createElement('div');
-      tooltip.className = 'resume-optimizer-tooltip';
-      tooltip.textContent = 'Auto-filled from your profile';
-      element.parentElement.appendChild(tooltip);
-      
-      // Remove highlight and tooltip after 3 seconds
-      setTimeout(() => {
-        element.classList.remove('resume-optimizer-highlight');
-        tooltip.remove();
-      }, 3000);
     }
-  }
-
-  // Handle experience section if it exists
-  const experienceContainer = document.querySelector('[data-automation-id="workExperienceSection"]');
-  if (experienceContainer && resumeData.experience?.length > 0) {
-    // Find or click "Add Experience" button if needed
-    const addExperienceBtn = document.querySelector('[data-automation-id="Add Another"]');
-    if (addExperienceBtn) {
-      addExperienceBtn.click();
-    }
-
-    // Wait for fields to be available
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Fill experience fields
-    resumeData.experience.forEach((exp, index) => {
-      const expSection = document.querySelector(`[data-automation-id="workExperience-${index + 1}"]`);
-      if (expSection) {
-        const fields = {
-          'jobTitle': exp.title,
-          'company': exp.company,
-          'startDate': exp.startDate,
-          'endDate': exp.endDate,
-          'description': exp.description
-        };
-
-        Object.entries(fields).forEach(([field, value]) => {
-          const input = expSection.querySelector(`[data-automation-id="${field}"]`);
-          if (input && value) {
-            input.value = value;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        });
-      }
-    });
-  }
-
-  // Handle education section if it exists
-  const educationContainer = document.querySelector('[data-automation-id="educationSection"]');
-  if (educationContainer && resumeData.education?.length > 0) {
-    // Similar logic for education fields
-    resumeData.education.forEach((edu, index) => {
-      const eduSection = document.querySelector(`[data-automation-id="education-${index + 1}"]`);
-      if (eduSection) {
-        const fields = {
-          'school': edu.school,
-          'degree': edu.degree,
-          'field-of-study': edu.field,
-          'startDate': edu.startDate,
-          'endDate': edu.endDate,
-          'gpa': edu.gpa
-        };
-
-        Object.entries(fields).forEach(([field, value]) => {
-          const input = eduSection.querySelector(`[data-automation-id="${field}"]`);
-          if (input && value) {
-            input.value = value;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        });
-      }
-    });
   }
 }
 
@@ -180,8 +103,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 const style = document.createElement('style');
 style.textContent = `
   .resume-optimizer-highlight {
-    border: 2px solid #222222 !important;
-    background-color: rgba(34, 34, 34, 0.05) !important;
+    border: 2px solid #6366f1 !important;
+    background-color: rgba(99, 102, 241, 0.1) !important;
     transition: all 0.3s ease;
   }
   
@@ -194,8 +117,7 @@ style.textContent = `
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 10000;
     font-size: 14px;
-    color: #222222;
-    margin-top: 4px;
+    color: #1a202c;
   }
 `;
 document.head.appendChild(style);
