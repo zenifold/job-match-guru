@@ -7,15 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useResume } from "@/contexts/ResumeContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TestEnvironment() {
   const [showPopup, setShowPopup] = useState(false);
   const { resumeData } = useResume();
+  const { toast } = useToast();
+
+  // Function to show the current resume data being used
+  const showResumeData = () => {
+    console.log("Current resume data:", resumeData);
+    toast({
+      title: "Resume Data Logged",
+      description: "Check the browser console to see the current resume data",
+    });
+  };
 
   return (
     <MainLayout>
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Test Environment</h1>
+        
+        <div className="mb-4 space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={showResumeData}
+            className="mb-4"
+          >
+            Show Current Resume Data
+          </Button>
+        </div>
         
         <Tabs defaultValue="workday" className="w-full">
           <TabsList>
@@ -26,6 +47,15 @@ export default function TestEnvironment() {
 
           <div className="mt-4 relative">
             <TabsContent value="workday">
+              <div className="bg-muted p-4 rounded-lg mb-4">
+                <h3 className="font-medium mb-2">Testing Instructions:</h3>
+                <ol className="list-decimal list-inside space-y-2">
+                  <li>Click "Show Extension" in the top right</li>
+                  <li>Use the "Auto-fill Application" button in the extension</li>
+                  <li>Verify that the form fields are populated correctly</li>
+                  <li>Check console logs for detailed debugging information</li>
+                </ol>
+              </div>
               <WorkdayApplicationForm />
             </TabsContent>
             
