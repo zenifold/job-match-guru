@@ -49,37 +49,50 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
       return;
     }
 
+    if (!settings) {
+      toast({
+        title: "Error",
+        description: "No theme settings to save.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
+      const themeData = {
+        user_id: session.user.id,
+        settings: settings,
+        name: activeTheme?.name || 'Custom Theme',
+        is_default: activeTheme?.is_default || false
+      };
+
+      let error;
+      
       if (activeTheme?.id) {
         // Update existing theme
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('resume_themes')
-          .update({ settings })
+          .update(themeData)
           .eq('id', activeTheme.id)
           .eq('user_id', session.user.id);
-
-        if (error) throw error;
+        error = updateError;
       } else {
         // Create new theme
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('resume_themes')
-          .insert({
-            user_id: session.user.id,
-            name: 'Custom Theme',
-            settings,
-            is_default: false,
-          });
-
-        if (error) throw error;
+          .insert([themeData]);
+        error = insertError;
       }
+
+      if (error) throw error;
 
       toast({
         title: "Success",
         description: "Theme settings saved successfully.",
       });
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving theme:', error);
       toast({
         title: "Error",
