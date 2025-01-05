@@ -8,48 +8,109 @@
       width: 300px;
       padding: 16px;
       font-family: system-ui, -apple-system, sans-serif;
+      background-color: #1A1F2C;
+      color: #FFFFFF;
     }
     button {
       width: 100%;
       padding: 8px;
       margin: 4px 0;
-      border: 1px solid #ccc;
+      border: 1px solid #333333;
       border-radius: 4px;
-      background: #fff;
+      background: #221F26;
+      color: #FFFFFF;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
     }
     button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
     button:hover:not(:disabled) {
-      background: #f0f0f0;
+      background: #333333;
+      border-color: #8B5CF6;
     }
     #status {
       margin: 8px 0;
       padding: 8px;
       border-radius: 4px;
+      background: #222222;
     }
     .text-red-500 {
-      color: #ef4444;
+      color: #EF4444;
     }
     .text-green-500 {
-      color: #22c55e;
+      color: #22C55E;
+    }
+    h2 {
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .icon-purple {
+      color: #8B5CF6;
+    }
+    .icon-blue {
+      color: #0EA5E9;
+    }
+    .icon-pink {
+      color: #D946EF;
     }
   </style>
 </head>
 <body>
-  <h2>Resume Optimizer</h2>
+  <h2>
+    <svg class="icon icon-purple" viewBox="0 0 24 24">
+      <path d="M20 7h-7m7 10h-7M9 7H7a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm0 10H7a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2z"/>
+    </svg>
+    Resume Optimizer
+  </h2>
   
   <div id="authSection">
-    <button id="login">Login with Supabase</button>
-    <button id="logout" style="display: none;">Logout</button>
+    <button id="login">
+      <svg class="icon icon-blue" viewBox="0 0 24 24">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+      </svg>
+      Login with Supabase
+    </button>
+    <button id="logout" style="display: none;">
+      <svg class="icon icon-pink" viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+      </svg>
+      Logout
+    </button>
   </div>
 
   <div id="status"></div>
   
-  <button id="analyzeJob" disabled>Analyze Job & Optimize Resume</button>
-  <button id="autoFill" disabled>Auto-fill Application</button>
+  <button id="analyzeJob" disabled>
+    <svg class="icon icon-blue" viewBox="0 0 24 24">
+      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    Analyze Job & Optimize Resume
+  </button>
+  
+  <button id="autoFill" disabled>
+    <svg class="icon icon-purple" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Auto-fill Application
+  </button>
 
   <script src="popup.js"></script>
 </body>
