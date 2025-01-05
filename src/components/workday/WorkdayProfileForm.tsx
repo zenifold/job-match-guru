@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WorkdayFormData, WorkdayProfile } from "@/types/workday";
+import { WorkdayFormData, WorkdayProfile, isWorkdayFormData } from "@/types/workday";
 
 const initialFormData: WorkdayFormData = {
   personalInfo: {
@@ -56,8 +56,11 @@ export const WorkdayProfileForm = () => {
 
         if (error) throw error;
 
-        if (data) {
-          setFormData(data.content as WorkdayFormData);
+        if (data?.content) {
+          const parsedContent = data.content;
+          if (isWorkdayFormData(parsedContent)) {
+            setFormData(parsedContent);
+          }
         }
       } catch (error) {
         console.error("Error loading Workday profile:", error);
@@ -73,14 +76,12 @@ export const WorkdayProfileForm = () => {
 
     setLoading(true);
     try {
-      const profileData: WorkdayProfile = {
-        user_id: session.user.id,
-        content: formData,
-      };
-
       const { error } = await supabase
         .from("workday_profiles")
-        .upsert(profileData);
+        .upsert({
+          user_id: session.user.id,
+          content: formData as unknown as Json,
+        });
 
       if (error) throw error;
 
