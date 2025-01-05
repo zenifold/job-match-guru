@@ -11,13 +11,15 @@ import { SelectSectionsStep } from "./optimization/SelectSectionsStep";
 import { OptimizingStep } from "./optimization/OptimizingStep";
 import { CompletedStep } from "./optimization/CompletedStep";
 import { WizardFooter } from "./optimization/WizardFooter";
+import { useSession } from "@supabase/auth-helpers-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OptimizationWizardProps {
   isOpen: boolean;
   onClose: () => void;
   originalResume: any;
   jobTitle: string;
-  onOptimize: (sections: string[]) => Promise<any>;
+  jobId: string;
 }
 
 export function OptimizationWizard({
@@ -25,7 +27,7 @@ export function OptimizationWizard({
   onClose,
   originalResume,
   jobTitle,
-  onOptimize,
+  jobId,
 }: OptimizationWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -35,6 +37,7 @@ export function OptimizationWizard({
     "summary",
   ]);
   const { toast } = useToast();
+  const session = useSession();
 
   const steps = [
     {
@@ -72,9 +75,23 @@ export function OptimizationWizard({
     if (currentStep === 1) {
       setIsOptimizing(true);
       try {
-        await onOptimize(selectedSections);
+        const response = await supabase.functions.invoke('optimize-resume', {
+          body: { 
+            jobId,
+            userId: session?.user?.id,
+            sections: selectedSections
+          }
+        });
+
+        if (response.error) throw response.error;
+        
         setCurrentStep(currentStep + 1);
+        toast({
+          title: "Success",
+          description: "Your resume has been optimized successfully.",
+        });
       } catch (error) {
+        console.error('Error optimizing resume:', error);
         toast({
           title: "Optimization failed",
           description: "Please try again later",
