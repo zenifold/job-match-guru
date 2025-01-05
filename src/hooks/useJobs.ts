@@ -99,6 +99,10 @@ export function useJobs() {
       });
       
       if (response.error) {
+        // Check if it's a rate limit error
+        if (response.error.status === 429) {
+          throw new Error("Rate limit reached. Please wait a moment and try again.");
+        }
         console.error("Error in analyze-job function:", response.error);
         throw response.error;
       }
@@ -116,8 +120,8 @@ export function useJobs() {
     onError: (error) => {
       console.error("Error analyzing job:", error);
       toast({
-        title: "Error",
-        description: "Failed to analyze job. Please try again.",
+        title: "Analysis Error",
+        description: error.message || "Failed to analyze job. Please try again.",
         variant: "destructive",
       });
     },

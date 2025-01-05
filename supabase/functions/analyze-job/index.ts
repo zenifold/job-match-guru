@@ -111,7 +111,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-2.1',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
@@ -119,21 +119,47 @@ serve(async (req) => {
       })
     });
 
-    if (!aiResponse.ok) {
-      const errorData = await aiResponse.text();
-      console.error('OpenRouter API Error:', errorData);
-      throw new Error(`Failed to get AI analysis: ${errorData}`);
-    }
-
     const aiData = await aiResponse.json();
     console.log('AI Response:', aiData);
 
-    if (!aiData?.choices?.[0]?.message?.content) {
-      console.error('Unexpected AI response format:', aiData);
-      throw new Error('Invalid AI response format. Response: ' + JSON.stringify(aiData));
+    // Check for rate limit error
+    if (aiData.error?.code === 429) {
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          message: 'Please wait a moment and try again',
+          retryAfter: 60, // Suggest waiting 60 seconds
+        }),
+        { 
+          status: 429,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        }
+      );
     }
 
-    const analysisText = aiData.choices[0].message.content;
+    // Handle other potential errors
+    if (!aiResponse.ok) {
+      console.error('OpenRouter API Error:', aiData);
+      throw new Error(`Failed to get AI analysis: ${JSON.stringify(aiData)}`);
+    }
+
+    // Handle OpenRouter's specific response format for Gemini
+    let analysisText;
+    if (aiData.choices?.[0]?.message?.content) {
+      analysisText = aiData.choices[0].message.content;
+    } else if (aiData.choices?.[0]?.content) {
+      analysisText = aiData.choices[0].content;
+    } else if (typeof aiData.choices?.[0] === 'string') {
+      analysisText = aiData.choices[0];
+    } else {
+      console.error('Unexpected AI response format:', aiData);
+      throw new Error('Invalid AI response format');
+    }
+
     console.log('AI Analysis:', analysisText);
 
     // Extract match score from AI response
