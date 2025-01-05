@@ -35,13 +35,25 @@
       background-color: #dcfce7;
       color: #166534;
     }
+    #auth-section {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    #results {
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
-  <h2>Resume Optimizer</h2>
-  <button id="analyze" class="button">Analyze Job & Optimize Resume</button>
-  <button id="autofill" class="button" disabled>Auto-fill Application</button>
-  <div id="status" class="status"></div>
+  <div id="auth-section"></div>
+  <div id="main-content" style="display: none;">
+    <h2>Resume Optimizer</h2>
+    <button id="analyze" class="button">Analyze Job & Optimize Resume</button>
+    <button id="autofill" class="button" disabled>Auto-fill Application</button>
+    <div id="status" class="status"></div>
+    <div id="results"></div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
