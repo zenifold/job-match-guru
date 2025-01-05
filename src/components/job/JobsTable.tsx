@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { JobActions } from "@/components/job/JobActions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
-import { ChevronDown, FileText, BarChart2, RefreshCw } from "lucide-react";
+import { BarChart2, RefreshCw } from "lucide-react";
 
 interface JobsTableProps {
   jobs: any[];
@@ -27,8 +27,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           {jobs?.map((job) => (
             <AccordionItem value={job.id} key={job.id} className="border-b border-slate-200">
               <div className="grid grid-cols-12 gap-4 px-4 py-3 hover:bg-slate-50 transition-colors">
-                <div className="col-span-4 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-slate-400" />
+                <div className="col-span-4 flex items-center">
                   <span className="font-medium text-slate-700">{job.title}</span>
                 </div>
                 <div className="col-span-3 flex items-center justify-center">
@@ -41,9 +40,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                 </div>
                 <div className="col-span-2 flex items-center justify-end gap-2">
                   <JobActions job={job} onDelete={onDelete} />
-                  <AccordionTrigger className="h-8 w-8 p-0 hover:no-underline">
-                    <ChevronDown className="h-4 w-4 text-slate-500" />
-                  </AccordionTrigger>
+                  <AccordionTrigger className="h-8 w-8 p-0 hover:no-underline" />
                 </div>
               </div>
 
