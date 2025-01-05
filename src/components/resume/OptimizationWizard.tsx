@@ -77,16 +77,19 @@ export function OptimizationWizard({
     if (currentStep === 0) {
       setIsOptimizing(true);
       try {
+        console.log("Starting optimization with sections:", selectedSections);
         const response = await supabase.functions.invoke('optimize-resume', {
           body: { 
             jobId,
             userId: session?.user?.id,
-            sections: selectedSections
+            sections: selectedSections,
+            originalResume // Pass the original resume to the function
           }
         });
 
         if (response.error) throw response.error;
         
+        console.log("Optimization response:", response.data);
         setOptimizedResume(response.data.optimizedResume);
         setCurrentStep(currentStep + 1);
         

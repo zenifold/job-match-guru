@@ -8,6 +8,9 @@ interface ComparisonViewProps {
 }
 
 export function ComparisonView({ originalResume, optimizedResume }: ComparisonViewProps) {
+  console.log("Original Resume:", originalResume);
+  console.log("Optimized Resume:", optimizedResume);
+
   return (
     <div className="grid grid-cols-2 gap-4 h-[600px]">
       <Card className="p-4">
