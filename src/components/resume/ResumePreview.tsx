@@ -15,9 +15,12 @@ export const ResumePreview = ({ data, isOptimized, originalContent }: ResumePrev
     console.log("Downloading PDF...", data);
   };
 
-  const hasChanges = (section: string, field: string, value: any) => {
+  const hasChanges = (section: string, field: string | number, value: any) => {
     if (!isOptimized || !originalContent) return false;
-    return JSON.stringify(originalContent[section]?.[field]) !== JSON.stringify(value);
+    
+    // Convert the field to string if it's a number (for array indices)
+    const fieldKey = field.toString();
+    return JSON.stringify(originalContent[section]?.[fieldKey]) !== JSON.stringify(value);
   };
 
   return (
