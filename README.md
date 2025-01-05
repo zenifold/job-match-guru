@@ -1,69 +1,115 @@
-# Welcome to your Lovable project
+# ResumeAI - Smart Resume Management & Job Application Assistant
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/f1d23918-99d0-474e-96c6-14b50060c99c
+ResumeAI is a comprehensive platform that helps job seekers optimize their resumes and streamline their job application process using AI-powered tools and analytics.
 
-## How can I edit this code?
+## Core Features
 
-There are several ways of editing your application.
+### Resume Management
+- Create and manage multiple resume versions
+- AI-powered resume optimization
+- ATS-friendly formatting
+- Professional templates
+- Version control and history
 
-**Use Lovable**
+### Job Application Tools
+- Job posting analysis
+- Skills gap identification
+- Keyword optimization
+- Match score calculation
+- Application tracking
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f1d23918-99d0-474e-96c6-14b50060c99c) and start prompting.
+### Chrome Extension
+Our Chrome extension enhances your job search by:
+- Analyzing job postings in real-time
+- Auto-filling job applications
+- Providing instant resume match scoring
+- Suggesting resume optimizations
 
-Changes made via Lovable will be committed automatically to this repo.
+### AI Features
+- Smart resume tailoring
+- Skills gap analysis
+- Job requirement matching
+- Interview preparation suggestions
+- Career growth recommendations
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Web Application
+1. Clone the repository
+```bash
+git clone <your-repo-url>
+cd resumeai
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. Install dependencies
+```bash
+npm install
+```
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Chrome Extension Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Build the extension
+```bash
+npm run build:extension
+```
 
-**Use GitHub Codespaces**
+2. Load in Chrome:
+- Open Chrome and navigate to `chrome://extensions/`
+- Enable "Developer mode" in the top right
+- Click "Load unpacked"
+- Select the `dist` folder from this project
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+3. Usage:
+- Navigate to supported job sites (LinkedIn, Indeed, Workday, Greenhouse)
+- Click the extension icon in your toolbar
+- Use "Analyze Job" to analyze the posting
+- Click "Auto-fill" to populate application forms
 
-## What technologies are used for this project?
+## Supported Job Sites
+- LinkedIn
+- Indeed
+- Workday
+- Greenhouse
 
-This project is built with .
+## Troubleshooting the Extension
 
+If you encounter issues:
+1. Check the console for errors (Right-click > Inspect > Console)
+2. Verify you're on a supported job site
+3. Try refreshing the page
+4. Reload the extension from `chrome://extensions/`
+5. Ensure you're logged into the web application
+
+## Development
+
+### Prerequisites
+- Node.js & npm installed
+- Modern web browser (Chrome recommended)
+- Basic understanding of React and TypeScript
+
+### Tech Stack
 - Vite
 - TypeScript
 - React
-- shadcn-ui
+- shadcn/ui
 - Tailwind CSS
+- Supabase (Backend)
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/f1d23918-99d0-474e-96c6-14b50060c99c) and click on Share -> Publish.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## I want to use a custom domain - is that possible?
+## License
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+This project is licensed under the MIT License - see the LICENSE file for details.
