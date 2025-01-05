@@ -2,6 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ResumeActions } from "@/components/resume/ResumeActions";
 import { CombinedResume } from "@/types/resume";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface ResumeTableProps {
   resumes: CombinedResume[];
@@ -9,6 +12,30 @@ interface ResumeTableProps {
 }
 
 export const ResumeTable = ({ resumes, onDelete }: ResumeTableProps) => {
+  const session = useSession();
+
+  const { data: themeSettings } = useQuery({
+    queryKey: ['theme-settings', session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return null;
+
+      const { data: themes, error } = await supabase
+        .from('resume_themes')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('is_default', true)
+        .single();
+
+      if (error) {
+        console.error('Error fetching theme:', error);
+        return null;
+      }
+
+      return themes?.settings || null;
+    },
+    enabled: !!session?.user?.id
+  });
+
   return (
     <Table>
       <TableHeader>
@@ -41,7 +68,8 @@ export const ResumeTable = ({ resumes, onDelete }: ResumeTableProps) => {
               <div className="flex justify-end">
                 <ResumeActions 
                   resume={resume} 
-                  onDelete={(id) => onDelete(id, resume.type === 'optimized')} 
+                  onDelete={(id) => onDelete(id, resume.type === 'optimized')}
+                  themeSettings={themeSettings}
                 />
               </div>
             </TableCell>
