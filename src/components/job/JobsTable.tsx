@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { JobActions } from "@/components/job/JobActions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
-import { BarChart2, RefreshCw } from "lucide-react";
+import { BarChart2, Info, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
+import { JobAnalysisDialog } from "./JobAnalysisDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -17,6 +18,7 @@ interface JobsTableProps {
 
 export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableProps) {
   const [selectedJob, setSelectedJob] = useState<{ id: string; title: string } | null>(null);
+  const [showAnalysisInfo, setShowAnalysisInfo] = useState<{ jobId: string; title: string } | null>(null);
   const { toast } = useToast();
 
   return (
@@ -58,6 +60,14 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                         <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                           <BarChart2 className="h-5 w-5 text-slate-600" />
                           Analysis Results
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="ml-2"
+                            onClick={() => setShowAnalysisInfo({ jobId: job.id, title: job.title })}
+                          >
+                            <Info className="h-4 w-4 text-slate-600" />
+                          </Button>
                         </h3>
                         <div className="flex items-center gap-4">
                           <div className={cn(
@@ -159,6 +169,16 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           onClose={() => setSelectedJob(null)}
           jobId={selectedJob.id}
           jobTitle={selectedJob.title}
+        />
+      )}
+
+      {showAnalysisInfo && (
+        <JobAnalysisDialog
+          isOpen={!!showAnalysisInfo}
+          onClose={() => setShowAnalysisInfo(null)}
+          jobId={showAnalysisInfo.jobId}
+          jobTitle={showAnalysisInfo.title}
+          analysis={jobs.find(job => job.id === showAnalysisInfo.jobId)?.analysis || null}
         />
       )}
     </div>
