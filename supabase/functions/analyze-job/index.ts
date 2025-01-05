@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { analyzeKeywordImportance } from './keywordExtractor.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -114,12 +113,21 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     console.log('AI Response:', aiData);
 
-    if (!aiData.choices || !aiData.choices[0] || !aiData.choices[0].message) {
-      console.error('Invalid AI response format:', aiData);
-      throw new Error('Invalid AI response format');
+    // Handle OpenRouter's specific response format
+    let analysisText;
+    if (aiData.choices?.[0]?.message?.content) {
+      analysisText = aiData.choices[0].message.content;
+    } else if (aiData.choices?.[0]?.content) {
+      // Alternative format some models might use
+      analysisText = aiData.choices[0].content;
+    } else if (typeof aiData.choices?.[0] === 'string') {
+      // Another possible format
+      analysisText = aiData.choices[0];
+    } else {
+      console.error('Unexpected AI response format:', aiData);
+      throw new Error('Unexpected AI response format. Response: ' + JSON.stringify(aiData));
     }
 
-    const analysisText = aiData.choices[0].message.content;
     console.log('AI Analysis:', analysisText);
 
     // Extract match score from AI response
