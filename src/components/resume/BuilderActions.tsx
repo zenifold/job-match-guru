@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DownloadButton } from "./actions/DownloadButton";
+import { CombinedResume } from "@/types/resume";
 
 export const BuilderActions = ({ 
   step, 
@@ -100,6 +101,18 @@ export const BuilderActions = ({
     }
   };
 
+  // Create a temporary resume object that matches CombinedResume type
+  const tempResume: CombinedResume = {
+    id: 'temp',
+    type: 'regular',
+    name: resumeName,
+    content: resumeData,
+    career_focus: careerFocus,
+    is_master: isMaster,
+    created_at: new Date().toISOString(),
+    user_id: session?.user?.id || ''
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -146,7 +159,7 @@ export const BuilderActions = ({
           Preview
         </Button>
         <DownloadButton 
-          resume={{ name: resumeName, content: resumeData }} 
+          resume={tempResume}
           variant="outline" 
           size="default" 
         />

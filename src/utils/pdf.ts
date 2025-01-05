@@ -1,11 +1,15 @@
 import { jsPDF } from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
 
-export const generatePDF = (resumeData: any) => {
+export const generatePDF = (resumeData: any, themeSettings?: any) => {
   const doc = new jsPDF();
   
-  // Set font
-  doc.setFont('helvetica');
+  // Apply theme settings if available
+  if (themeSettings?.font?.family) {
+    doc.setFont(themeSettings.font.family.toLowerCase() || 'helvetica');
+  } else {
+    doc.setFont('helvetica');
+  }
   
   // Personal Info
   if (resumeData.personalInfo) {
