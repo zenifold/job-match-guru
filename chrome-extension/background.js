@@ -15,10 +15,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Content script log:", request.message);
   } else if (request.type === "ANALYZE_JOB") {
     handleJobAnalysis(request.data);
+  } else if (request.type === "SET_SESSION") {
+    handleSetSession(request.session);
   } else if (request.type === "GET_PROFILE") {
     fetchUserProfile();
   }
 });
+
+async function handleSetSession(session) {
+  await chrome.storage.local.set({ supabaseSession: session });
+  console.log("Supabase session stored");
+}
 
 async function handleJobAnalysis(jobData) {
   console.log("Processing job data:", jobData);
@@ -27,11 +34,16 @@ async function handleJobAnalysis(jobData) {
     // Store the current job data
     await chrome.storage.local.set({ currentJob: jobData });
     
+    const session = await getSupabaseSession();
+    if (!session) {
+      throw new Error('No active session found. Please log in to ResumeAI first.');
+    }
+
     // Fetch the user's profile from Supabase
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${await getSupabaseSession()}`
+        'Authorization': `Bearer ${session}`
       }
     });
 
@@ -88,7 +100,8 @@ function mapProfileToWorkdayFormat(profileContent) {
       startDate: exp.startDate,
       endDate: exp.endDate,
       current: !exp.endDate,
-      description: exp.description
+      description: exp.description,
+      location: exp.location
     })) || [],
     education: profileContent.education?.map(edu => ({
       school: edu.school,
@@ -97,6 +110,7 @@ function mapProfileToWorkdayFormat(profileContent) {
       startDate: edu.startDate,
       endDate: edu.endDate,
       gpa: edu.finalEvaluationGrade
-    })) || []
+    })) || [],
+    skills: profileContent.skills || []
   };
 }
