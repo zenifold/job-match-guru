@@ -1,10 +1,48 @@
+import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+
+const defaultThemes = [
+  {
+    id: "simple",
+    name: "Modern Simple",
+    description: "Clean, left-aligned layout with modern typography",
+    settings: {
+      layout: {
+        type: "simple",
+        columns: 1,
+        headerStyle: "left-aligned"
+      }
+    }
+  },
+  {
+    id: "centered",
+    name: "Centered Header",
+    description: "Centered header with left-aligned content",
+    settings: {
+      layout: {
+        type: "centered",
+        columns: 1,
+        headerStyle: "centered"
+      }
+    }
+  },
+  {
+    id: "sidebar",
+    name: "Right Sidebar",
+    description: "Two-column layout with right sidebar",
+    settings: {
+      layout: {
+        type: "sidebar",
+        columns: 2,
+        headerStyle: "left-aligned"
+      }
+    }
+  }
+];
 
 interface ThemeSelectorProps {
   activeTheme: any;
@@ -13,79 +51,55 @@ interface ThemeSelectorProps {
 
 export function ThemeSelector({ activeTheme, onThemeSelect }: ThemeSelectorProps) {
   const session = useSession();
-  const { toast } = useToast();
 
   const { data: themes } = useQuery({
     queryKey: ["resume-themes"],
     queryFn: async () => {
+      if (!session?.user?.id) return [];
       const { data, error } = await supabase
         .from("resume_themes")
         .select("*")
-        .eq("user_id", session?.user?.id);
+        .eq("user_id", session.user.id);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!session?.user,
   });
-
-  const createNewTheme = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("resume_themes")
-        .insert({
-          user_id: session?.user?.id,
-          name: `Theme ${(themes?.length || 0) + 1}`,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Theme created",
-        description: "New theme has been created successfully.",
-      });
-
-      onThemeSelect(data);
-    } catch (error) {
-      console.error('Error creating theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new theme. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Your Themes</h3>
-        <Button variant="outline" size="sm" onClick={createNewTheme}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Theme
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {themes?.map((theme) => (
-          <Card
-            key={theme.id}
-            className={`p-4 cursor-pointer transition-all ${
-              activeTheme?.id === theme.id
-                ? "ring-2 ring-primary"
-                : "hover:bg-accent"
-            }`}
-            onClick={() => onThemeSelect(theme)}
-          >
-            <h4 className="font-medium">{theme.name}</h4>
-            {theme.is_default && (
-              <span className="text-sm text-muted-foreground">Default</span>
-            )}
-          </Card>
-        ))}
-      </div>
+      <RadioGroup
+        value={activeTheme?.id}
+        onValueChange={(value) => {
+          const selectedTheme = themes?.find((t) => t.id === value) || 
+                              defaultThemes.find((t) => t.id === value);
+          if (selectedTheme) {
+            onThemeSelect(selectedTheme);
+          }
+        }}
+      >
+        <div className="grid gap-4">
+          {defaultThemes.map((theme) => (
+            <Label
+              key={theme.id}
+              className="cursor-pointer"
+              htmlFor={theme.id}
+            >
+              <Card className={`p-4 ${activeTheme?.id === theme.id ? 'ring-2 ring-primary' : ''}`}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={theme.id} id={theme.id} />
+                  <div className="flex-1">
+                    <p className="font-medium">{theme.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {theme.description}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Label>
+          ))}
+        </div>
+      </RadioGroup>
     </div>
   );
 }
