@@ -19,6 +19,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 interface Model {
   id: string;
@@ -36,6 +37,7 @@ const FALLBACK_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
 export function ModelSelector() {
   const [models, setModels] = useState<Model[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<ModelSelectorFormValues>({
@@ -117,10 +119,15 @@ export function ModelSelector() {
 
   const onSubmit = async (data: ModelSelectorFormValues) => {
     try {
+      setIsSaving(true);
       localStorage.setItem('selectedModel', data.model);
+      
+      // Add a small delay to make the saving state visible
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast({
         title: "Success",
-        description: "Model preference saved",
+        description: `Model preference saved: ${models.find(m => m.id === data.model)?.name || data.model}`,
       });
     } catch (error) {
       toast({
@@ -128,6 +135,8 @@ export function ModelSelector() {
         description: "Failed to save model preference",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -165,8 +174,15 @@ export function ModelSelector() {
             </FormItem>
           )}
         />
-        <Button type="submit">
-          Save Preference
+        <Button type="submit" disabled={isLoading || isSaving}>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Preference'
+          )}
         </Button>
       </form>
     </Form>
