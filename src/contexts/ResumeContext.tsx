@@ -121,31 +121,52 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       if (!session?.user?.id) return;
 
       try {
+        console.log('Loading resume for user:', session.user.id);
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('content')
           .eq('user_id', session.user.id)
-          .single();
+          .eq('is_master', true)  // Only get the master profile
+          .maybeSingle();  // Use maybeSingle instead of single
 
         if (error) {
           console.error('Error loading resume:', error);
+          toast({
+            title: "Error Loading Resume",
+            description: "Failed to load your resume data. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
 
-        if (data?.content) {
-          setResumeData(data.content as ResumeData);
+        if (!data) {
+          console.log('No master profile found');
           toast({
-            title: "Resume Loaded",
-            description: "Your saved resume data has been loaded.",
+            title: "No Master Profile",
+            description: "Please create a master profile first.",
           });
+          return;
         }
+
+        console.log('Resume loaded successfully');
+        setResumeData(data.content as ResumeData);
+        toast({
+          title: "Resume Loaded",
+          description: "Your saved resume data has been loaded.",
+        });
       } catch (error) {
         console.error('Error in loadSavedResume:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while loading your resume.",
+          variant: "destructive",
+        });
       }
     };
 
     loadSavedResume();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, toast]);
 
   const updateResumeData = (section: string, data: any) => {
     setResumeData((prev) => ({
