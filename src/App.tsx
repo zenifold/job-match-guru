@@ -15,6 +15,7 @@ import Resumes from "./pages/Resumes"
 import Dashboard from "./pages/Dashboard"
 import Settings from "./pages/Settings"
 import TestEnvironment from "./pages/TestEnvironment"
+import WorkdayProfile from "./pages/WorkdayProfile"
 
 import "./App.css"
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="/preview" element={<Preview />} />
               <Route path="/resumes" element={<Resumes />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/workday-profile" element={<WorkdayProfile />} />
               <Route path="/test-environment" element={<TestEnvironment />} />
             </Routes>
           </BrowserRouter>
