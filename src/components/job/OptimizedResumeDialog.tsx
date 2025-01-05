@@ -75,7 +75,9 @@ export function OptimizedResumeDialog({
 
   const handleViewResumes = () => {
     onClose();
-    navigate("/resumes");
+    // Force a refresh of the resumes page to show the new optimized resume
+    navigate("/resumes", { replace: true });
+    window.location.reload();
   };
 
   return (

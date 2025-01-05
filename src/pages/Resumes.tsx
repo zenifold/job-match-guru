@@ -15,29 +15,50 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ResumeActions } from "@/components/resume/ResumeActions";
+import { Badge } from "@/components/ui/badge";
 
 const Resumes = () => {
   const session = useSession();
   const { toast } = useToast();
 
-  const { data: resumes, refetch } = useQuery({
-    queryKey: ["resumes"],
+  // Fetch both regular and optimized resumes
+  const { data: allResumes, refetch } = useQuery({
+    queryKey: ["all-resumes"],
     queryFn: async () => {
-      if (!session?.user) return [];
-      const { data, error } = await supabase
+      if (!session?.user) return { regular: [], optimized: [] };
+
+      // Fetch regular resumes
+      const { data: regularResumes, error: regularError } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", session.user.id);
 
-      if (error) throw error;
-      return data || [];
+      if (regularError) throw regularError;
+
+      // Fetch optimized resumes with job information
+      const { data: optimizedResumes, error: optimizedError } = await supabase
+        .from("optimized_resumes")
+        .select(`
+          *,
+          jobs (
+            title
+          )
+        `)
+        .eq("user_id", session.user.id);
+
+      if (optimizedError) throw optimizedError;
+
+      return {
+        regular: regularResumes || [],
+        optimized: optimizedResumes || [],
+      };
     },
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, isOptimized: boolean = false) => {
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from(isOptimized ? "optimized_resumes" : "profiles")
         .delete()
         .eq("id", id);
 
@@ -58,6 +79,15 @@ const Resumes = () => {
     }
   };
 
+  const combinedResumes = [
+    ...(allResumes?.regular?.map(resume => ({ ...resume, type: 'regular' as const })) || []),
+    ...(allResumes?.optimized?.map(resume => ({ 
+      ...resume, 
+      type: 'optimized' as const,
+      jobTitle: resume.jobs?.title || 'Unknown Job'
+    })) || [])
+  ];
+
   return (
     <MainLayout>
       <div className="flex justify-between items-center mb-6">
@@ -74,20 +104,29 @@ const Resumes = () => {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Created At</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Job Title</TableHead>
             <TableHead className="text-right w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {resumes?.map((resume) => (
+          {combinedResumes.map((resume) => (
             <TableRow key={resume.id}>
-              <TableCell>{resume.name}</TableCell>
+              <TableCell>{resume.name || resume.version_name}</TableCell>
               <TableCell>
-                {new Date(resume.created_at).toLocaleDateString()}
+                <Badge variant={resume.type === 'optimized' ? "secondary" : "default"}>
+                  {resume.type === 'optimized' ? 'Optimized' : 'Original'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {resume.type === 'optimized' ? resume.jobTitle : '-'}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end">
-                  <ResumeActions resume={resume} onDelete={handleDelete} />
+                  <ResumeActions 
+                    resume={resume} 
+                    onDelete={(id) => handleDelete(id, resume.type === 'optimized')} 
+                  />
                 </div>
               </TableCell>
             </TableRow>
