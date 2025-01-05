@@ -1,4 +1,4 @@
-import { BarChart2, Check, Info, LightbulbIcon, Target } from "lucide-react";
+import { BarChart2, Check, Info, LightbulbIcon, Target, AlertTriangle, AlertOctagon, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,10 +30,10 @@ export function JobAnalysisDialog({
 }: JobAnalysisDialogProps) {
   if (!analysis) return null;
 
-  // Parse the analysis text to extract matched and missing keywords
+  // Parse the analysis text to extract matched and missing keywords with priorities
   const analysisLines = analysis.analysis_text.split('\n');
-  const matchedKeywords: string[] = [];
-  const missingKeywords: string[] = [];
+  const matchedKeywords: Array<{ keyword: string; priority: string }> = [];
+  const missingKeywords: Array<{ keyword: string; priority: string }> = [];
 
   let currentSection = '';
   analysisLines.forEach(line => {
@@ -42,11 +42,33 @@ export function JobAnalysisDialog({
     } else if (line.includes('Suggested Improvements:')) {
       currentSection = 'missing';
     } else if (line.startsWith('✓ ')) {
-      matchedKeywords.push(line.replace('✓ ', '').trim());
-    } else if (line.startsWith('• Consider adding experience or skills related to:')) {
-      missingKeywords.push(line.replace('• Consider adding experience or skills related to:', '').trim());
+      const priorityMatch = line.match(/\((.*?) Priority\)/);
+      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
+      const keyword = line.replace(/✓ /, '').replace(/\(.*?\)/, '').trim();
+      matchedKeywords.push({ keyword, priority });
+    } else if (line.includes('Consider adding experience or skills related to:')) {
+      const priorityMatch = line.match(/\((.*?) Priority\)/);
+      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
+      const keyword = line
+        .replace('• Consider adding experience or skills related to:', '')
+        .replace(/\(.*?\)/, '')
+        .trim();
+      missingKeywords.push({ keyword, priority });
     }
   });
+
+  const PriorityIcon = ({ priority }: { priority: string }) => {
+    switch (priority.toLowerCase()) {
+      case 'critical':
+        return <AlertOctagon className="h-4 w-4 text-red-500" />;
+      case 'high':
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'medium':
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      default:
+        return <Info className="h-4 w-4 text-blue-500" />;
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
@@ -54,34 +76,14 @@ export function JobAnalysisDialog({
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             <BarChart2 className="h-6 w-6 text-blue-500" />
-            Analysis Methodology - {jobTitle}
+            Analysis Results - {jobTitle}
           </DialogTitle>
           <DialogDescription>
-            Understanding how your resume was analyzed against the job requirements
+            Understanding how your resume matches against the job requirements
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          {/* Overview Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <Target className="h-5 w-5 text-blue-500" />
-                Analysis Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-slate-700">
-                Our analysis engine performed a comprehensive comparison between your resume and the job description, focusing on three key areas:
-              </p>
-              <div className="space-y-2 pl-4">
-                <li className="text-slate-600">Keyword Extraction: We identified important technical skills, soft skills, and industry-specific terms from the job description.</li>
-                <li className="text-slate-600">Resume Scanning: We analyzed your resume content including experience, skills, and projects sections.</li>
-                <li className="text-slate-600">Match Calculation: We computed a match score based on the alignment between required and present skills.</li>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Match Score Section */}
           <Card>
             <CardHeader>
@@ -112,22 +114,20 @@ export function JobAnalysisDialog({
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <Info className="h-5 w-5 text-blue-500" />
+                <Check className="h-5 w-5 text-green-500" />
                 Identified Matches
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-slate-700">
-                These keywords were found in your resume and align with the job requirements:
-              </p>
               <div className="flex flex-wrap gap-2">
-                {matchedKeywords.map((keyword) => (
+                {matchedKeywords.map(({ keyword, priority }, idx) => (
                   <div
-                    key={keyword}
-                    className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100"
+                    key={idx}
+                    className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100"
                   >
                     <Check className="h-4 w-4 text-green-500" />
                     {keyword}
+                    <PriorityIcon priority={priority} />
                   </div>
                 ))}
               </div>
@@ -139,27 +139,21 @@ export function JobAnalysisDialog({
             <CardHeader>
               <CardTitle className="text-lg font-medium flex items-center gap-2">
                 <LightbulbIcon className="h-5 w-5 text-amber-500" />
-                Suggested Improvements
+                Missing Keywords
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-slate-700">
-                These keywords were identified as important in the job description but weren't found in your resume:
-              </p>
               <div className="flex flex-wrap gap-2">
-                {missingKeywords.map((keyword) => (
+                {missingKeywords.map(({ keyword, priority }, idx) => (
                   <div
-                    key={keyword}
-                    className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-slate-700 border border-amber-100"
+                    key={idx}
+                    className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-slate-700 border border-amber-100"
                   >
                     {keyword}
+                    <PriorityIcon priority={priority} />
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-slate-600 mt-4">
-                Consider incorporating these keywords into your resume if you have relevant experience in these areas.
-                This will improve your match score and increase your chances of getting noticed.
-              </p>
             </CardContent>
           </Card>
 
