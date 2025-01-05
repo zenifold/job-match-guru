@@ -107,6 +107,57 @@ export type Database = {
         }
         Relationships: []
       }
+      optimized_resumes: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          job_id: string | null
+          match_score: number | null
+          optimization_status: string | null
+          original_resume_id: string | null
+          user_id: string | null
+          version_name: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          match_score?: number | null
+          optimization_status?: string | null
+          original_resume_id?: string | null
+          user_id?: string | null
+          version_name?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          match_score?: number | null
+          optimization_status?: string | null
+          original_resume_id?: string | null
+          user_id?: string | null
+          version_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimized_resumes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "optimized_resumes_original_resume_id_fkey"
+            columns: ["original_resume_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           content: Json
