@@ -28,13 +28,26 @@ export function OptimizedResumeDialog({
     queryKey: ["profile"],
     queryFn: async () => {
       if (!session?.user) return null;
+      
+      console.log("Fetching profile for user:", session.user.id);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", session.user.id)
-        .maybeSingle();
+        .eq("is_master", true)  // Only get the master profile
+        .maybeSingle();  // Use maybeSingle instead of single
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log("No master profile found");
+        return null;
+      }
+      
       return data;
     },
   });
@@ -67,7 +80,7 @@ export function OptimizedResumeDialog({
         ) : !profile ? (
           <div className="text-center p-8">
             <p className="text-sm text-muted-foreground">
-              Please create a profile first to optimize your resume.
+              Please create a master profile first to optimize your resume.
             </p>
           </div>
         ) : (
