@@ -5,6 +5,7 @@ import { ResumeHeader } from "./sections/ResumeHeader";
 import { ResumeExperience } from "./sections/ResumeExperience";
 import { ResumeEducation } from "./sections/ResumeEducation";
 import { ResumeSkills } from "./sections/ResumeSkills";
+import { useEffect } from "react";
 
 interface ResumeTemplateProps {
   data: any;
@@ -12,6 +13,26 @@ interface ResumeTemplateProps {
 }
 
 export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => {
+  useEffect(() => {
+    // Load font if specified in theme settings
+    if (themeSettings?.font?.family) {
+      const loadFont = async () => {
+        try {
+          // Check if font is already loaded
+          const fonts = document.fonts.check(`12px "${themeSettings.font.family}"`);
+          if (!fonts) {
+            console.log(`Loading font: ${themeSettings.font.family}`);
+            await document.fonts.load(`12px "${themeSettings.font.family}"`);
+          }
+        } catch (error) {
+          console.error('Error loading font:', error);
+        }
+      };
+
+      loadFont();
+    }
+  }, [themeSettings?.font?.family]);
+
   const downloadPDF = () => {
     // Create a new window with just the resume content
     const printWindow = window.open('', '_blank');
@@ -27,25 +48,49 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
         <head>
           <title>${data.personalInfo?.fullName || 'Resume'}</title>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=${themeSettings?.font?.family || 'Inter'}&display=swap');
+            
             body {
-              font-family: ${themeSettings?.font?.family || 'Arial'}, sans-serif;
+              font-family: ${themeSettings?.font?.family || 'Inter'}, sans-serif;
               line-height: ${themeSettings?.spacing?.lineHeight || '1.6'};
               color: ${themeSettings?.colors?.primary || '#333'};
               max-width: 800px;
               margin: 40px auto;
               padding: 20px;
             }
-            h1 { font-size: ${themeSettings?.font?.size?.heading || '24px'}; margin-bottom: 8px; }
-            h2 { font-size: ${themeSettings?.font?.size?.subheading || '20px'}; margin-top: 24px; margin-bottom: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-            .contact-info { color: ${themeSettings?.colors?.secondary || '#666'}; margin-bottom: 24px; }
+            h1 { 
+              font-size: ${themeSettings?.font?.size?.heading || '24px'}; 
+              margin-bottom: 8px; 
+              color: ${themeSettings?.colors?.primary || '#333'};
+            }
+            h2 { 
+              font-size: ${themeSettings?.font?.size?.subheading || '20px'}; 
+              margin-top: 24px; 
+              margin-bottom: 16px; 
+              border-bottom: 2px solid ${themeSettings?.colors?.accent || '#eee'}; 
+              padding-bottom: 8px;
+              color: ${themeSettings?.colors?.primary || '#333'};
+            }
+            .contact-info { 
+              color: ${themeSettings?.colors?.secondary || '#666'}; 
+              margin-bottom: 24px; 
+            }
             .experience-item, .education-item { margin-bottom: 20px; }
-            .date { color: ${themeSettings?.colors?.secondary || '#666'}; font-size: 14px; }
-            .skills { display: flex; flex-wrap: wrap; gap: 8px; }
+            .date { 
+              color: ${themeSettings?.colors?.secondary || '#666'}; 
+              font-size: 14px; 
+            }
+            .skills { 
+              display: flex; 
+              flex-wrap: wrap; 
+              gap: 8px; 
+            }
             .skill-tag {
               background: ${themeSettings?.colors?.accent ? themeSettings.colors.accent + '20' : '#f3f4f6'};
               padding: 4px 12px;
               border-radius: 4px;
               font-size: 14px;
+              color: ${themeSettings?.colors?.primary || '#333'};
             }
             @media print {
               body { margin: 0; padding: 20px; }
@@ -130,7 +175,7 @@ export const ResumeTemplate = ({ data, themeSettings }: ResumeTemplateProps) => 
     container: `max-w-4xl mx-auto p-8 ${themeSettings?.colors?.background || 'bg-white'}`,
     content: `space-y-${themeSettings?.spacing?.sectionGap || '8'}`,
     text: {
-      fontFamily: themeSettings?.font?.family || 'Inter',
+      fontFamily: `${themeSettings?.font?.family || 'Inter'}, sans-serif`,
       fontSize: themeSettings?.font?.size?.body || '16px',
       lineHeight: themeSettings?.spacing?.lineHeight || '1.6',
       color: themeSettings?.colors?.primary || '#1a1a1a'
