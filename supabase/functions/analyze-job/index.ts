@@ -109,13 +109,14 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
         ],
-        temperature: 0.7, // Add temperature for more consistent outputs
-        max_tokens: 1000, // Limit response length
+        temperature: 0.3, // Lower temperature for more consistent outputs
+        max_tokens: 1500, // Increased token limit for complete responses
       })
     });
 
     if (!aiResponse.ok) {
-      console.error('OpenRouter API Error:', await aiResponse.text());
+      const errorText = await aiResponse.text();
+      console.error('OpenRouter API Error:', errorText);
       throw new Error(`OpenRouter API error: ${aiResponse.status}`);
     }
 
@@ -124,16 +125,6 @@ serve(async (req) => {
 
     try {
       const analysisText = parseAIResponse(aiData);
-      
-      // Validate analysis text format
-      if (!analysisText.includes('Match Score Analysis:') || 
-          !analysisText.includes('Strong Matches:') ||
-          !analysisText.includes('Target Keywords:') ||
-          !analysisText.includes('Required Experience:')) {
-        console.error('Invalid analysis format:', analysisText);
-        throw new Error('Invalid analysis format - missing required sections');
-      }
-
       const matchScore = extractMatchScore(analysisText);
       const company = extractCompany(analysisText);
 
@@ -151,7 +142,7 @@ serve(async (req) => {
       );
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
-      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+      throw parseError;
     }
 
   } catch (error) {
