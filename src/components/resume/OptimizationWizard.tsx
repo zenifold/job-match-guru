@@ -76,6 +76,8 @@ export function OptimizationWizard({
 
     if (currentStep === 0) {
       setIsOptimizing(true);
+      setCurrentStep(currentStep + 1);
+      
       try {
         console.log("Starting optimization with sections:", selectedSections);
         console.log("Original resume being sent:", originalResume);
@@ -101,7 +103,6 @@ export function OptimizationWizard({
         }
 
         setOptimizedResume(response.data.optimizedResume);
-        setCurrentStep(currentStep + 1);
         
         toast({
           title: "Success",
@@ -149,14 +150,11 @@ export function OptimizationWizard({
             )}
 
             {currentStep === 1 && (
-              isOptimizing ? (
-                <OptimizingStep />
-              ) : (
-                <ComparisonView 
-                  originalResume={originalResume}
-                  optimizedResume={optimizedResume}
-                />
-              )
+              <ComparisonView 
+                originalResume={originalResume}
+                optimizedResume={optimizedResume}
+                isLoading={isOptimizing}
+              />
             )}
 
             {currentStep === 2 && <CompletedStep />}
