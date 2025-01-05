@@ -126,8 +126,8 @@ export function useJobs() {
   return {
     jobs,
     isLoading,
-    deleteJob: deleteJobMutation.mutate,
-    analyzeJob: analyzeJobMutation.mutate,
+    deleteJob: (id: string) => deleteJobMutation.mutateAsync(id),
+    analyzeJob: (jobId: string) => analyzeJobMutation.mutateAsync(jobId),
     isAnalyzing: analyzeJobMutation.isPending,
   };
 }
