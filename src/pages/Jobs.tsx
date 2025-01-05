@@ -87,32 +87,34 @@ const Jobs = () => {
   });
 
   const handleDelete = async (id: string): Promise<void> => {
-    try {
-      const { error } = await supabase
-        .from("jobs")
-        .delete()
-        .eq("id", id);
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const { error } = await supabase
+          .from("jobs")
+          .delete()
+          .eq("id", id);
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "Success",
+          description: "Job deleted successfully",
+        });
+        
+        await refetch();
+        resolve();
+      } catch (error) {
+        console.error("Error deleting job:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete job",
+          variant: "destructive",
+        });
+        reject(error);
       }
-
-      toast({
-        title: "Success",
-        description: "Job deleted successfully",
-      });
-      
-      await refetch();
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error deleting job:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete job",
-        variant: "destructive",
-      });
-      return Promise.reject(error);
-    }
+    });
   };
 
   return (
