@@ -6,7 +6,8 @@ Job Description: ${jobDescription}
 
 Resume Content: ${resumeText}
 
-Analyze the match between the job requirements and resume, focusing on:
+First, extract the company name from the job description if present.
+Then analyze the match between the job requirements and resume, focusing on:
 1. Required technical skills and tools
 2. Industry experience and expertise
 3. Soft skills and qualifications
@@ -14,9 +15,13 @@ Analyze the match between the job requirements and resume, focusing on:
 
 Provide a detailed analysis in the following format:
 
-1. Start with "Match Score Analysis:"
-2. Calculate and show "Overall Match: X%" based on skills and experience match
-3. List sections in this order:
+"Company:" (if found in the description)
+- List the company name, or "Not specified" if not found
+
+"Match Score Analysis:"
+- Calculate and show "Overall Match: X%" based on skills and experience match
+
+Then list sections in this order:
 
 "Strong Matches:"
 - List each matching skill/experience with ✓ prefix
@@ -59,4 +64,12 @@ export function parseAIResponse(aiData: any): string {
 export function extractMatchScore(analysisText: string): number {
   const matchScoreMatch = analysisText.match(/Overall Match: (\d+)%/);
   return matchScoreMatch ? parseInt(matchScoreMatch[1]) : 0;
+}
+
+export function extractCompany(analysisText: string): string | null {
+  const companySection = analysisText.split('\n').find(line => line.startsWith('Company:'));
+  if (!companySection) return null;
+  
+  const company = companySection.replace('Company:', '').trim();
+  return company === 'Not specified' ? null : company;
 }

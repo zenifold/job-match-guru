@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { createSystemPrompt, parseAIResponse, extractMatchScore } from './analyzer.ts';
+import { createSystemPrompt, parseAIResponse, extractMatchScore, extractCompany } from './analyzer.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -110,6 +110,19 @@ serve(async (req) => {
     console.log('AI Analysis:', analysisText);
 
     const matchScore = extractMatchScore(analysisText);
+    const company = extractCompany(analysisText);
+
+    // Update job with company if found
+    if (company) {
+      const { error: updateError } = await supabase
+        .from('jobs')
+        .update({ company })
+        .eq('id', jobId);
+
+      if (updateError) {
+        console.error('Error updating job company:', updateError);
+      }
+    }
 
     // Store analysis results
     const { error: analysisError } = await supabase
@@ -132,7 +145,8 @@ serve(async (req) => {
       JSON.stringify({ 
         message: 'Analysis completed successfully',
         matchScore,
-        analysisText
+        analysisText,
+        company
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
