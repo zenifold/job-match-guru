@@ -1,4 +1,4 @@
-import { BarChart2, Check, Info, LightbulbIcon, Target, AlertTriangle, AlertOctagon, AlertCircle, BookOpen, ExternalLink } from "lucide-react";
+import { BarChart2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
+import { MatchScoreCard } from "./analysis/MatchScoreCard";
+import { MatchedSkillsCard } from "./analysis/MatchedSkillsCard";
+import { MissingSkillsCard } from "./analysis/MissingSkillsCard";
 
 interface JobAnalysisDialogProps {
   isOpen: boolean;
@@ -63,33 +58,6 @@ export function JobAnalysisDialog({
     }
   });
 
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const PriorityIcon = ({ priority }: { priority: string }) => {
-    switch (priority.toLowerCase()) {
-      case 'critical':
-        return <AlertOctagon className="h-4 w-4 text-red-500" />;
-      case 'high':
-        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      case 'medium':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      default:
-        return <Info className="h-4 w-4 text-blue-500" />;
-    }
-  };
-
-  const getLearningResources = (keyword: string) => {
-    return [
-      { name: "Coursera", url: `https://www.coursera.org/search?query=${encodeURIComponent(keyword)}` },
-      { name: "Udemy", url: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(keyword)}` },
-      { name: "LinkedIn Learning", url: `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(keyword)}` }
-    ];
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -104,113 +72,15 @@ export function JobAnalysisDialog({
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          {/* Match Score Section with Enhanced Visualization */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <Target className="h-5 w-5 text-blue-500" />
-                Match Score Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Overall Match</span>
-                <span className={`text-2xl font-bold ${getMatchScoreColor(analysis.match_score)}`}>
-                  {Math.round(analysis.match_score)}%
-                </span>
-              </div>
-              <Progress value={analysis.match_score} className="h-2" />
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="text-center p-4 bg-slate-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{matchedKeywords.length}</div>
-                  <div className="text-sm text-slate-600">Matched Skills</div>
-                </div>
-                <div className="text-center p-4 bg-slate-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{missingKeywords.length}</div>
-                  <div className="text-sm text-slate-600">Missing Skills</div>
-                </div>
-                <div className="text-center p-4 bg-slate-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {matchedKeywords.length + missingKeywords.length}
-                  </div>
-                  <div className="text-sm text-slate-600">Total Requirements</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MatchScoreCard 
+            matchScore={analysis.match_score}
+            matchedCount={matchedKeywords.length}
+            missingCount={missingKeywords.length}
+          />
 
-          {/* Matched Keywords Section with Enhanced Visualization */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
-                Your Matching Skills
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {matchedKeywords.map(({ keyword, priority }, idx) => (
-                  <TooltipProvider key={idx}>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100">
-                          <Check className="h-4 w-4 text-green-500" />
-                          {keyword}
-                          <PriorityIcon priority={priority} />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{priority.charAt(0).toUpperCase() + priority.slice(1)} Priority Skill</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <MatchedSkillsCard matchedKeywords={matchedKeywords} />
 
-          {/* Missing Keywords Section with Learning Resources */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <LightbulbIcon className="h-5 w-5 text-amber-500" />
-                Skills to Develop
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {missingKeywords.map(({ keyword, priority }, idx) => (
-                  <div key={idx} className="bg-slate-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <PriorityIcon priority={priority} />
-                        <span className="font-medium">{keyword}</span>
-                        <span className="text-sm text-slate-500">({priority} priority)</span>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <div className="text-sm text-slate-600 mb-2">Learning Resources:</div>
-                      <div className="flex gap-2">
-                        {getLearningResources(keyword).map((resource, resourceIdx) => (
-                          <a
-                            key={resourceIdx}
-                            href={resource.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            <BookOpen className="h-4 w-4" />
-                            {resource.name}
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <MissingSkillsCard missingKeywords={missingKeywords} />
 
           <Separator className="my-4" />
           
