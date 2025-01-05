@@ -48,14 +48,17 @@ const Jobs = () => {
         analysis: analysesData.find(analysis => analysis.job_id === job.id)
       }));
     },
+    enabled: !!session?.user,
   });
 
   const analyzeJobMutation = useMutation({
     mutationFn: async (jobId: string) => {
+      if (!session?.user) throw new Error("User not authenticated");
+      
       console.log("Starting job analysis for job ID:", jobId);
       
       const response = await supabase.functions.invoke('analyze-job', {
-        body: { jobId, userId: session?.user?.id },
+        body: { jobId, userId: session.user.id },
       });
       
       if (response.error) {
@@ -106,7 +109,7 @@ const Jobs = () => {
         description: "Failed to delete job",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     }
   };
 
