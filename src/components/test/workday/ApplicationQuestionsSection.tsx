@@ -7,12 +7,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SectionProps } from "@/types/workdayForm";
 
-interface ApplicationQuestionsSectionProps {
+interface ApplicationQuestionsSectionProps extends SectionProps {
   employer?: string;
+  value?: { [key: string]: string };
 }
 
-export const ApplicationQuestionsSection = ({ employer = "Walmart" }: ApplicationQuestionsSectionProps) => {
+export const ApplicationQuestionsSection = ({ 
+  employer = "Walmart",
+  onChange,
+  value = {}
+}: ApplicationQuestionsSectionProps) => {
   // Default questions that are common across employers
   const commonQuestions = [
     {
@@ -115,7 +121,7 @@ export const ApplicationQuestionsSection = ({ employer = "Walmart" }: Applicatio
               {q.question}
               {q.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            <Select defaultValue={q.options[0]}>
+            <Select defaultValue={value[q.id] || q.options[0]} onValueChange={(val) => onChange?.({ [q.id]: val })}>
               <SelectTrigger
                 id={q.id}
                 data-automation-id={q.automationId}

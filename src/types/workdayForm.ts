@@ -65,7 +65,7 @@ export interface WorkdayFormData {
 }
 
 export interface SectionProps {
-  onChange: (data: Partial<WorkdayFormData>) => void;
+  onChange?: (data: Partial<WorkdayFormData>) => void;
   value?: any;
 }
 

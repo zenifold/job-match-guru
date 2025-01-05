@@ -8,8 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SectionProps } from "@/types/workdayForm";
 
-export const VoluntaryDisclosuresSection = () => {
+interface VoluntaryDisclosuresSectionProps extends SectionProps {
+  value?: { [key: string]: string | boolean };
+}
+
+export const VoluntaryDisclosuresSection = ({ onChange, value = {} }: VoluntaryDisclosuresSectionProps) => {
   return (
     <div data-automation-id="voluntaryDisclosuresPage">
       <h3 className="text-[#0071CE] text-lg font-semibold mb-4">Equal Employment Opportunity</h3>
@@ -90,6 +95,8 @@ export const VoluntaryDisclosuresSection = () => {
           <Checkbox 
             id="terms" 
             data-automation-id="agreementCheckbox"
+            checked={value.terms || false}
+            onCheckedChange={(checked) => onChange?.({ ...value, terms: checked })}
           />
           <Label htmlFor="terms" className="text-sm">
             Yes, I have read and consent to the Terms and Conditions

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useResume } from "@/contexts/ResumeContext";
 import { useEffect, useState } from "react";
+import { SectionProps } from "@/types/workdayForm";
 
 interface WorkExperience {
   jobTitle: string;
@@ -17,9 +18,13 @@ interface WorkExperience {
   description: string;
 }
 
-export const ExperienceSection = () => {
+interface ExperienceSectionProps extends SectionProps {
+  value?: WorkExperience[];
+}
+
+export const ExperienceSection = ({ onChange, value = [] }: ExperienceSectionProps) => {
   const { resumeData } = useResume();
-  const [experiences, setExperiences] = useState<WorkExperience[]>([]);
+  const [experiences, setExperiences] = useState<WorkExperience[]>(value);
 
   useEffect(() => {
     if (resumeData?.experience) {
@@ -62,6 +67,7 @@ export const ExperienceSection = () => {
       [field]: value
     };
     setExperiences(newExperiences);
+    onChange?.({ experience: newExperiences });
   };
 
   return (

@@ -3,8 +3,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
+import { SectionProps } from "@/types/workdayForm";
 
-export const EducationSection = () => {
+interface Education {
+  school: string;
+  degree: string;
+  field?: string;
+  startDate?: string;
+  endDate?: string;
+  gpa?: string;
+}
+
+interface EducationSectionProps extends SectionProps {
+  value?: Education[];
+}
+
+export const EducationSection = ({ onChange, value = [] }: EducationSectionProps) => {
   return (
     <div data-automation-id="educationSection" className="space-y-6">
       <h3 className="text-lg font-semibold text-[#0071CE]">Education</h3>
