@@ -6,47 +6,13 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ResumeActions } from "@/components/resume/ResumeActions";
-import { Badge } from "@/components/ui/badge";
-import { ThemeCustomizerDialog } from "@/components/resume/theme/ThemeCustomizerDialog";
-import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type RegularResume = {
-  type: 'regular';
-  id: string;
-  name: string;
-  content: any;
-  created_at: string;
-  user_id: string;
-  career_focus: string | null;
-  is_master: boolean;
-};
-
-type OptimizedResume = {
-  type: 'optimized';
-  id: string;
-  version_name: string;
-  content: any;
-  created_at: string;
-  user_id: string;
-  job_id: string;
-  original_resume_id: string;
-  match_score: number;
-  optimization_status: string;
-  jobTitle: string;
-  jobs: { title: string };
-};
-
-type CombinedResume = RegularResume | OptimizedResume;
+import { useState } from "react";
+import { ThemeCustomizerDialog } from "@/components/resume/theme/ThemeCustomizerDialog";
+import { ResumeTable } from "@/components/resume/ResumeTable";
+import { OptimizedResumeTable } from "@/components/resume/OptimizedResumeTable";
+import { MasterResumeTable } from "@/components/resume/MasterResumeTable";
+import { CombinedResume, OptimizedResume, RegularResume } from "@/types/resume";
 
 const Resumes = () => {
   const session = useSession();
@@ -120,14 +86,13 @@ const Resumes = () => {
     })) || [])
   ];
 
-  // Group master resumes by career focus
   const masterResumes = combinedResumes.filter(
     resume => resume.type === 'regular' && resume.is_master
   ) as RegularResume[];
 
-  const careerFocuses = Array.from(
-    new Set(masterResumes.map(resume => resume.career_focus || 'General'))
-  );
+  const optimizedResumes = combinedResumes.filter(
+    resume => resume.type === 'optimized'
+  ) as OptimizedResume[];
 
   return (
     <MainLayout>
@@ -155,122 +120,15 @@ const Resumes = () => {
         </TabsList>
 
         <TabsContent value="all">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Career Focus</TableHead>
-                <TableHead>Job Title</TableHead>
-                <TableHead className="text-right w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {combinedResumes.map((resume) => (
-                <TableRow key={resume.id}>
-                  <TableCell>
-                    {resume.type === 'regular' ? resume.name : resume.version_name}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={resume.type === 'optimized' ? "secondary" : "default"}>
-                      {resume.type === 'optimized' ? 'Optimized' : (resume.type === 'regular' && resume.is_master ? 'Master' : 'Regular')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {resume.type === 'regular' ? resume.career_focus || 'General' : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {resume.type === 'optimized' ? resume.jobTitle : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end">
-                      <ResumeActions 
-                        resume={resume} 
-                        onDelete={(id) => handleDelete(id, resume.type === 'optimized')} 
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <ResumeTable resumes={combinedResumes} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="master">
-          <div className="space-y-6">
-            {careerFocuses.map((focus) => (
-              <div key={focus} className="space-y-4">
-                <h3 className="text-lg font-semibold">{focus}</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right w-[100px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {masterResumes
-                      .filter(resume => (resume.career_focus || 'General') === focus)
-                      .map((resume) => (
-                        <TableRow key={resume.id}>
-                          <TableCell>{resume.name}</TableCell>
-                          <TableCell>
-                            {new Date(resume.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end">
-                              <ResumeActions 
-                                resume={resume} 
-                                onDelete={(id) => handleDelete(id)} 
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ))}
-          </div>
+          <MasterResumeTable resumes={masterResumes} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="optimized">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Job Title</TableHead>
-                <TableHead>Match Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {combinedResumes
-                .filter((resume): resume is OptimizedResume => resume.type === 'optimized')
-                .map((resume) => (
-                  <TableRow key={resume.id}>
-                    <TableCell>{resume.version_name}</TableCell>
-                    <TableCell>{resume.jobTitle}</TableCell>
-                    <TableCell>{resume.match_score}%</TableCell>
-                    <TableCell>
-                      <Badge variant={resume.optimization_status === 'completed' ? 'success' : 'secondary'}>
-                        {resume.optimization_status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end">
-                        <ResumeActions 
-                          resume={resume} 
-                          onDelete={(id) => handleDelete(id, true)} 
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <OptimizedResumeTable resumes={optimizedResumes} onDelete={handleDelete} />
         </TabsContent>
       </Tabs>
 
