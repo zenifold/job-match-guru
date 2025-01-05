@@ -11,6 +11,7 @@ import {
 import { extractMissingKeywords, optimizeContent } from './optimizer.ts';
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,6 +19,10 @@ serve(async (req) => {
   try {
     const { jobId, userId } = await req.json();
     console.log(`Starting resume optimization for job ${jobId} and user ${userId}`);
+
+    if (!jobId || !userId) {
+      throw new Error('Missing required parameters: jobId and userId are required');
+    }
 
     // Get all necessary data
     const [analysis, profile, job] = await Promise.all([
@@ -70,7 +75,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in optimize-resume function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred',
+        details: error
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
