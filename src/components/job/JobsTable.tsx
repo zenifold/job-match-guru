@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { JobActions } from "@/components/job/JobActions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
-import { BarChart2, Info, RefreshCw } from "lucide-react";
+import { BarChart2, Check, Info, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
 import { JobAnalysisDialog } from "./JobAnalysisDialog";
@@ -97,7 +97,8 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                       <div className="space-y-6">
                         <Card className="bg-white">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold text-slate-900 text-left">
+                            <CardTitle className="text-base font-semibold text-slate-900 text-left flex items-center gap-2">
+                              <Check className="h-5 w-5 text-green-500" />
                               Strong Matches
                             </CardTitle>
                           </CardHeader>
@@ -106,19 +107,21 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                               .split('\n')
                               .filter((l: string) => l.startsWith('✓'))
                               .map((match: string, idx: number) => (
-                                <span
+                                <div
                                   key={idx}
-                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-green-50 text-slate-700 border border-green-200"
+                                  className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-1.5 text-sm text-slate-700 border border-green-100"
                                 >
+                                  <Check className="h-4 w-4 text-green-500" />
                                   {match.replace('✓', '').trim()}
-                                </span>
+                                </div>
                               ))}
                           </CardContent>
                         </Card>
 
                         <Card className="bg-white">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold text-slate-900 text-left">
+                            <CardTitle className="text-base font-semibold text-slate-900 text-left flex items-center gap-2">
+                              <Info className="h-5 w-5 text-amber-500" />
                               Suggested Improvements
                             </CardTitle>
                           </CardHeader>
@@ -127,12 +130,12 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                               .split('\n')
                               .filter((l: string) => l.startsWith('•'))
                               .map((improvement: string, idx: number) => (
-                                <span
+                                <div
                                   key={idx}
-                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-50 text-slate-700 border border-blue-200"
+                                  className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-slate-700 border border-amber-100"
                                 >
                                   {improvement.replace('•', '').trim()}
-                                </span>
+                                </div>
                               ))}
                           </CardContent>
                         </Card>
