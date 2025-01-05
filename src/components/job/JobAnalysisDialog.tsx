@@ -17,6 +17,7 @@ interface JobAnalysisDialogProps {
     analysis_text: string;
   } | null;
   jobTitle: string;
+  jobId: string; // Added this prop to match what's being passed
 }
 
 export function JobAnalysisDialog({
