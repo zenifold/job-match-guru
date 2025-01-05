@@ -17,17 +17,41 @@ import {
 import { ResumeActions } from "@/components/resume/ResumeActions";
 import { Badge } from "@/components/ui/badge";
 
+type RegularResume = {
+  type: 'regular';
+  id: string;
+  name: string;
+  content: any;
+  created_at: string;
+  user_id: string;
+};
+
+type OptimizedResume = {
+  type: 'optimized';
+  id: string;
+  version_name: string;
+  content: any;
+  created_at: string;
+  user_id: string;
+  job_id: string;
+  original_resume_id: string;
+  match_score: number;
+  optimization_status: string;
+  jobTitle: string;
+  jobs: { title: string };
+};
+
+type CombinedResume = RegularResume | OptimizedResume;
+
 const Resumes = () => {
   const session = useSession();
   const { toast } = useToast();
 
-  // Fetch both regular and optimized resumes
   const { data: allResumes, refetch } = useQuery({
     queryKey: ["all-resumes"],
     queryFn: async () => {
       if (!session?.user) return { regular: [], optimized: [] };
 
-      // Fetch regular resumes
       const { data: regularResumes, error: regularError } = await supabase
         .from("profiles")
         .select("*")
@@ -35,7 +59,6 @@ const Resumes = () => {
 
       if (regularError) throw regularError;
 
-      // Fetch optimized resumes with job information
       const { data: optimizedResumes, error: optimizedError } = await supabase
         .from("optimized_resumes")
         .select(`
@@ -79,8 +102,11 @@ const Resumes = () => {
     }
   };
 
-  const combinedResumes = [
-    ...(allResumes?.regular?.map(resume => ({ ...resume, type: 'regular' as const })) || []),
+  const combinedResumes: CombinedResume[] = [
+    ...(allResumes?.regular?.map(resume => ({ 
+      ...resume, 
+      type: 'regular' as const 
+    })) || []),
     ...(allResumes?.optimized?.map(resume => ({ 
       ...resume, 
       type: 'optimized' as const,
@@ -112,7 +138,9 @@ const Resumes = () => {
         <TableBody>
           {combinedResumes.map((resume) => (
             <TableRow key={resume.id}>
-              <TableCell>{resume.name || resume.version_name}</TableCell>
+              <TableCell>
+                {resume.type === 'regular' ? resume.name : resume.version_name}
+              </TableCell>
               <TableCell>
                 <Badge variant={resume.type === 'optimized' ? "secondary" : "default"}>
                   {resume.type === 'optimized' ? 'Optimized' : 'Original'}
