@@ -78,18 +78,28 @@ export function OptimizationWizard({
       setIsOptimizing(true);
       try {
         console.log("Starting optimization with sections:", selectedSections);
+        console.log("Original resume being sent:", originalResume);
+        
         const response = await supabase.functions.invoke('optimize-resume', {
           body: { 
             jobId,
             userId: session?.user?.id,
             sections: selectedSections,
-            originalResume // Pass the original resume to the function
+            originalResume
           }
         });
 
-        if (response.error) throw response.error;
+        if (response.error) {
+          console.error('Optimization error:', response.error);
+          throw response.error;
+        }
         
         console.log("Optimization response:", response.data);
+        
+        if (!response.data?.optimizedResume) {
+          throw new Error('No optimized resume data received');
+        }
+
         setOptimizedResume(response.data.optimizedResume);
         setCurrentStep(currentStep + 1);
         
@@ -139,13 +149,13 @@ export function OptimizationWizard({
             )}
 
             {currentStep === 1 && (
-              optimizedResume ? (
+              isOptimizing ? (
+                <OptimizingStep />
+              ) : (
                 <ComparisonView 
                   originalResume={originalResume}
                   optimizedResume={optimizedResume}
                 />
-              ) : (
-                <OptimizingStep />
               )
             )}
 

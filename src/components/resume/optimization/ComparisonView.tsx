@@ -8,8 +8,18 @@ interface ComparisonViewProps {
 }
 
 export function ComparisonView({ originalResume, optimizedResume }: ComparisonViewProps) {
-  console.log("Original Resume:", originalResume);
-  console.log("Optimized Resume:", optimizedResume);
+  console.log("Original Resume in ComparisonView:", originalResume);
+  console.log("Optimized Resume in ComparisonView:", optimizedResume);
+
+  if (!originalResume || !optimizedResume) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-sm text-muted-foreground">
+          Unable to load resume comparison. Please try again.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-4 h-[600px]">
