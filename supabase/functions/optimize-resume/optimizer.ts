@@ -7,6 +7,24 @@ export async function generateOptimizedResume(
   console.log('Original content:', originalContent);
   console.log('Analysis text:', analysisText);
   
+  const systemPrompt = `You are a professional resume optimizer. Your task is to enhance the provided resume content to better match the job requirements while maintaining authenticity and truthfulness.
+
+Follow this structured format for optimization:
+
+1. Analyze the job requirements and match them with the candidate's experience
+2. Enhance relevant sections while maintaining truthfulness
+3. Add skills that are mentioned in the analysis but missing from the resume
+4. Improve descriptions to highlight relevant experience
+
+The output must maintain the exact same structure as the input resume, only modifying content to better match the job requirements.
+
+Key rules:
+- Never invent or fabricate experience
+- Only enhance existing content to better highlight relevant skills
+- Add missing skills only if they're genuinely reflected in the experience
+- Maintain professional language and tone
+- Keep modifications focused on the job requirements`;
+
   try {
     // Parse the analysis text to extract keywords and their priorities
     const keywordsMatch = analysisText.match(/Consider adding experience or skills related to:.*?\((.*?) Priority\)/g);
