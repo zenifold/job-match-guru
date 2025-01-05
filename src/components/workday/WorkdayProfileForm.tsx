@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/types/database";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
