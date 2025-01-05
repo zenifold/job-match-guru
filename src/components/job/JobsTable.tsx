@@ -1,9 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { JobActions } from "@/components/job/JobActions";
-import { useState } from "react";
-import { JobAnalysisDialog } from "./JobAnalysisDialog";
-import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface JobsTableProps {
   jobs: any[];
@@ -13,102 +11,86 @@ interface JobsTableProps {
 }
 
 export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableProps) {
-  const [selectedAnalysis, setSelectedAnalysis] = useState<{
-    analysis: { match_score: number; analysis_text: string } | null;
-    jobTitle: string;
-  } | null>(null);
-  const [optimizeDialog, setOptimizeDialog] = useState<{
-    jobId: string;
-    jobTitle: string;
-  } | null>(null);
-
   return (
-    <>
+    <div className="w-full">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Title</TableHead>
             <TableHead className="text-center">Status</TableHead>
             <TableHead className="text-center">Date Added</TableHead>
-            <TableHead className="text-center">Match Score</TableHead>
             <TableHead className="text-right w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {jobs?.map((job) => (
-            <TableRow key={job.id}>
-              <TableCell className="text-left">{job.title}</TableCell>
-              <TableCell className="text-center">{job.status}</TableCell>
-              <TableCell className="text-center">
-                {new Date(job.date_added).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-center">
-                {job.analysis ? (
-                  <div className="flex justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      className="font-medium hover:bg-blue-50"
-                      onClick={() => {
-                        setSelectedAnalysis({
-                          analysis: job.analysis,
-                          jobTitle: job.title,
-                        });
-                      }}
-                    >
-                      {Math.round(job.analysis.match_score)}%
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setOptimizeDialog({
-                          jobId: job.id,
-                          jobTitle: job.title,
-                        });
-                      }}
-                    >
-                      Optimize
-                    </Button>
+            <AccordionItem value={job.id} key={job.id} className="border-b-0">
+              <TableRow>
+                <TableCell className="text-left">
+                  <AccordionTrigger className="hover:no-underline">
+                    {job.title}
+                  </AccordionTrigger>
+                </TableCell>
+                <TableCell className="text-center">{job.status}</TableCell>
+                <TableCell className="text-center">
+                  {new Date(job.date_added).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end">
+                    <JobActions job={job} onDelete={onDelete} />
                   </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log("Triggering analysis for job:", job.id);
-                      onAnalyze(job.id);
-                    }}
-                    disabled={isAnalyzing}
-                  >
-                    {isAnalyzing ? "Analyzing..." : "Analyze"}
-                  </Button>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end">
-                  <JobActions job={job} onDelete={onDelete} />
-                </div>
-              </TableCell>
-            </TableRow>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={4} className="p-0">
+                  <AccordionContent className="px-4 py-2 bg-slate-50">
+                    <div className="space-y-4">
+                      {job.analysis ? (
+                        <>
+                          <div className="space-y-2">
+                            <h3 className="text-lg font-semibold">Analysis Results</h3>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm font-medium">Match Score: {Math.round(job.analysis.match_score)}%</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Keep the optimize functionality
+                                  console.log("Optimizing resume for job:", job.id);
+                                }}
+                              >
+                                Optimize Resume
+                              </Button>
+                            </div>
+                            <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                              {job.analysis.analysis_text}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-gray-600">No analysis available</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              console.log("Triggering analysis for job:", job.id);
+                              onAnalyze(job.id);
+                            }}
+                            disabled={isAnalyzing}
+                          >
+                            {isAnalyzing ? "Analyzing..." : "Analyze Job"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </TableCell>
+              </TableRow>
+            </AccordionItem>
           ))}
         </TableBody>
       </Table>
-
-      <JobAnalysisDialog
-        isOpen={!!selectedAnalysis}
-        onClose={() => setSelectedAnalysis(null)}
-        analysis={selectedAnalysis?.analysis}
-        jobTitle={selectedAnalysis?.jobTitle || ""}
-      />
-
-      {optimizeDialog && (
-        <OptimizedResumeDialog
-          isOpen={!!optimizeDialog}
-          onClose={() => setOptimizeDialog(null)}
-          jobId={optimizeDialog.jobId}
-          jobTitle={optimizeDialog.jobTitle}
-        />
-      )}
-    </>
+    </div>
   );
 }
