@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { MatchScoreCard } from "./analysis/MatchScoreCard";
 import { MatchedSkillsCard } from "./analysis/MatchedSkillsCard";
 import { MissingSkillsCard } from "./analysis/MissingSkillsCard";
+import { TargetKeywordsCard } from "./analysis/TargetKeywordsCard";
+import { RequiredExperienceCard } from "./analysis/RequiredExperienceCard";
 import { AIAssistantChat } from "./analysis/AIAssistantChat";
 
 interface JobAnalysisDialogProps {
@@ -36,6 +38,8 @@ export function JobAnalysisDialog({
   const analysisLines = analysis.analysis_text.split('\n');
   const matchedKeywords: Array<{ keyword: string; priority: string }> = [];
   const missingKeywords: Array<{ keyword: string; priority: string }> = [];
+  const targetKeywords: Array<{ keyword: string; priority: string }> = [];
+  const requiredExperience: Array<{ experience: string; priority: string }> = [];
 
   let currentSection = '';
   analysisLines.forEach(line => {
@@ -43,6 +47,10 @@ export function JobAnalysisDialog({
       currentSection = 'matched';
     } else if (line.includes('Suggested Improvements:')) {
       currentSection = 'missing';
+    } else if (line.includes('Target Keywords:')) {
+      currentSection = 'target';
+    } else if (line.includes('Required Experience:')) {
+      currentSection = 'experience';
     } else if (line.startsWith('✓ ')) {
       const priorityMatch = line.match(/\((.*?) Priority\)/);
       const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
@@ -56,6 +64,16 @@ export function JobAnalysisDialog({
         .replace(/\(.*?\)/, '')
         .trim();
       missingKeywords.push({ keyword, priority });
+    } else if (line.startsWith('- ') && currentSection === 'target') {
+      const priorityMatch = line.match(/\((.*?) Priority\)/);
+      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
+      const keyword = line.replace(/- /, '').replace(/\(.*?\)/, '').trim();
+      targetKeywords.push({ keyword, priority });
+    } else if (line.startsWith('- ') && currentSection === 'experience') {
+      const priorityMatch = line.match(/\((.*?) Priority\)/);
+      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
+      const experience = line.replace(/- /, '').replace(/\(.*?\)/, '').trim();
+      requiredExperience.push({ experience, priority });
     }
   });
 
@@ -82,6 +100,11 @@ export function JobAnalysisDialog({
           <div className="grid grid-cols-2 gap-6">
             <MatchedSkillsCard matchedKeywords={matchedKeywords} />
             <MissingSkillsCard missingKeywords={missingKeywords} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <TargetKeywordsCard targetKeywords={targetKeywords} />
+            <RequiredExperienceCard requiredExperience={requiredExperience} />
           </div>
 
           <AIAssistantChat
