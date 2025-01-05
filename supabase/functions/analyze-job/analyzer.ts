@@ -18,6 +18,13 @@ Required Experience:
 - [Required experience] (Priority Level)
 [Continue listing experience]
 
+Analyze this job:
+Title: ${jobTitle}
+Description: ${jobDescription}
+
+Against this resume:
+${resumeText}
+
 Priority levels MUST be one of: Critical, High, Medium, or Standard.
 Each section MUST start with the exact headers shown above.
 Use ✓ for matches and - for other items.
