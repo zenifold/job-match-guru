@@ -73,9 +73,11 @@ export async function getExistingOptimizedResume(userId: string, jobId: string):
     .select('*')
     .eq('user_id', userId)
     .eq('job_id', jobId)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
+  if (error) {
     console.error('Error checking for existing optimized resume:', error);
     throw error;
   }
