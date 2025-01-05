@@ -38,6 +38,15 @@ export function OptimizedResumeDialog({
     },
   });
 
+  const handleComplete = () => {
+    onClose();
+    navigate("/resumes");
+    toast({
+      title: "Resume Optimized",
+      description: "Your resume has been successfully optimized.",
+    });
+  };
+
   if (!profile) return null;
 
   return (
@@ -45,7 +54,7 @@ export function OptimizedResumeDialog({
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <OptimizationWizard
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={handleComplete}
           originalResume={profile.content}
           jobTitle={jobTitle}
           jobId={jobId}
