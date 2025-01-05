@@ -127,8 +127,8 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
           .from('profiles')
           .select('content')
           .eq('user_id', session.user.id)
-          .eq('is_master', true)  // Only get the master profile
-          .maybeSingle();  // Use maybeSingle instead of single
+          .eq('is_master', true)
+          .maybeSingle();
 
         if (error) {
           console.error('Error loading resume:', error);
@@ -142,19 +142,27 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (!data) {
           console.log('No master profile found');
-          toast({
-            title: "No Master Profile",
-            description: "Please create a master profile first.",
-          });
+          // Only show this toast if we're not on the initial load
+          if (resumeData !== initialResumeData) {
+            toast({
+              title: "No Master Profile",
+              description: "Please create a master profile first.",
+            });
+          }
           return;
         }
 
         console.log('Resume loaded successfully');
-        setResumeData(data.content as ResumeData);
-        toast({
-          title: "Resume Loaded",
-          description: "Your saved resume data has been loaded.",
-        });
+        // Only show the success toast if the data actually changed
+        if (JSON.stringify(data.content) !== JSON.stringify(resumeData)) {
+          setResumeData(data.content as ResumeData);
+          toast({
+            title: "Resume Updated",
+            description: "Your resume data has been refreshed.",
+          });
+        } else {
+          setResumeData(data.content as ResumeData);
+        }
       } catch (error) {
         console.error('Error in loadSavedResume:', error);
         toast({
