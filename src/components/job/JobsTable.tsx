@@ -6,6 +6,7 @@ import { BarChart2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface JobsTableProps {
   jobs: any[];
@@ -50,17 +51,17 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
               </div>
 
               <AccordionContent>
-                <div className="px-6 py-4 bg-slate-50 space-y-6">
+                <div className="px-6 py-4 bg-slate-50 space-y-4">
                   {job.analysis ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                        <h3 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                           <BarChart2 className="h-5 w-5 text-slate-600" />
                           Analysis Results
                         </h3>
                         <div className="flex items-center gap-4">
                           <div className={cn(
-                            "px-4 py-2 rounded-full text-base font-medium flex items-center gap-2",
+                            "px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2",
                             job.analysis.match_score >= 70 
                               ? "bg-green-100 text-green-700" 
                               : job.analysis.match_score >= 50 
@@ -83,55 +84,63 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                         </div>
                       </div>
                       
-                      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {job.analysis.analysis_text.split('\n').map((line: string, index: number) => {
                           if (line.startsWith('Strong Matches:')) {
                             return (
-                              <div key={index}>
-                                <h4 className="text-lg font-semibold text-slate-900 mb-4">
-                                  Strong Matches
-                                </h4>
-                              </div>
+                              <Card key={index} className="bg-white">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base font-semibold text-slate-900">
+                                    Strong Matches
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-wrap gap-1.5">
+                                  {job.analysis.analysis_text
+                                    .split('\n')
+                                    .filter((l: string) => l.startsWith('✓'))
+                                    .map((match: string, idx: number) => (
+                                      <span
+                                        key={idx}
+                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200"
+                                      >
+                                        {match.replace('✓', '').trim()}
+                                      </span>
+                                    ))}
+                                </CardContent>
+                              </Card>
                             );
                           }
                           if (line.startsWith('Suggested Improvements:')) {
                             return (
-                              <div key={index}>
-                                <h4 className="text-lg font-semibold text-slate-900 mb-4">
-                                  Suggested Improvements
-                                </h4>
-                              </div>
+                              <Card key={index} className="bg-white">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base font-semibold text-slate-900">
+                                    Suggested Improvements
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-wrap gap-1.5">
+                                  {job.analysis.analysis_text
+                                    .split('\n')
+                                    .filter((l: string) => l.startsWith('•'))
+                                    .map((improvement: string, idx: number) => (
+                                      <span
+                                        key={idx}
+                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200"
+                                      >
+                                        {improvement.replace('•', '').trim()}
+                                      </span>
+                                    ))}
+                                </CardContent>
+                              </Card>
                             );
                           }
-                          if (line.startsWith('✓')) {
-                            return (
-                              <div key={index} className="inline-block mr-2 mb-2">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-base bg-green-50 text-green-700 border border-green-200">
-                                  {line.replace('✓', '').trim()}
-                                </span>
-                              </div>
-                            );
-                          }
-                          if (line.startsWith('•')) {
-                            return (
-                              <div key={index} className="inline-block mr-2 mb-2">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-base bg-blue-50 text-blue-700 border border-blue-200">
-                                  {line.replace('•', '').trim()}
-                                </span>
-                              </div>
-                            );
-                          }
-                          return line.trim() ? (
-                            <p key={index} className="text-base text-slate-600">
-                              {line}
-                            </p>
-                          ) : null;
+                          return null;
                         })}
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center gap-4">
-                      <span className="text-base text-slate-600">No analysis available</span>
+                      <span className="text-sm text-slate-600">No analysis available</span>
                       <Button
                         variant="outline"
                         size="sm"
