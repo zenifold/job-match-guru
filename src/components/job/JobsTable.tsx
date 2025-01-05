@@ -18,6 +18,7 @@ interface JobsTableProps {
 export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableProps) {
   const [selectedJob, setSelectedJob] = useState<{ id: string; title: string } | null>(null);
   const [analyzingJobId, setAnalyzingJobId] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<{ jobId: string; type: 'rate-limit' | 'ai-error' | 'general'; message: string } | null>(null);
   const { toast } = useToast();
 
   const handleUpdate = () => {
@@ -27,16 +28,38 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
   const handleReanalyze = async (jobId: string) => {
     try {
       setAnalyzingJobId(jobId);
+      setAnalysisError(null);
       await onAnalyze(jobId);
       toast({
         title: "Analysis Complete",
         description: "Job has been re-analyzed successfully.",
       });
-    } catch (error) {
-      console.error("Error re-analyzing job:", error);
+    } catch (error: any) {
+      console.error("Error analyzing job:", error);
+      
+      // Parse the error response
+      let errorType: 'rate-limit' | 'ai-error' | 'general' = 'general';
+      let errorMessage = "Failed to analyze job. Please try again.";
+      
+      try {
+        const errorBody = JSON.parse(error.body);
+        
+        if (error.status === 429) {
+          errorType = 'rate-limit';
+          errorMessage = "Rate limit reached. Please wait a minute before trying again.";
+        } else if (errorBody.error === "Invalid AI response format") {
+          errorType = 'ai-error';
+          errorMessage = "There was an issue with the AI analysis. Our team has been notified.";
+        }
+      } catch (e) {
+        console.error("Error parsing error body:", e);
+      }
+      
+      setAnalysisError({ jobId, type: errorType, message: errorMessage });
+      
       toast({
         title: "Analysis Error",
-        description: "Failed to re-analyze job. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -72,10 +95,14 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
 
               <AccordionContent>
                 <div className="px-6 py-4 bg-slate-50 space-y-4">
-                  {job.analysis ? (
+                  {job.analysis || analysisError?.jobId === job.id ? (
                     <JobAnalysisSection
                       job={job}
                       isAnalyzing={isAnalyzing && analyzingJobId === job.id}
+                      error={analysisError?.jobId === job.id ? {
+                        type: analysisError.type,
+                        message: analysisError.message
+                      } : undefined}
                       onReanalyze={() => handleReanalyze(job.id)}
                       onOptimize={() => setSelectedJob({ id: job.id, title: job.title })}
                     />
