@@ -11,6 +11,7 @@ import { EducationSection } from "./workday/EducationSection";
 import { LanguagesSection } from "./workday/LanguagesSection";
 import { WebsitesSection } from "./workday/WebsitesSection";
 import { ApplicationQuestionsSection } from "./workday/ApplicationQuestionsSection";
+import { VoluntaryDisclosuresSection } from "./workday/VoluntaryDisclosuresSection";
 
 export function WorkdayApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -49,6 +50,8 @@ export function WorkdayApplicationForm() {
         );
       case 3:
         return <ApplicationQuestionsSection employer="Walmart" />;
+      case 4:
+        return <VoluntaryDisclosuresSection />;
       default:
         return null;
     }
@@ -62,12 +65,14 @@ export function WorkdayApplicationForm() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Check className="w-4 h-4" />
             <span>
-              Step {currentStep} of 3:{" "}
+              Step {currentStep} of 4:{" "}
               {currentStep === 1
                 ? "My Information"
                 : currentStep === 2
                 ? "My Experience"
-                : "Application Questions"}
+                : currentStep === 3
+                ? "Application Questions"
+                : "Voluntary Disclosures"}
             </span>
           </div>
         </div>
@@ -87,10 +92,10 @@ export function WorkdayApplicationForm() {
             </Button>
             <Button
               type="button"
-              onClick={() => setCurrentStep((prev) => Math.min(3, prev + 1))}
+              onClick={() => setCurrentStep((prev) => Math.min(4, prev + 1))}
             >
-              {currentStep === 3 ? "Submit" : "Next"}
-              {currentStep < 3 && <ArrowRight className="w-4 h-4 ml-2" />}
+              {currentStep === 4 ? "Submit" : "Next"}
+              {currentStep < 4 && <ArrowRight className="w-4 h-4 ml-2" />}
             </Button>
           </div>
         </form>
