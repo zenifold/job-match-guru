@@ -21,6 +21,11 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
   const [showAnalysisInfo, setShowAnalysisInfo] = useState<{ jobId: string; title: string } | null>(null);
   const { toast } = useToast();
 
+  const handleUpdate = () => {
+    // Trigger a refetch of the jobs data
+    window.location.reload();
+  };
+
   return (
     <div className="w-full overflow-hidden">
       <div className="min-w-full">
@@ -47,7 +52,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                   </span>
                 </div>
                 <div className="col-span-2 flex items-center justify-end gap-2">
-                  <JobActions job={job} onDelete={onDelete} />
+                  <JobActions job={job} onDelete={onDelete} onUpdate={handleUpdate} />
                   <AccordionTrigger className="h-8 w-8 p-0 hover:no-underline" />
                 </div>
               </div>
