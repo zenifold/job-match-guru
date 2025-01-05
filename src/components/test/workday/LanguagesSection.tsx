@@ -100,7 +100,7 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
               <Checkbox 
                 id={`nativeLanguage-${index}`} 
                 checked={lang.isNative}
-                onCheckedChange={(checked) => updateLanguageBoolean(index, Boolean(checked))}
+                onCheckedChange={(checked) => updateLanguageBoolean(index, checked === true)}
               />
               <Label htmlFor={`nativeLanguage-${index}`}>I am fluent in this language.</Label>
             </div>
