@@ -98,7 +98,7 @@ const Jobs = () => {
       });
       
       await refetch();
-      return Promise.resolve();
+      return;
     } catch (error) {
       console.error("Error deleting job:", error);
       toast({
