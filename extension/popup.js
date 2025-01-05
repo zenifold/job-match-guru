@@ -1,3 +1,7 @@
+import { updateUIForAuthenticatedUser, updateUIForUnauthenticatedUser } from './components/AuthSection';
+import { showTutorial } from './components/Tutorial';
+import { handleAnalysis } from './services/analysisService';
+
 let currentJobData = null;
 let currentUser = null;
 
@@ -5,9 +9,8 @@ let currentUser = null;
 chrome.storage.local.get(['authToken', 'userData', 'hasSeenTutorial'], (result) => {
   if (result.authToken && result.userData) {
     currentUser = result.userData;
-    updateUIForAuthenticatedUser();
+    updateUIForAuthenticatedUser(currentUser);
     
-    // Show tutorial for first-time users
     if (!result.hasSeenTutorial) {
       showTutorial();
       chrome.storage.local.set({ hasSeenTutorial: true });
@@ -16,77 +19,6 @@ chrome.storage.local.get(['authToken', 'userData', 'hasSeenTutorial'], (result) 
     updateUIForUnauthenticatedUser();
   }
 });
-
-function showTutorial() {
-  const tutorialSteps = [
-    {
-      element: '#analyze',
-      content: 'Click here to analyze the job description and optimize your resume'
-    },
-    {
-      element: '#autofill',
-      content: 'Once analysis is complete, click here to automatically fill out the application'
-    }
-  ];
-
-  document.getElementById('tutorial-overlay').innerHTML = `
-    <div class="fixed inset-0 bg-black/50 z-50">
-      <div class="bg-white p-4 rounded-lg max-w-sm mx-auto mt-20">
-        <h3 class="font-semibold mb-2">Welcome to Resume Autofill!</h3>
-        <p class="text-sm text-gray-600 mb-4">Let's get you started with a quick tour.</p>
-        <div id="tutorial-content"></div>
-        <button id="tutorial-next" class="button mt-4">Next</button>
-      </div>
-    </div>
-  `;
-
-  let currentStep = 0;
-  showTutorialStep(currentStep);
-
-  document.getElementById('tutorial-next').addEventListener('click', () => {
-    currentStep++;
-    if (currentStep < tutorialSteps.length) {
-      showTutorialStep(currentStep);
-    } else {
-      document.getElementById('tutorial-overlay').innerHTML = '';
-    }
-  });
-}
-
-function showTutorialStep(step) {
-  const tutorialContent = document.getElementById('tutorial-content');
-  tutorialContent.textContent = tutorialSteps[step].content;
-  
-  // Highlight the relevant element
-  const element = document.querySelector(tutorialSteps[step].element);
-  if (element) {
-    element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
-  }
-}
-
-function updateUIForAuthenticatedUser() {
-  document.getElementById('auth-section').innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <p class="text-sm text-gray-600">Logged in as ${currentUser.email}</p>
-        <p class="text-xs text-gray-400">Click buttons below to get started</p>
-      </div>
-      <button id="logout" class="text-sm text-red-600 hover:text-red-700">Logout</button>
-    </div>
-  `;
-  document.getElementById('main-content').style.display = 'block';
-}
-
-function updateUIForUnauthenticatedUser() {
-  document.getElementById('auth-section').innerHTML = `
-    <div class="text-center p-4 space-y-2">
-      <p class="text-sm text-gray-600">Please log in to use the extension</p>
-      <button id="login" class="button">Login to Resume Autofill</button>
-      <p class="text-xs text-gray-400">One-time login required to access your resumes</p>
-    </div>
-  `;
-  document.getElementById('main-content').style.display = 'none';
-}
 
 document.getElementById('analyze').addEventListener('click', async () => {
   const statusEl = document.getElementById('status');
@@ -119,33 +51,20 @@ document.getElementById('analyze').addEventListener('click', async () => {
     // Update status to show progress
     statusEl.textContent = 'Optimizing resume...';
     
-    // Send to backend for analysis
-    const analysisResponse = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/functions/v1/analyze-job-extension', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentUser.token}`,
-      },
-      body: JSON.stringify({
-        jobDescription: response.jobDescription,
-        jobTitle: response.jobTitle,
-        company: response.company,
-        userId: currentUser.id
-      }),
-    });
+    // Handle the complete analysis flow
+    const result = await handleAnalysis({
+      jobDescription: response.jobDescription,
+      jobTitle: response.jobTitle,
+      company: response.company
+    }, currentUser.token, currentUser.id);
     
-    if (!analysisResponse.ok) {
-      throw new Error('Analysis failed. Please try again.');
-    }
-    
-    const analysisData = await analysisResponse.json();
-    currentJobData = analysisData;
+    currentJobData = result;
     
     statusEl.textContent = 'Analysis complete! Ready to auto-fill.';
     statusEl.className = 'status success';
     autofillBtn.disabled = false;
     
-    // Show optimization results with enhanced UI
+    // Show optimization results
     resultsEl.innerHTML = `
       <div class="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
         <div class="flex items-center justify-between">

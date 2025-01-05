@@ -16,20 +16,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function analyzeJob(jobData) {
   try {
-    // Make API call to your backend
-    const response = await fetch('https://your-backend.com/api/analyze', {
+    console.log('Starting job analysis:', jobData);
+    
+    // Make API call to analyze job
+    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/functions/v1/analyze-job-extension', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jobData.authToken}`,
       },
-      body: JSON.stringify(jobData),
+      body: JSON.stringify({
+        jobDescription: jobData.description,
+        jobTitle: jobData.jobTitle,
+        company: jobData.company,
+        userId: jobData.userId
+      }),
     });
     
     if (!response.ok) {
       throw new Error('Analysis failed');
     }
     
-    return await response.json();
+    const analysisResult = await response.json();
+    console.log('Analysis result:', analysisResult);
+    
+    return analysisResult;
   } catch (error) {
     console.error('Error analyzing job:', error);
     throw error;
