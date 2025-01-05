@@ -53,6 +53,9 @@ export const ResumePreview = ({ data, isOptimized, originalContent }: ResumePrev
               <p>{data.personalInfo.phone}</p>
               <p>{data.personalInfo.location}</p>
             </div>
+            {data.personalInfo.summary && (
+              <p className="text-sm text-muted-foreground">{data.personalInfo.summary}</p>
+            )}
           </div>
         )}
 
@@ -75,6 +78,13 @@ export const ResumePreview = ({ data, isOptimized, originalContent }: ResumePrev
                 <p className="text-sm text-muted-foreground">
                   {exp.description}
                 </p>
+                {exp.keyResponsibilities && exp.keyResponsibilities.length > 0 && (
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
+                    {exp.keyResponsibilities.map((resp: string, idx: number) => (
+                      <li key={idx}>{resp}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>
