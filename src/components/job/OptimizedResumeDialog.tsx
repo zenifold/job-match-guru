@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useSession } from "@supabase/auth-helpers-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { OptimizationWizard } from "@/components/resume/OptimizationWizard";
 
@@ -39,21 +38,19 @@ export function OptimizedResumeDialog({
     },
   });
 
-  const handleComplete = () => {
-    onClose();
-    navigate("/resumes", { replace: true });
-    window.location.reload();
-  };
-
   if (!profile) return null;
 
   return (
-    <OptimizationWizard
-      isOpen={isOpen}
-      onClose={handleComplete}
-      originalResume={profile.content}
-      jobTitle={jobTitle}
-      jobId={jobId}
-    />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+        <OptimizationWizard
+          isOpen={isOpen}
+          onClose={onClose}
+          originalResume={profile.content}
+          jobTitle={jobTitle}
+          jobId={jobId}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
