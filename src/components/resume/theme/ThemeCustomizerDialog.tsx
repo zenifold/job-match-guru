@@ -6,7 +6,7 @@ import { ColorSchemeSelector } from "./ColorSchemeSelector";
 import { LayoutCustomizer } from "./LayoutCustomizer";
 import { SpacingCustomizer } from "./SpacingCustomizer";
 import { ThemePreview } from "./ThemePreview";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@supabase/auth-helpers-react";
@@ -23,12 +23,42 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
   const [activeTheme, setActiveTheme] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
 
+  // Load initial theme settings
+  useEffect(() => {
+    if (open && session?.user?.id) {
+      const loadDefaultTheme = async () => {
+        const { data, error } = await supabase
+          .from('resume_themes')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('is_default', true)
+          .single();
+
+        if (!error && data) {
+          setActiveTheme(data);
+          setSettings(data.settings);
+        }
+      };
+
+      loadDefaultTheme();
+    }
+  }, [open, session?.user?.id]);
+
+  const handleThemeSelect = (theme: any) => {
+    console.log("Selected theme:", theme);
+    setActiveTheme(theme);
+    setSettings(theme.settings);
+  };
+
   const handleSave = async () => {
     try {
+      if (!activeTheme?.id || !session?.user?.id) return;
+
       const { error } = await supabase
         .from('resume_themes')
         .update({ settings })
-        .eq('id', activeTheme.id);
+        .eq('id', activeTheme.id)
+        .eq('user_id', session.user.id);
 
       if (error) throw error;
 
@@ -68,7 +98,7 @@ export function ThemeCustomizerDialog({ open, onOpenChange }: ThemeCustomizerDia
               <TabsContent value="theme">
                 <ThemeSelector 
                   activeTheme={activeTheme} 
-                  onThemeSelect={setActiveTheme} 
+                  onThemeSelect={handleThemeSelect}
                 />
               </TabsContent>
               

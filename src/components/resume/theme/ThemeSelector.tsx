@@ -15,6 +15,25 @@ const defaultThemes = [
         type: "simple",
         columns: 1,
         headerStyle: "left-aligned"
+      },
+      font: {
+        family: "Inter",
+        size: {
+          body: "16px",
+          heading: "24px",
+          subheading: "18px"
+        }
+      },
+      colors: {
+        primary: "#222222",
+        secondary: "#403E43",
+        accent: "#9b87f5",
+        background: "#FFFFFF"
+      },
+      spacing: {
+        margins: "2rem",
+        lineHeight: "1.6",
+        sectionGap: "1.5rem"
       }
     }
   },
@@ -27,6 +46,25 @@ const defaultThemes = [
         type: "centered",
         columns: 1,
         headerStyle: "centered"
+      },
+      font: {
+        family: "Inter",
+        size: {
+          body: "16px",
+          heading: "28px",
+          subheading: "20px"
+        }
+      },
+      colors: {
+        primary: "#1A1F2C",
+        secondary: "#6E59A5",
+        accent: "#9b87f5",
+        background: "#FFFFFF"
+      },
+      spacing: {
+        margins: "2.5rem",
+        lineHeight: "1.7",
+        sectionGap: "2rem"
       }
     }
   },
@@ -39,6 +77,26 @@ const defaultThemes = [
         type: "sidebar",
         columns: 2,
         headerStyle: "left-aligned"
+      },
+      font: {
+        family: "Inter",
+        size: {
+          body: "15px",
+          heading: "24px",
+          subheading: "18px"
+        }
+      },
+      colors: {
+        primary: "#222222",
+        secondary: "#403E43",
+        accent: "#9b87f5",
+        background: "#FFFFFF",
+        sidebar: "#F1F0FB"
+      },
+      spacing: {
+        margins: "2rem",
+        lineHeight: "1.6",
+        sectionGap: "1.5rem"
       }
     }
   }
@@ -66,17 +124,22 @@ export function ThemeSelector({ activeTheme, onThemeSelect }: ThemeSelectorProps
     },
   });
 
+  const handleThemeSelect = (themeId: string) => {
+    const selectedTheme = defaultThemes.find((t) => t.id === themeId);
+    if (selectedTheme) {
+      // Apply the theme settings immediately
+      onThemeSelect({
+        ...selectedTheme,
+        settings: selectedTheme.settings
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <RadioGroup
         value={activeTheme?.id}
-        onValueChange={(value) => {
-          const selectedTheme = themes?.find((t) => t.id === value) || 
-                              defaultThemes.find((t) => t.id === value);
-          if (selectedTheme) {
-            onThemeSelect(selectedTheme);
-          }
-        }}
+        onValueChange={handleThemeSelect}
       >
         <div className="grid gap-4">
           {defaultThemes.map((theme) => (
