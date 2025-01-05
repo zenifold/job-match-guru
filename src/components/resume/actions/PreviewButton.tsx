@@ -1,4 +1,4 @@
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CombinedResume } from "@/types/resume";
@@ -21,9 +21,12 @@ export const PreviewButton = ({ resume, themeSettings }: PreviewButtonProps) => 
   };
 
   return (
-    <DropdownMenuItem onClick={handlePreview}>
-      <Eye className="mr-2 h-4 w-4" />
-      <span>Preview</span>
-    </DropdownMenuItem>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handlePreview}
+    >
+      <Eye className="h-4 w-4" />
+    </Button>
   );
 };

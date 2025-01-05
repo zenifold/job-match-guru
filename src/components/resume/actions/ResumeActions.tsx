@@ -3,10 +3,8 @@ import { MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
 import { DeleteButton } from "./DeleteButton";
 import { PreviewButton } from "./PreviewButton";
 import { EditButton } from "./EditButton";
@@ -20,8 +18,6 @@ interface ResumeActionsProps {
 }
 
 export const ResumeActions = ({ resume, onDelete, themeSettings }: ResumeActionsProps) => {
-  const navigate = useNavigate();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

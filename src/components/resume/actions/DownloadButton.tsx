@@ -3,14 +3,16 @@ import { Download } from "lucide-react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
 import { generatePDF, uploadPDF } from "@/utils/pdf";
+import { CombinedResume } from "@/types/resume";
 
 interface DownloadButtonProps {
-  resume: any;
+  resume: CombinedResume;
+  themeSettings?: any;
   variant?: "ghost" | "outline" | "default";
   size?: "icon" | "default";
 }
 
-export const DownloadButton = ({ resume, variant = "ghost", size = "icon" }: DownloadButtonProps) => {
+export const DownloadButton = ({ resume, themeSettings, variant = "ghost", size = "icon" }: DownloadButtonProps) => {
   const { toast } = useToast();
   const session = useSession();
 
@@ -25,17 +27,17 @@ export const DownloadButton = ({ resume, variant = "ghost", size = "icon" }: Dow
     }
 
     try {
-      const pdf = generatePDF(resume.content);
+      const pdf = generatePDF(resume.content, themeSettings);
       const publicUrl = await uploadPDF(
         pdf, 
-        `${resume.name || 'resume'}_${new Date().toISOString()}`,
+        `${resume.type === 'regular' ? resume.name : resume.version_name}_${new Date().toISOString()}`,
         session.user.id
       );
 
       // Create a link element and trigger download
       const link = document.createElement('a');
       link.href = publicUrl;
-      link.download = `${resume.name || 'resume'}.pdf`;
+      link.download = `${resume.type === 'regular' ? resume.name : resume.version_name}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
