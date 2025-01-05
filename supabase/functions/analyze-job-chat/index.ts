@@ -13,6 +13,11 @@ serve(async (req) => {
 
   try {
     const { message, context } = await req.json();
+    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+
+    if (!openRouterApiKey) {
+      throw new Error('OpenRouter API key not found');
+    }
 
     const systemPrompt = `You are an AI assistant helping with job application analysis. 
     You have access to the following context about a job analysis:
@@ -34,25 +39,37 @@ serve(async (req) => {
     
     Keep responses concise but informative.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Sending request to OpenRouter API with context:', {
+      jobTitle: context.jobTitle,
+      matchScore: context.matchScore,
+      matchedKeywordsCount: context.matchedKeywords.length,
+      missingKeywordsCount: context.missingKeywords.length
+    });
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openRouterApiKey}`,
+        'HTTP-Referer': 'https://lovable.dev',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
+        ]
+      })
     });
 
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('OpenRouter API Error:', errorData);
+      throw new Error('Failed to get AI response');
+    }
+
     const data = await response.json();
-    console.log('OpenAI response:', data);
+    console.log('OpenRouter API Response received');
 
     return new Response(
       JSON.stringify({ response: data.choices[0].message.content }),
