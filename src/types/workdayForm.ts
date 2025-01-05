@@ -1,4 +1,7 @@
+import { Json } from '@/types/database';
+
 export interface WorkdayFormData {
+  [key: string]: any; // Add index signature for Json compatibility
   source?: {
     prompt?: string;
     country?: string;
@@ -64,4 +67,12 @@ export interface WorkdayFormData {
 export interface SectionProps {
   onChange: (data: Partial<WorkdayFormData>) => void;
   value?: any;
+}
+
+export interface ApplicationQuestionsSectionProps extends SectionProps {
+  value?: { [key: string]: string };
+}
+
+export interface VoluntaryDisclosuresSectionProps extends SectionProps {
+  value?: { [key: string]: boolean | string };
 }

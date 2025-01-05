@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { WorkdayTemplateSelector } from "../workday/WorkdayTemplateSelector";
+import { Plus } from "lucide-react";
+import { Steps } from "@/components/ui/steps";
 import { useToast } from "@/hooks/use-toast";
+import { WorkdayTemplateSelector } from "../workday/WorkdayTemplateSelector";
 import { validateWorkdayForm } from "@/utils/workdayFormValidation";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
@@ -39,7 +40,7 @@ export function WorkdayApplicationForm() {
         .from('workday_profiles')
         .upsert({
           user_id: session.user.id,
-          content: data,
+          content: data as any, // Type assertion needed for Json compatibility
           name: 'Auto-saved Draft'
         });
 
@@ -104,7 +105,7 @@ export function WorkdayApplicationForm() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">Workday Application</h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Check className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
             <span>
               Step {currentStep} of 4:{" "}
               {currentStep === 1
