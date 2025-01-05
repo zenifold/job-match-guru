@@ -23,7 +23,6 @@ export function OptimizedResumeDialog({
   const { toast } = useToast();
   const session = useSession();
   const navigate = useNavigate();
-  const [optimizationResult, setOptimizationResult] = useState<any>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile"],
