@@ -8,6 +8,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useResume } from "@/contexts/ResumeContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,8 @@ export const BuilderActions = ({
   const session = useSession();
   const { resumeData } = useResume();
   const [resumeName, setResumeName] = useState("My Resume");
+  const [careerFocus, setCareerFocus] = useState("");
+  const [isMaster, setIsMaster] = useState(false);
 
   const handlePreview = () => {
     navigate("/preview", { state: { resumeData } });
@@ -72,6 +75,8 @@ export const BuilderActions = ({
           name: resumeName,
           content: resumeData,
           created_at: new Date().toISOString(),
+          career_focus: careerFocus || null,
+          is_master: isMaster,
         });
 
       if (error) {
@@ -97,17 +102,45 @@ export const BuilderActions = ({
 
   return (
     <>
-      <div className="mb-6">
-        <Label htmlFor="resumeName">Resume Name</Label>
-        <Input
-          id="resumeName"
-          value={resumeName}
-          onChange={(e) => setResumeName(e.target.value)}
-          placeholder="Enter resume name"
-          className="mt-1"
-        />
+      <div className="space-y-6">
+        <div>
+          <Label htmlFor="resumeName">Resume Name</Label>
+          <Input
+            id="resumeName"
+            value={resumeName}
+            onChange={(e) => setResumeName(e.target.value)}
+            placeholder="Enter resume name"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="careerFocus">Career Focus (Optional)</Label>
+          <Input
+            id="careerFocus"
+            value={careerFocus}
+            onChange={(e) => setCareerFocus(e.target.value)}
+            placeholder="e.g., Product Management, Data Analysis"
+            className="mt-1"
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="master">Master Resume</Label>
+            <div className="text-sm text-muted-foreground">
+              Mark this as a master resume for this career focus
+            </div>
+          </div>
+          <Switch
+            id="master"
+            checked={isMaster}
+            onCheckedChange={setIsMaster}
+          />
+        </div>
       </div>
-      <div className="flex gap-2">
+
+      <div className="flex gap-2 mt-6">
         <Button onClick={handlePreview} variant="outline">
           <Eye className="h-4 w-4 mr-2" />
           Preview

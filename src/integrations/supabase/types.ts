@@ -163,23 +163,29 @@ export type Database = {
       }
       profiles: {
         Row: {
+          career_focus: string | null
           content: Json
           created_at: string
           id: string
+          is_master: boolean | null
           name: string
           user_id: string
         }
         Insert: {
+          career_focus?: string | null
           content: Json
           created_at?: string
           id?: string
+          is_master?: boolean | null
           name: string
           user_id: string
         }
         Update: {
+          career_focus?: string | null
           content?: Json
           created_at?: string
           id?: string
+          is_master?: boolean | null
           name?: string
           user_id?: string
         }
