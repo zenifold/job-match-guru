@@ -53,7 +53,7 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
               <AccordionContent>
                 <div className="px-6 py-4 bg-slate-50 space-y-4">
                   {job.analysis ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                         <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                           <BarChart2 className="h-5 w-5 text-slate-600" />
@@ -84,58 +84,48 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {job.analysis.analysis_text.split('\n').map((line: string, index: number) => {
-                          if (line.startsWith('Strong Matches:')) {
-                            return (
-                              <Card key={index} className="bg-white">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base font-semibold text-slate-900">
-                                    Strong Matches
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex flex-wrap gap-1.5">
-                                  {job.analysis.analysis_text
-                                    .split('\n')
-                                    .filter((l: string) => l.startsWith('✓'))
-                                    .map((match: string, idx: number) => (
-                                      <span
-                                        key={idx}
-                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200"
-                                      >
-                                        {match.replace('✓', '').trim()}
-                                      </span>
-                                    ))}
-                                </CardContent>
-                              </Card>
-                            );
-                          }
-                          if (line.startsWith('Suggested Improvements:')) {
-                            return (
-                              <Card key={index} className="bg-white">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base font-semibold text-slate-900">
-                                    Suggested Improvements
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex flex-wrap gap-1.5">
-                                  {job.analysis.analysis_text
-                                    .split('\n')
-                                    .filter((l: string) => l.startsWith('•'))
-                                    .map((improvement: string, idx: number) => (
-                                      <span
-                                        key={idx}
-                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200"
-                                      >
-                                        {improvement.replace('•', '').trim()}
-                                      </span>
-                                    ))}
-                                </CardContent>
-                              </Card>
-                            );
-                          }
-                          return null;
-                        })}
+                      <div className="space-y-6">
+                        <Card className="bg-white">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base font-semibold text-slate-900">
+                              Strong Matches
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="flex flex-wrap gap-1.5">
+                            {job.analysis.analysis_text
+                              .split('\n')
+                              .filter((l: string) => l.startsWith('✓'))
+                              .map((match: string, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200"
+                                >
+                                  {match.replace('✓', '').trim()}
+                                </span>
+                              ))}
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-white">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base font-semibold text-slate-900">
+                              Suggested Improvements
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="flex flex-wrap gap-1.5">
+                            {job.analysis.analysis_text
+                              .split('\n')
+                              .filter((l: string) => l.startsWith('•'))
+                              .map((improvement: string, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200"
+                                >
+                                  {improvement.replace('•', '').trim()}
+                                </span>
+                              ))}
+                          </CardContent>
+                        </Card>
                       </div>
                     </div>
                   ) : (
