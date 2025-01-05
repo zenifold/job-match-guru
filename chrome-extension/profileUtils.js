@@ -24,34 +24,51 @@ async function fetchProfileData(authToken) {
 function mapProfileToWorkdayFields(profileData) {
   if (!profileData) return null;
   
+  // Extract first and last name from full name
+  const fullNameParts = profileData.personalInfo?.fullName?.split(' ') || [];
+  const firstName = fullNameParts[0] || '';
+  const lastName = fullNameParts.slice(1).join(' ') || '';
+  
   return {
     personalInfo: {
-      firstName: profileData.personalInfo?.fullName?.split(' ')[0] || '',
-      lastName: profileData.personalInfo?.fullName?.split(' ').slice(1).join(' ') || '',
+      firstName,
+      lastName,
       email: profileData.personalInfo?.email || '',
       phone: profileData.personalInfo?.phone || '',
       address: profileData.personalInfo?.address || '',
       city: profileData.personalInfo?.city || '',
-      state: '', // Add state mapping if available
+      state: profileData.personalInfo?.state || '',
       zipCode: profileData.personalInfo?.zipCode || '',
+      country: profileData.personalInfo?.country || '',
+      linkedin: profileData.personalInfo?.linkedin || '',
+      github: profileData.personalInfo?.github || ''
     },
-    experience: profileData.experience?.map(exp => ({
-      jobTitle: exp.position,
-      company: exp.company,
-      location: exp.location,
+    experience: (profileData.experience || []).map(exp => ({
+      jobTitle: exp.position || '',
+      company: exp.company || '',
+      location: exp.location || '',
       currentlyWorkHere: !exp.endDate,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      description: exp.description
-    })) || [],
-    education: profileData.education?.map(edu => ({
-      school: edu.school,
-      degree: edu.degree,
-      field: edu.field,
-      startDate: edu.startDate,
-      endDate: edu.endDate,
-      gpa: edu.finalEvaluationGrade
-    })) || []
+      startDate: exp.startDate || '',
+      endDate: exp.endDate || '',
+      description: exp.description || ''
+    })),
+    education: (profileData.education || []).map(edu => ({
+      school: edu.school || '',
+      degree: edu.degree || '',
+      field: edu.field || '',
+      startDate: edu.startDate || '',
+      endDate: edu.endDate || '',
+      gpa: edu.finalEvaluationGrade || ''
+    })),
+    skills: profileData.skills || [],
+    certifications: (profileData.certifications || []).map(cert => ({
+      name: cert.name || '',
+      issuer: cert.issuer || '',
+      issueDate: cert.issueDate || '',
+      expiryDate: cert.expiryDate || '',
+      credentialId: cert.credentialId || '',
+      url: cert.url || ''
+    }))
   };
 }
 

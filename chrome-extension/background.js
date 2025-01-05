@@ -5,7 +5,8 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
     optimizedResume: null,
     currentJob: null,
-    authToken: null
+    authToken: null,
+    profileData: null
   });
 });
 
@@ -67,7 +68,7 @@ async function handleJobAnalysis(jobData) {
 
 async function handleAuthRequest(sendResponse) {
   try {
-    const authURL = 'http://localhost:5173/extension-auth'; // Update with your auth page URL
+    const authURL = 'http://localhost:5173/extension-auth';
     const authWindow = await chrome.windows.create({
       url: authURL,
       type: 'popup',
@@ -85,10 +86,29 @@ async function handleAuthRequest(sendResponse) {
 async function handleAuthComplete(token, sendResponse) {
   try {
     await chrome.storage.local.set({ authToken: token });
+    
+    // After authentication, fetch and store the user's profile
+    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch profile');
+    }
+
+    const data = await response.json();
+    const profile = data[0]?.content || null;
+    
+    await chrome.storage.local.set({ profileData: profile });
+    
     chrome.runtime.sendMessage({ 
       type: "AUTH_STATUS_CHANGED", 
       isAuthenticated: true 
     });
+    
     sendResponse({ success: true });
   } catch (error) {
     console.error("Error saving auth token:", error);

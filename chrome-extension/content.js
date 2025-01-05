@@ -25,8 +25,18 @@ async function extractJobDetails() {
   };
 }
 
-// Function to handle form filling
+// Function to fill form fields
+async function fillField(selector, value) {
+  const element = document.querySelector(selector);
+  if (element && value) {
+    element.value = value;
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+  return false;
+}
 
+// Function to handle form filling
 async function fillApplicationForm(resumeData) {
   console.log("Filling application form with data:", resumeData);
   
@@ -42,25 +52,46 @@ async function fillApplicationForm(resumeData) {
     throw new Error('Failed to map profile data');
   }
 
-  // Map resume data to Workday fields
-  const fieldMappings = {
-    'input[data-automation-id="firstName"]': mappedData.personalInfo.firstName,
-    'input[data-automation-id="lastName"]': mappedData.personalInfo.lastName,
-    'input[data-automation-id="email"]': mappedData.personalInfo.email,
-    'input[data-automation-id="phone"]': mappedData.personalInfo.phone,
-    'input[data-automation-id="address"]': mappedData.personalInfo.address,
-    'input[data-automation-id="city"]': mappedData.personalInfo.city,
-    'input[data-automation-id="postalCode"]': mappedData.personalInfo.zipCode,
-  };
+  // Personal Information
+  await fillField('[data-automation-id="firstName"]', mappedData.personalInfo.firstName);
+  await fillField('[data-automation-id="lastName"]', mappedData.personalInfo.lastName);
+  await fillField('[data-automation-id="email"]', mappedData.personalInfo.email);
+  await fillField('[data-automation-id="phone"]', mappedData.personalInfo.phone);
+  await fillField('[data-automation-id="address"]', mappedData.personalInfo.address);
+  await fillField('[data-automation-id="city"]', mappedData.personalInfo.city);
+  await fillField('[data-automation-id="state"]', mappedData.personalInfo.state);
+  await fillField('[data-automation-id="postalCode"]', mappedData.personalInfo.zipCode);
+  await fillField('[data-automation-id="country"]', mappedData.personalInfo.country);
 
-  // Fill each field if it exists
-  for (const [selector, value] of Object.entries(fieldMappings)) {
-    const element = document.querySelector(selector);
-    if (element && value) {
-      element.value = value;
-      // Trigger change event to ensure Workday registers the input
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+  // Social Links
+  await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
+  await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
+
+  // Experience
+  for (const [index, exp] of mappedData.experience.entries()) {
+    await fillField(`[data-automation-id="workExperience.${index}.title"]`, exp.jobTitle);
+    await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
+    await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
+    await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
+    await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
+    await fillField(`[data-automation-id="workExperience.${index}.description"]`, exp.description);
+  }
+
+  // Education
+  for (const [index, edu] of mappedData.education.entries()) {
+    await fillField(`[data-automation-id="education.${index}.school"]`, edu.school);
+    await fillField(`[data-automation-id="education.${index}.degree"]`, edu.degree);
+    await fillField(`[data-automation-id="education.${index}.field"]`, edu.field);
+    await fillField(`[data-automation-id="education.${index}.startDate"]`, edu.startDate);
+    await fillField(`[data-automation-id="education.${index}.endDate"]`, edu.endDate);
+    await fillField(`[data-automation-id="education.${index}.gpa"]`, edu.gpa);
+  }
+
+  // Skills
+  const skillsField = document.querySelector('[data-automation-id="skills"]');
+  if (skillsField && mappedData.skills.length > 0) {
+    skillsField.value = mappedData.skills.join(', ');
+    skillsField.dispatchEvent(new Event('change', { bubbles: true }));
   }
 }
 
@@ -90,29 +121,14 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       sendResponse({ success: true });
     } catch (error) {
       console.error("Error analyzing job:", error);
-      chrome.runtime.sendMessage({
-        type: "LOG",
-        message: `Error analyzing job: ${error.message}`
-      });
       sendResponse({ success: false, error: error.message });
     }
   } else if (request.action === "autoFill" && pageType === 'application') {
     try {
-      // Get the optimized resume data from storage
-      chrome.storage.local.get(['optimizedResume'], async (result) => {
-        if (result.optimizedResume) {
-          await fillApplicationForm(result.optimizedResume);
-          sendResponse({ success: true });
-        } else {
-          throw new Error('No optimized resume found. Please analyze a job first.');
-        }
-      });
+      await fillApplicationForm();
+      sendResponse({ success: true });
     } catch (error) {
       console.error("Error auto-filling form:", error);
-      chrome.runtime.sendMessage({
-        type: "LOG",
-        message: `Error auto-filling form: ${error.message}`
-      });
       sendResponse({ success: false, error: error.message });
     }
   }
