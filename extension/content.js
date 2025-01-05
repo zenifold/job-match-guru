@@ -1,5 +1,6 @@
 import { formDetectionService } from './services/formDetectionService';
 import { dataTransformService } from './services/dataTransformService';
+import { workdayFormService } from './services/workdayFormService';
 import { findContent, extractStructuredData, extractRequirements } from './utils/contentExtractor';
 import { selectors } from './utils/selectors';
 import { handleSpecialInputs } from './utils/specialInputHandler';
@@ -64,7 +65,7 @@ function extractJobDetails() {
   }
 }
 
-function autofillForm(data) {
+async function autofillForm(data) {
   console.log('Starting form autofill with data:', data);
   
   try {
@@ -73,11 +74,26 @@ function autofillForm(data) {
     const transformedData = dataTransformService.transformResumeData(data);
     console.log('Transformed data:', transformedData);
     
-    // Detect form fields
-    console.log('Detecting form fields...');
-    const detectedFields = formDetectionService.detectFormFields();
-    console.log('Detected fields:', detectedFields);
-    
+    // Check if this is a Workday page
+    if (workdayFormService.isWorkdayPage()) {
+      console.log('Detected Workday application form');
+      
+      // Navigate through Workday form sections
+      await workdayFormService.navigateWorkdayForm();
+      
+      // Get Workday-specific field mappings
+      const detectedFields = workdayFormService.getWorkdayFields();
+      console.log('Detected Workday fields:', detectedFields);
+      
+      // Handle Workday-specific elements
+      await workdayFormService.handleWorkdaySpecifics();
+    } else {
+      // Use default form detection for non-Workday sites
+      console.log('Using default form detection...');
+      const detectedFields = formDetectionService.detectFormFields();
+      console.log('Detected fields:', detectedFields);
+    }
+
     // Fill each detected field
     let filledFields = 0;
     detectedFields.forEach(field => {
