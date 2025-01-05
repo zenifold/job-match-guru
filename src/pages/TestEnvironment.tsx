@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { MockJobPage } from "@/components/test/MockJobPage";
 import { ExtensionPopup } from "@/components/test/ExtensionPopup";
+import { WorkdayApplicationForm } from "@/components/test/WorkdayApplicationForm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,13 +17,18 @@ export default function TestEnvironment() {
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Test Environment</h1>
         
-        <Tabs defaultValue="linkedin" className="w-full">
+        <Tabs defaultValue="workday" className="w-full">
           <TabsList>
+            <TabsTrigger value="workday">Workday Mock</TabsTrigger>
             <TabsTrigger value="linkedin">LinkedIn Mock</TabsTrigger>
             <TabsTrigger value="indeed">Indeed Mock</TabsTrigger>
           </TabsList>
 
           <div className="mt-4 relative">
+            <TabsContent value="workday">
+              <WorkdayApplicationForm />
+            </TabsContent>
+            
             <TabsContent value="linkedin">
               <MockJobPage platform="linkedin" resumeData={resumeData} />
             </TabsContent>
