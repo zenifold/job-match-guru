@@ -42,19 +42,22 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
     onChange?.({ languages: newLanguages });
   };
 
-  const updateLanguage = (index: number, field: keyof Language, value: string | boolean) => {
+  const updateLanguageString = (index: number, field: keyof Omit<Language, 'isNative'>, value: string) => {
     const newLanguages = [...languages];
-    if (field === 'isNative') {
-      newLanguages[index] = {
-        ...newLanguages[index],
-        [field]: value as boolean
-      };
-    } else {
-      newLanguages[index] = {
-        ...newLanguages[index],
-        [field]: value as string
-      };
-    }
+    newLanguages[index] = {
+      ...newLanguages[index],
+      [field]: value
+    };
+    setLanguages(newLanguages);
+    onChange?.({ languages: newLanguages });
+  };
+
+  const updateLanguageBoolean = (index: number, checked: boolean) => {
+    const newLanguages = [...languages];
+    newLanguages[index] = {
+      ...newLanguages[index],
+      isNative: checked
+    };
     setLanguages(newLanguages);
     onChange?.({ languages: newLanguages });
   };
@@ -80,7 +83,7 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
               </Label>
               <Select
                 value={lang.language}
-                onValueChange={(value) => updateLanguage(index, 'language', value)}
+                onValueChange={(value) => updateLanguageString(index, 'language', value)}
               >
                 <SelectTrigger data-automation-id="language">
                   <SelectValue placeholder="Select language" />
@@ -97,7 +100,7 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
               <Checkbox 
                 id={`nativeLanguage-${index}`} 
                 checked={lang.isNative}
-                onCheckedChange={(checked) => updateLanguage(index, 'isNative', Boolean(checked))}
+                onCheckedChange={(checked) => updateLanguageBoolean(index, Boolean(checked))}
               />
               <Label htmlFor={`nativeLanguage-${index}`}>I am fluent in this language.</Label>
             </div>
@@ -109,7 +112,13 @@ export const LanguagesSection = ({ onChange, value = [] }: LanguagesSectionProps
                 </Label>
                 <Select
                   value={lang[`${type.toLowerCase()}Proficiency` as keyof Language]}
-                  onValueChange={(value) => updateLanguage(index, `${type.toLowerCase()}Proficiency` as keyof Language, value)}
+                  onValueChange={(value) => 
+                    updateLanguageString(
+                      index, 
+                      `${type.toLowerCase()}Proficiency` as keyof Omit<Language, 'isNative'>,
+                      value
+                    )
+                  }
                 >
                   <SelectTrigger data-automation-id={`languageProficiency-${index}-${type}`}>
                     <SelectValue placeholder="Select proficiency" />
