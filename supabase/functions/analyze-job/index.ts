@@ -39,6 +39,10 @@ serve(async (req) => {
       throw jobError;
     }
 
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
     // Fetch user's resume data
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -51,13 +55,17 @@ serve(async (req) => {
       throw profileError;
     }
 
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
     // Extract resume text
     const resumeContent = profile.content;
     const resumeText = [
       ...(resumeContent.skills || []),
-      ...(resumeContent.experience || []).map((exp: any) => exp.description),
-      ...(resumeContent.projects || []).map((proj: any) => proj.description)
-    ].join(' ');
+      ...(resumeContent.experience || []).map((exp: any) => exp.description || ''),
+      ...(resumeContent.projects || []).map((proj: any) => proj.description || '')
+    ].filter(Boolean).join(' ');
 
     // Use AI to analyze the job and resume
     const systemPrompt = `You are an AI assistant analyzing job requirements and resume match.
@@ -100,10 +108,17 @@ serve(async (req) => {
     if (!aiResponse.ok) {
       const errorData = await aiResponse.text();
       console.error('OpenRouter API Error:', errorData);
-      throw new Error('Failed to get AI analysis');
+      throw new Error(`Failed to get AI analysis: ${errorData}`);
     }
 
     const aiData = await aiResponse.json();
+    console.log('AI Response:', aiData);
+
+    if (!aiData.choices || !aiData.choices[0] || !aiData.choices[0].message) {
+      console.error('Invalid AI response format:', aiData);
+      throw new Error('Invalid AI response format');
+    }
+
     const analysisText = aiData.choices[0].message.content;
     console.log('AI Analysis:', analysisText);
 
@@ -139,7 +154,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in analyze-job function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.toString()
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
