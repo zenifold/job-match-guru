@@ -1,8 +1,38 @@
-# A string used to distinguish different Supabase projects on the same host. Defaults to the working
-# directory name when running `supabase init`.
 project_id = "qqbulzzezbcwstrhfbco"
 
 [api]
-# Port to use for the API URL.
+enabled = true
 port = 54321
-schemes = ["http", "https"]
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+port = 54325
+
+[auth]
+enabled = true
+port = 54326
+
+[analytics]
+enabled = true
+port = 54327
+
+[realtime]
+enabled = true
+port = 54328
