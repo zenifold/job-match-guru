@@ -49,10 +49,31 @@ function extractJobDetails() {
 }
 
 function autofillForm(data) {
+  console.log('Starting form autofill with data:', data);
+  
+  // Map resume data to form fields
+  const formData = {
+    name: `${data.personalInfo?.fullName || ''}`,
+    email: data.personalInfo?.email || '',
+    phone: data.personalInfo?.phone || '',
+    linkedin: data.personalInfo?.linkedin || '',
+    website: data.personalInfo?.website || '',
+    experience: data.experience?.map(exp => 
+      `${exp.position} at ${exp.company} (${exp.startDate} - ${exp.endDate || 'Present'})\n${exp.description}`
+    ).join('\n\n'),
+    education: data.education?.map(edu =>
+      `${edu.degree} in ${edu.field} from ${edu.school} (${edu.startDate} - ${edu.endDate || 'Present'})`
+    ).join('\n\n'),
+    skills: data.skills?.join(', ') || ''
+  };
+
+  // Attempt to fill each field type
   Object.entries(fieldMap).forEach(([field, selectors]) => {
+    console.log(`Attempting to fill ${field} field`);
     for (const selector of selectors) {
-      fillFormField(selector, data[field]);
+      fillFormField(selector, formData[field]);
     }
   });
+
   console.log('Form autofill completed');
 }

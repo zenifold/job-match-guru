@@ -37,6 +37,33 @@ export const fieldMap = {
     '#input-resume',
     '[data-test="application-resume"]'
   ],
+  experience: [
+    'textarea[name*="experience" i]',
+    'textarea[id*="experience" i]',
+    'textarea[placeholder*="experience" i]',
+    '[data-test-form-element="experience-input"]',
+    '#input-experience',
+    '[data-test="application-experience"]',
+    'div[contenteditable][aria-label*="experience" i]'
+  ],
+  education: [
+    'textarea[name*="education" i]',
+    'textarea[id*="education" i]',
+    'textarea[placeholder*="education" i]',
+    '[data-test-form-element="education-input"]',
+    '#input-education',
+    '[data-test="application-education"]',
+    'div[contenteditable][aria-label*="education" i]'
+  ],
+  skills: [
+    'textarea[name*="skills" i]',
+    'textarea[id*="skills" i]',
+    'textarea[placeholder*="skills" i]',
+    '[data-test-form-element="skills-input"]',
+    '#input-skills',
+    '[data-test="application-skills"]',
+    'div[contenteditable][aria-label*="skills" i]'
+  ],
   linkedin: [
     'input[name*="linkedin" i]',
     'input[placeholder*="linkedin" i]',
@@ -52,18 +79,56 @@ export const fieldMap = {
     '[data-test-form-element="website-input"]',
     '#input-website',
     '[data-test="application-website"]'
+  ],
+  visaStatus: [
+    'select[name*="visa" i]',
+    'select[id*="visa" i]',
+    'select[name*="work-authorization" i]',
+    '[data-test-form-element="visa-input"]',
+    '#input-visa-status',
+    '[data-test="application-visa"]'
+  ],
+  yearsOfExperience: [
+    'select[name*="years-experience" i]',
+    'select[id*="years-experience" i]',
+    'input[name*="years-experience" i]',
+    '[data-test-form-element="years-experience-input"]',
+    '#input-years-experience',
+    '[data-test="application-years-experience"]'
   ]
 };
 
-export function fillFormField(selector: string, value: string): void {
+export function fillFormField(selector: string, value: string | null): void {
+  if (!value) return;
+  
   const element = document.querySelector(selector);
-  if (element) {
-    if (element.isContentEditable) {
-      element.innerHTML = value || '';
-    } else {
-      (element as HTMLInputElement).value = value || '';
+  if (!element) return;
+
+  if (element instanceof HTMLSelectElement) {
+    // Handle dropdown fields
+    const options = Array.from(element.options);
+    const bestMatch = options.find(option => 
+      option.text.toLowerCase().includes(value.toLowerCase())
+    );
+    if (bestMatch) {
+      element.value = bestMatch.value;
     }
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-    element.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (element.isContentEditable) {
+    element.innerHTML = value;
+  } else if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+    element.value = value;
+  }
+
+  // Dispatch events to trigger form validations
+  element.dispatchEvent(new Event('input', { bubbles: true }));
+  element.dispatchEvent(new Event('change', { bubbles: true }));
+  
+  // For React-based forms
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype,
+    "value"
+  )?.set;
+  if (nativeInputValueSetter) {
+    nativeInputValueSetter.call(element, value);
   }
 }
