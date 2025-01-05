@@ -5,7 +5,6 @@ import { BarChart2, Check, Info, RefreshCw, AlertTriangle, AlertOctagon, AlertCi
 import { cn } from "@/lib/utils";
 import { MatchScoreCard } from "./analysis/MatchScoreCard";
 import { MatchedSkillsCard } from "./analysis/MatchedSkillsCard";
-import { MissingSkillsCard } from "./analysis/MissingSkillsCard";
 import { TargetKeywordsCard } from "./analysis/TargetKeywordsCard";
 import { RequiredExperienceCard } from "./analysis/RequiredExperienceCard";
 import { AIAssistantChat } from "./analysis/AIAssistantChat";
@@ -27,7 +26,6 @@ export function JobAnalysisSection({
 
   const analysisLines = job.analysis.analysis_text.split('\n');
   const matchedKeywords: Array<{ keyword: string; priority: string }> = [];
-  const missingKeywords: Array<{ keyword: string; priority: string }> = [];
   const targetKeywords: Array<{ keyword: string; priority: string }> = [];
   const requiredExperience: Array<{ experience: string; priority: string }> = [];
 
@@ -35,8 +33,6 @@ export function JobAnalysisSection({
   analysisLines.forEach(line => {
     if (line.includes('Strong Matches:')) {
       currentSection = 'matched';
-    } else if (line.includes('Suggested Improvements:')) {
-      currentSection = 'missing';
     } else if (line.includes('Target Keywords:')) {
       currentSection = 'target';
     } else if (line.includes('Required Experience:')) {
@@ -46,14 +42,6 @@ export function JobAnalysisSection({
       const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
       const keyword = line.replace(/✓ /, '').replace(/\(.*?\)/, '').trim();
       matchedKeywords.push({ keyword, priority });
-    } else if (line.includes('Consider adding experience or skills related to:')) {
-      const priorityMatch = line.match(/\((.*?) Priority\)/);
-      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
-      const keyword = line
-        .replace('• Consider adding experience or skills related to:', '')
-        .replace(/\(.*?\)/, '')
-        .trim();
-      missingKeywords.push({ keyword, priority });
     } else if (line.startsWith('- ') && currentSection === 'target') {
       const priorityMatch = line.match(/\((.*?) Priority\)/);
       const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
@@ -103,12 +91,11 @@ export function JobAnalysisSection({
         <MatchScoreCard 
           matchScore={job.analysis.match_score}
           matchedCount={matchedKeywords.length}
-          missingCount={missingKeywords.length}
+          missingCount={0}
         />
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <MatchedSkillsCard matchedKeywords={matchedKeywords} />
-          <MissingSkillsCard missingKeywords={missingKeywords} />
         </div>
 
         <div className="grid grid-cols-2 gap-6">
@@ -120,7 +107,7 @@ export function JobAnalysisSection({
           jobTitle={job.title}
           matchScore={job.analysis.match_score}
           matchedKeywords={matchedKeywords}
-          missingKeywords={missingKeywords}
+          missingKeywords={[]}
         />
       </div>
     </div>
