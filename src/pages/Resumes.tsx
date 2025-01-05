@@ -19,10 +19,15 @@ const Resumes = () => {
   const { toast } = useToast();
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
-  const { data: allResumes, refetch } = useQuery({
-    queryKey: ["all-resumes"],
+  const { data: allResumes, refetch, isLoading, error } = useQuery({
+    queryKey: ["all-resumes", session?.user?.id],
     queryFn: async () => {
-      if (!session?.user) return { regular: [], optimized: [] };
+      if (!session?.user) {
+        console.log("No session found, returning empty resumes arrays");
+        return { regular: [], optimized: [] };
+      }
+
+      console.log("Fetching resumes data...");
 
       const { data: regularResumes, error: regularError } = await supabase
         .from("profiles")
@@ -43,11 +48,17 @@ const Resumes = () => {
 
       if (optimizedError) throw optimizedError;
 
+      console.log("Regular resumes:", regularResumes);
+      console.log("Optimized resumes:", optimizedResumes);
+
       return {
         regular: regularResumes || [],
         optimized: optimizedResumes || [],
       };
     },
+    enabled: !!session?.user,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    retry: 2,
   });
 
   const handleDelete = async (id: string, isOptimized: boolean = false) => {
@@ -93,6 +104,26 @@ const Resumes = () => {
   const optimizedResumes = combinedResumes.filter(
     resume => resume.type === 'optimized'
   ) as OptimizedResume[];
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-pulse text-gray-500">Loading resumes...</div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-red-500">Error loading resumes. Please try again.</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

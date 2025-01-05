@@ -23,10 +23,14 @@ export function useJobs() {
     data: jobs,
     refetch,
     isLoading,
+    error,
   } = useQuery({
-    queryKey: ["jobs"],
+    queryKey: ["jobs", session?.user?.id],
     queryFn: async () => {
-      if (!session?.user) return [];
+      if (!session?.user) {
+        console.log("No session found, returning empty jobs array");
+        return [];
+      }
       
       console.log("Fetching jobs and analyses...");
       
@@ -60,6 +64,8 @@ export function useJobs() {
       }));
     },
     enabled: !!session?.user,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    retry: 2,
   });
 
   const deleteJobMutation = useMutation({
@@ -166,6 +172,7 @@ export function useJobs() {
   return {
     jobs,
     isLoading,
+    error,
     deleteJob: (id: string) => deleteJobMutation.mutateAsync(id),
     analyzeJob: (jobId: string) => analyzeJobMutation.mutateAsync(jobId),
     isAnalyzing: analyzeJobMutation.isPending,
