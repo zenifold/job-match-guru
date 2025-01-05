@@ -8,8 +8,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'analyzeJob') {
     // Handle job analysis request
     analyzeJob(request.data)
-      .then(response => sendResponse(response))
-      .catch(error => sendResponse({ error: error.message }));
+      .then(response => {
+        console.log('Analysis completed successfully:', response);
+        sendResponse(response);
+      })
+      .catch(error => {
+        console.error('Analysis failed:', error);
+        sendResponse({ error: error.message });
+      });
     return true;
   }
 });
@@ -19,6 +25,7 @@ async function analyzeJob(jobData) {
     console.log('Starting job analysis:', jobData);
     
     // Make API call to analyze job
+    console.log('Sending analysis request to Supabase function...');
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/functions/v1/analyze-job-extension', {
       method: 'POST',
       headers: {
@@ -34,6 +41,9 @@ async function analyzeJob(jobData) {
     });
     
     if (!response.ok) {
+      console.error('Analysis request failed:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error details:', errorText);
       throw new Error('Analysis failed');
     }
     
