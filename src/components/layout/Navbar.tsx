@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Briefcase, FileText, LayoutDashboard, LogIn, LogOut, Menu, Settings, X } from "lucide-react";
+import { Briefcase, FileText, LayoutDashboard, LogIn, LogOut, Menu, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,34 +33,37 @@ export const Navbar = () => {
 
   const NavLinks = () => (
     <>
-      <Button variant="ghost" asChild onClick={() => setIsOpen(false)}>
-        <Link to="/dashboard">
+      <Button variant="ghost" asChild>
+        <Link to="/dashboard" onClick={() => setIsOpen(false)}>
           <LayoutDashboard className="h-4 w-4 mr-2" />
           Dashboard
         </Link>
       </Button>
-      <Button variant="ghost" asChild onClick={() => setIsOpen(false)}>
-        <Link to="/resumes">
+      <Button variant="ghost" asChild>
+        <Link to="/resumes" onClick={() => setIsOpen(false)}>
           <FileText className="h-4 w-4 mr-2" />
           Resumes
         </Link>
       </Button>
-      <Button variant="ghost" asChild onClick={() => setIsOpen(false)}>
-        <Link to="/jobs">
+      <Button variant="ghost" asChild>
+        <Link to="/jobs" onClick={() => setIsOpen(false)}>
           <Briefcase className="h-4 w-4 mr-2" />
           Jobs
         </Link>
       </Button>
-      <Button variant="ghost" asChild onClick={() => setIsOpen(false)}>
-        <Link to="/settings">
+      <Button variant="ghost" asChild>
+        <Link to="/settings" onClick={() => setIsOpen(false)}>
           <Settings className="h-4 w-4 mr-2" />
           Settings
         </Link>
       </Button>
-      <Button variant="ghost" onClick={() => {
-        handleLogout();
-        setIsOpen(false);
-      }}>
+      <Button 
+        variant="ghost" 
+        onClick={() => {
+          handleLogout();
+          setIsOpen(false);
+        }}
+      >
         <LogOut className="h-4 w-4 mr-2" />
         Logout
       </Button>
@@ -89,7 +92,7 @@ export const Navbar = () => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+              <SheetContent side="right">
                 <div className="flex flex-col space-y-4 mt-8">
                   <NavLinks />
                 </div>
