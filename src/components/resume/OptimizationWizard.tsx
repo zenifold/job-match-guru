@@ -11,6 +11,7 @@ import { SelectSectionsStep } from "./optimization/SelectSectionsStep";
 import { OptimizingStep } from "./optimization/OptimizingStep";
 import { CompletedStep } from "./optimization/CompletedStep";
 import { WizardFooter } from "./optimization/WizardFooter";
+import { ComparisonView } from "./optimization/ComparisonView";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,6 +32,7 @@ export function OptimizationWizard({
 }: OptimizationWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizedResume, setOptimizedResume] = useState<any>(null);
   const [selectedSections, setSelectedSections] = useState<string[]>([
     "experience",
     "skills",
@@ -72,7 +74,7 @@ export function OptimizationWizard({
       return;
     }
 
-    if (currentStep === 1) {
+    if (currentStep === 0) {
       setIsOptimizing(true);
       try {
         const response = await supabase.functions.invoke('optimize-resume', {
@@ -85,7 +87,9 @@ export function OptimizationWizard({
 
         if (response.error) throw response.error;
         
+        setOptimizedResume(response.data.optimizedResume);
         setCurrentStep(currentStep + 1);
+        
         toast({
           title: "Success",
           description: "Your resume has been optimized successfully.",
@@ -111,7 +115,7 @@ export function OptimizationWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Optimize Resume for {jobTitle}</DialogTitle>
         </DialogHeader>
@@ -131,7 +135,16 @@ export function OptimizationWizard({
               />
             )}
 
-            {currentStep === 1 && <OptimizingStep />}
+            {currentStep === 1 && (
+              optimizedResume ? (
+                <ComparisonView 
+                  originalResume={originalResume}
+                  optimizedResume={optimizedResume}
+                />
+              ) : (
+                <OptimizingStep />
+              )
+            )}
 
             {currentStep === 2 && <CompletedStep />}
           </div>
