@@ -31,27 +31,32 @@ export function JobAnalysisSection({
 
   let currentSection = '';
   analysisLines.forEach(line => {
-    if (line.includes('Strong Matches:')) {
+    const trimmedLine = line.trim().toLowerCase();
+    
+    // More flexible section detection
+    if (trimmedLine.includes('strong matches:')) {
       currentSection = 'matched';
-    } else if (line.includes('Target Keywords:')) {
+    } else if (trimmedLine.includes('target keywords:')) {
       currentSection = 'target';
-    } else if (line.includes('Required Experience:')) {
+    } else if (trimmedLine.includes('required experience:')) {
       currentSection = 'experience';
-    } else if (line.startsWith('✓ ')) {
-      const priorityMatch = line.match(/\((.*?) Priority\)/);
+    } else if (line.startsWith('✓ ') || line.startsWith('- ')) {
+      const priorityMatch = line.match(/\((.*?) Priority\)/i); // Case-insensitive priority matching
       const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
-      const keyword = line.replace(/✓ /, '').replace(/\(.*?\)/, '').trim();
-      matchedKeywords.push({ keyword, priority });
-    } else if (line.startsWith('- ') && currentSection === 'target') {
-      const priorityMatch = line.match(/\((.*?) Priority\)/);
-      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
-      const keyword = line.replace(/- /, '').replace(/\(.*?\)/, '').trim();
-      targetKeywords.push({ keyword, priority });
-    } else if (line.startsWith('- ') && currentSection === 'experience') {
-      const priorityMatch = line.match(/\((.*?) Priority\)/);
-      const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
-      const experience = line.replace(/- /, '').replace(/\(.*?\)/, '').trim();
-      requiredExperience.push({ experience, priority });
+      
+      // Remove the priority text and clean up the item text
+      const itemText = line
+        .replace(/^[✓-]\s*/, '')
+        .replace(/\(.*?Priority\)/i, '')
+        .trim();
+
+      if (currentSection === 'matched' && line.startsWith('✓')) {
+        matchedKeywords.push({ keyword: itemText, priority });
+      } else if (currentSection === 'target' && line.startsWith('-')) {
+        targetKeywords.push({ keyword: itemText, priority });
+      } else if (currentSection === 'experience' && line.startsWith('-')) {
+        requiredExperience.push({ experience: itemText, priority });
+      }
     }
   });
 
@@ -85,6 +90,15 @@ export function JobAnalysisSection({
   };
 
   const matchScore = calculateWeightedScore();
+
+  console.log('Analysis Debug:', {
+    sections: {
+      matched: matchedKeywords.length,
+      target: targetKeywords.length,
+      experience: requiredExperience.length
+    },
+    analysisText: job.analysis.analysis_text
+  });
 
   return (
     <div className="space-y-6">
