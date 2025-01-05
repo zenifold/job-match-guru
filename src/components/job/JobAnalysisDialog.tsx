@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { MatchScoreCard } from "./analysis/MatchScoreCard";
 import { MatchedSkillsCard } from "./analysis/MatchedSkillsCard";
 import { MissingSkillsCard } from "./analysis/MissingSkillsCard";
+import { AIAssistantChat } from "./analysis/AIAssistantChat";
 
 interface JobAnalysisDialogProps {
   isOpen: boolean;
@@ -78,9 +79,17 @@ export function JobAnalysisDialog({
             missingCount={missingKeywords.length}
           />
 
-          <MatchedSkillsCard matchedKeywords={matchedKeywords} />
+          <div className="grid grid-cols-2 gap-6">
+            <MatchedSkillsCard matchedKeywords={matchedKeywords} />
+            <MissingSkillsCard missingKeywords={missingKeywords} />
+          </div>
 
-          <MissingSkillsCard missingKeywords={missingKeywords} />
+          <AIAssistantChat
+            jobTitle={jobTitle}
+            matchScore={analysis.match_score}
+            matchedKeywords={matchedKeywords}
+            missingKeywords={missingKeywords}
+          />
 
           <Separator className="my-4" />
           
