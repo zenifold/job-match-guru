@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Model {
   id: string;
@@ -43,12 +44,31 @@ export function ModelSelector() {
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch("https://openrouter.ai/api/v1/models");
+        const { data: { data: secretData }, error: secretError } = await supabase
+          .functions.invoke('get-secret', {
+            body: { secretName: 'OPENROUTER_API_KEY' }
+          });
+
+        if (secretError) throw secretError;
+
+        const response = await fetch("https://openrouter.ai/api/v1/models", {
+          headers: {
+            "Authorization": `Bearer ${secretData.value}`,
+            "HTTP-Referer": window.location.origin,
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch models');
+        }
+
         const data = await response.json();
+        console.log("Fetched models:", data);
+        
         setModels(data.data.map((model: any) => ({
           id: model.id,
           name: model.name,
-          description: model.description
+          description: model.description || 'No description available'
         })));
       } catch (error) {
         console.error("Error fetching models:", error);
@@ -67,8 +87,8 @@ export function ModelSelector() {
 
   const onSubmit = async (data: ModelSelectorFormValues) => {
     try {
-      // Here we'll save the selected model preference
-      // This could be stored in Supabase or local storage
+      // Here we'll save the selected model preference to localStorage for now
+      localStorage.setItem('selectedModel', data.model);
       toast({
         title: "Success",
         description: "Model preference saved",
