@@ -24,11 +24,42 @@ export const ResumeTable = ({ resumes, onDelete }: ResumeTableProps) => {
         .select('*')
         .eq('user_id', session.user.id)
         .eq('is_default', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching theme:', error);
         return null;
+      }
+
+      // If no default theme exists, return default settings
+      if (!themes) {
+        return {
+          font: {
+            family: "Inter",
+            size: {
+              body: "16px",
+              heading: "24px",
+              subheading: "18px"
+            }
+          },
+          colors: {
+            primary: "#222222",
+            secondary: "#403E43",
+            accent: "#9b87f5",
+            background: "#FFFFFF",
+            sidebar: "#F1F0FB"
+          },
+          layout: {
+            type: "simple",
+            columns: 1,
+            headerStyle: "left-aligned"
+          },
+          spacing: {
+            margins: "2rem",
+            lineHeight: "1.6",
+            sectionGap: "1.5rem"
+          }
+        };
       }
 
       return themes?.settings || null;
