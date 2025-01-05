@@ -41,45 +41,61 @@ const KEYWORD_CATEGORIES = {
   }
 };
 
-// Function to extract specialized keywords from job title
-function extractSpecializedKeywords(title: string): { keyword: string; weight: number }[] {
+// Function to extract specialized keywords from job title and description
+function extractSpecializedKeywords(title: string, description: string): { keyword: string; weight: number }[] {
   const specializedKeywords: { keyword: string; weight: number }[] = [];
   
-  // Split the title by common separators and remove common words
-  const parts = title.toLowerCase()
+  // Process the title
+  const titleParts = title.toLowerCase()
     .split(/[-–—,|&]/)
     .map(part => part.trim())
     .filter(part => part.length > 0);
 
-  // Common job title prefixes to ignore
-  const commonPrefixes = ['senior', 'junior', 'lead', 'principal', 'staff'];
+  // Common words to ignore
+  const commonWords = ['senior', 'junior', 'lead', 'principal', 'staff', 'engineer', 'developer', 'manager', 'analyst'];
   
-  // Process each part of the title
-  parts.forEach((part, index) => {
-    // Skip the first part if it's a common job title
-    if (index === 0 && ['engineer', 'developer', 'manager', 'analyst'].some(title => part.includes(title))) {
-      return;
-    }
-    
-    // Skip if it's a common prefix
-    if (commonPrefixes.includes(part)) {
-      return;
-    }
-    
-    // Add specialized keywords with high weight
-    if (part.length > 3) { // Avoid short words
+  // Add title keywords
+  titleParts.forEach(part => {
+    if (!commonWords.includes(part) && part.length > 3) {
       specializedKeywords.push({
         keyword: part,
-        weight: index === 0 ? 2.0 : 1.5 // Higher weight for first specialized keyword
+        weight: 2.0 // High weight for title keywords
       });
     }
   });
 
+  // Extract potential keywords from description
+  const descriptionWords = description.toLowerCase()
+    .split(/[\s,.]/)
+    .map(word => word.trim())
+    .filter(word => word.length > 3 && !commonWords.includes(word));
+
+  // Count word frequency in description
+  const wordFrequency: { [key: string]: number } = {};
+  descriptionWords.forEach(word => {
+    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+  });
+
+  // Add high-frequency words as specialized keywords
+  Object.entries(wordFrequency)
+    .filter(([_, freq]) => freq > 1) // Only consider words that appear more than once
+    .forEach(([word, freq]) => {
+      if (!specializedKeywords.some(k => k.keyword === word)) {
+        specializedKeywords.push({
+          keyword: word,
+          weight: 1.0 + (freq * 0.1) // Weight increases with frequency
+        });
+      }
+    });
+
   return specializedKeywords;
 }
 
-// Function to analyze keyword frequency and importance
+// Function to analyze keyword importance
 function analyzeKeywordImportance(text: string, jobTitle: string): { keyword: string; weight: number }[] {
+  console.log(`Analyzing keywords for job: ${jobTitle}`);
+  console.log(`Job description length: ${text.length} characters`);
+
   const words = text.toLowerCase().split(/\s+/);
   const wordFrequency: { [key: string]: number } = {};
   const keywordScores: { [key: string]: number } = {};
@@ -89,7 +105,7 @@ function analyzeKeywordImportance(text: string, jobTitle: string): { keyword: st
     wordFrequency[word] = (wordFrequency[word] || 0) + 1;
   });
 
-  // Process keywords from each category
+  // Process predefined keywords
   Object.entries(KEYWORD_CATEGORIES).forEach(([category, { keywords, weight }]) => {
     keywords.forEach(keyword => {
       const keywordLower = keyword.toLowerCase();
@@ -97,118 +113,23 @@ function analyzeKeywordImportance(text: string, jobTitle: string): { keyword: st
         const frequency = wordFrequency[keywordLower] || 1;
         const score = frequency * weight;
         keywordScores[keyword] = score;
+        console.log(`Found keyword: ${keyword} (${category}) with score: ${score}`);
       }
     });
   });
 
-  // Add specialized keywords from job title
-  const specializedKeywords = extractSpecializedKeywords(jobTitle);
+  // Add specialized keywords
+  const specializedKeywords = extractSpecializedKeywords(jobTitle, text);
   specializedKeywords.forEach(({ keyword, weight }) => {
     if (text.toLowerCase().includes(keyword)) {
       keywordScores[keyword] = (keywordScores[keyword] || 0) + weight;
+      console.log(`Found specialized keyword: ${keyword} with weight: ${weight}`);
     }
   });
 
-  // Convert scores to sorted array
   return Object.entries(keywordScores)
     .map(([keyword, weight]) => ({ keyword, weight }))
     .sort((a, b) => b.weight - a.weight);
-}
-
-function calculateMatchScore(jobKeywords: { keyword: string; weight: number }[], resumeText: string): {
-  score: number;
-  matched: string[];
-  missing: string[];
-  importance: { [key: string]: string };
-} {
-  const resumeLower = resumeText.toLowerCase();
-  const matched: string[] = [];
-  const missing: string[] = [];
-  const importance: { [key: string]: string } = {};
-
-  let totalWeight = 0;
-  let matchedWeight = 0;
-
-  jobKeywords.forEach(({ keyword, weight }) => {
-    totalWeight += weight;
-    
-    if (resumeLower.includes(keyword.toLowerCase())) {
-      matched.push(keyword);
-      matchedWeight += weight;
-    } else {
-      missing.push(keyword);
-    }
-
-    // Categorize importance based on weight
-    if (weight >= 2.0) {
-      importance[keyword] = "Critical";
-    } else if (weight >= 1.5) {
-      importance[keyword] = "High";
-    } else if (weight >= 1.0) {
-      importance[keyword] = "Medium";
-    } else {
-      importance[keyword] = "Standard";
-    }
-  });
-
-  const score = (matchedWeight / totalWeight) * 100;
-
-  return {
-    score: Math.round(score),
-    matched,
-    missing,
-    importance
-  };
-}
-
-function generateAnalysisText(
-  matchResult: { 
-    score: number; 
-    matched: string[]; 
-    missing: string[]; 
-    importance: { [key: string]: string }; 
-  }
-): string {
-  const { score, matched, missing, importance } = matchResult;
-  
-  let analysis = `Match Score Analysis:\n\nOverall Match: ${score}%\n\n`;
-  
-  if (matched.length > 0) {
-    analysis += `Strong Matches:\n`;
-    matched.forEach(keyword => {
-      analysis += `✓ ${keyword} (${importance[keyword]} Priority)\n`;
-    });
-  }
-  
-  if (missing.length > 0) {
-    analysis += `\nSuggested Improvements:\n`;
-    // Sort missing keywords by importance
-    const sortedMissing = missing.sort((a, b) => {
-      const importanceOrder = { "Critical": 0, "High": 1, "Medium": 2, "Standard": 3 };
-      return importanceOrder[importance[a]] - importanceOrder[importance[b]];
-    });
-    
-    sortedMissing.forEach(keyword => {
-      analysis += `• Consider adding experience or skills related to: ${keyword} (${importance[keyword]} Priority)\n`;
-    });
-  }
-  
-  analysis += `\nRecommendations:\n`;
-  if (score < 50) {
-    const criticalMissing = missing.filter(k => importance[k] === "Critical" || importance[k] === "High").slice(0, 3);
-    analysis += `• Focus on acquiring skills in: ${criticalMissing.join(', ')}\n`;
-    analysis += `• Consider taking relevant courses or certifications\n`;
-  } else if (score < 75) {
-    const highMatches = matched.filter(k => importance[k] === "High" || importance[k] === "Critical").slice(0, 2);
-    const highMissing = missing.filter(k => importance[k] === "High" || importance[k] === "Critical").slice(0, 2);
-    analysis += `• Highlight your experience with: ${highMatches.join(', ')}\n`;
-    analysis += `• Look for opportunities to gain experience in: ${highMissing.join(', ')}\n`;
-  } else {
-    const topMatches = matched.filter(k => importance[k] === "Critical" || importance[k] === "High").slice(0, 3);
-    analysis += `• You're a strong match! Consider highlighting your expertise in: ${topMatches.join(', ')}\n`;
-  }
-
-  return analysis;
 }
 
 serve(async (req) => {
@@ -227,14 +148,23 @@ serve(async (req) => {
 
     console.log(`Starting analysis for job ${jobId} and user ${userId}`);
 
-    // Fetch job details
+    // Fetch job details with a fresh query
     const { data: job, error: jobError } = await supabase
       .from('jobs')
       .select('*')
       .eq('id', jobId)
       .single();
 
-    if (jobError) throw jobError;
+    if (jobError) {
+      console.error('Error fetching job:', jobError);
+      throw jobError;
+    }
+
+    console.log('Job details:', {
+      title: job.title,
+      descriptionLength: job.description.length,
+      dateAdded: job.date_added
+    });
 
     // Fetch user's resume data
     const { data: profile, error: profileError } = await supabase
@@ -243,28 +173,87 @@ serve(async (req) => {
       .eq('user_id', userId)
       .single();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw profileError;
+    }
 
     console.log('Successfully fetched job and profile data');
 
     // Analyze keywords with importance
     const jobKeywords = analyzeKeywordImportance(job.description, job.title);
-    console.log('Analyzed job keywords with importance:', jobKeywords);
+    console.log('Analyzed job keywords:', jobKeywords);
 
     // Extract resume text
     const resumeContent = profile.content;
     const resumeText = [
-      ...resumeContent.skills,
+      ...(resumeContent.skills || []),
       ...(resumeContent.experience || []).map((exp: any) => exp.description),
       ...(resumeContent.projects || []).map((proj: any) => proj.description)
     ].join(' ');
     
-    // Calculate match score with importance
-    const matchResult = calculateMatchScore(jobKeywords, resumeText);
-    console.log('Match result:', matchResult);
+    console.log('Resume text length:', resumeText.length);
+
+    // Calculate match score
+    let totalWeight = 0;
+    let matchedWeight = 0;
+    const matched: string[] = [];
+    const missing: string[] = [];
+    const importance: { [key: string]: string } = {};
+
+    jobKeywords.forEach(({ keyword, weight }) => {
+      totalWeight += weight;
+      
+      if (resumeText.toLowerCase().includes(keyword.toLowerCase())) {
+        matched.push(keyword);
+        matchedWeight += weight;
+        console.log(`Matched keyword: ${keyword} with weight ${weight}`);
+      } else {
+        missing.push(keyword);
+        console.log(`Missing keyword: ${keyword} with weight ${weight}`);
+      }
+
+      // Categorize importance based on weight
+      if (weight >= 2.0) importance[keyword] = "Critical";
+      else if (weight >= 1.5) importance[keyword] = "High";
+      else if (weight >= 1.0) importance[keyword] = "Medium";
+      else importance[keyword] = "Standard";
+    });
+
+    const matchScore = totalWeight > 0 ? (matchedWeight / totalWeight) * 100 : 0;
+    console.log(`Final match score: ${matchScore}%`);
+
+    // Generate analysis text
+    let analysisText = `Match Score Analysis:\n\nOverall Match: ${Math.round(matchScore)}%\n\n`;
     
-    // Generate detailed analysis text
-    const analysisText = generateAnalysisText(matchResult);
+    if (matched.length > 0) {
+      analysisText += `Strong Matches:\n`;
+      matched.forEach(keyword => {
+        analysisText += `✓ ${keyword} (${importance[keyword]} Priority)\n`;
+      });
+    }
+    
+    if (missing.length > 0) {
+      analysisText += `\nSuggested Improvements:\n`;
+      missing
+        .sort((a, b) => {
+          const importanceOrder = { "Critical": 0, "High": 1, "Medium": 2, "Standard": 3 };
+          return importanceOrder[importance[a]] - importanceOrder[importance[b]];
+        })
+        .forEach(keyword => {
+          analysisText += `• Consider adding experience or skills related to: ${keyword} (${importance[keyword]} Priority)\n`;
+        });
+    }
+    
+    analysisText += `\nRecommendations:\n`;
+    const criticalMissing = missing
+      .filter(k => importance[k] === "Critical" || importance[k] === "High")
+      .slice(0, 2);
+    
+    if (criticalMissing.length > 0) {
+      analysisText += `• Focus on acquiring skills in: ${criticalMissing.join(', ')}\n`;
+    }
+    analysisText += `• Consider taking relevant courses or certifications\n`;
 
     // Store analysis results
     const { error: analysisError } = await supabase
@@ -273,20 +262,23 @@ serve(async (req) => {
         job_id: jobId,
         user_id: userId,
         analysis_text: analysisText,
-        match_score: matchResult.score
+        match_score: Math.round(matchScore)
       });
 
-    if (analysisError) throw analysisError;
+    if (analysisError) {
+      console.error('Error storing analysis:', analysisError);
+      throw analysisError;
+    }
 
-    console.log(`Analysis completed for job ${jobId} with score ${matchResult.score}%`);
+    console.log('Analysis completed and stored successfully');
 
     return new Response(
       JSON.stringify({ 
-        score: matchResult.score,
+        score: Math.round(matchScore),
         message: 'Analysis completed successfully',
-        matched: matchResult.matched,
-        missing: matchResult.missing,
-        importance: matchResult.importance
+        matched,
+        missing,
+        importance
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
