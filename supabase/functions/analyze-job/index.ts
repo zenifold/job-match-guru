@@ -109,8 +109,8 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
         ],
-        temperature: 0.3, // Lower temperature for more consistent outputs
-        max_tokens: 1500, // Increased token limit for complete responses
+        temperature: 0.2, // Lower temperature for more consistent outputs
+        max_tokens: 2000, // Increased token limit for complete responses
       })
     });
 
