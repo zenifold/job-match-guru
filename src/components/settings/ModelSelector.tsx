@@ -37,7 +37,7 @@ export function ModelSelector() {
   
   const form = useForm<ModelSelectorFormValues>({
     defaultValues: {
-      model: "",
+      model: localStorage.getItem('selectedModel') || "",
     },
   });
 
@@ -87,7 +87,6 @@ export function ModelSelector() {
 
   const onSubmit = async (data: ModelSelectorFormValues) => {
     try {
-      // Here we'll save the selected model preference to localStorage for now
       localStorage.setItem('selectedModel', data.model);
       toast({
         title: "Success",
@@ -103,45 +102,43 @@ export function ModelSelector() {
   };
 
   return (
-    <div className="p-4 space-y-4 w-full">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>AI Model</FormLabel>
-                <Select
-                  disabled={isLoading}
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {models.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Choose the AI model for resume optimization
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-full">
-            Save Preference
-          </Button>
-        </form>
-      </Form>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="model"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>AI Model</FormLabel>
+              <Select
+                disabled={isLoading}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Choose the AI model for resume optimization
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">
+          Save Preference
+        </Button>
+      </form>
+    </Form>
   );
 }

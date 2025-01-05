@@ -13,6 +13,7 @@ import Builder from "./pages/Builder"
 import Preview from "./pages/Preview"
 import Resumes from "./pages/Resumes"
 import Dashboard from "./pages/Dashboard"
+import Settings from "./pages/Settings"
 
 import "./App.css"
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/builder" element={<Builder />} />
               <Route path="/preview" element={<Preview />} />
               <Route path="/resumes" element={<Resumes />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
