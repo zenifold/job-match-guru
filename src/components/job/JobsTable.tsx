@@ -23,72 +23,73 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           </TableRow>
         </TableHeader>
         <TableBody>
-          {jobs?.map((job) => (
-            <AccordionItem value={job.id} key={job.id} className="border-b-0">
-              <TableRow>
-                <TableCell className="text-left">
-                  <AccordionTrigger className="hover:no-underline">
-                    {job.title}
-                  </AccordionTrigger>
-                </TableCell>
-                <TableCell className="text-center">{job.status}</TableCell>
-                <TableCell className="text-center">
-                  {new Date(job.date_added).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end">
-                    <JobActions job={job} onDelete={onDelete} />
-                  </div>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={4} className="p-0">
-                  <AccordionContent className="px-4 py-2 bg-slate-50">
-                    <div className="space-y-4">
-                      {job.analysis ? (
-                        <>
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-semibold">Analysis Results</h3>
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm font-medium">Match Score: {Math.round(job.analysis.match_score)}%</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  // Keep the optimize functionality
-                                  console.log("Optimizing resume for job:", job.id);
-                                }}
-                              >
-                                Optimize Resume
-                              </Button>
-                            </div>
-                            <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                              {job.analysis.analysis_text}
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm text-gray-600">No analysis available</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              console.log("Triggering analysis for job:", job.id);
-                              onAnalyze(job.id);
-                            }}
-                            disabled={isAnalyzing}
-                          >
-                            {isAnalyzing ? "Analyzing..." : "Analyze Job"}
-                          </Button>
-                        </div>
-                      )}
+          <Accordion type="single" collapsible>
+            {jobs?.map((job) => (
+              <AccordionItem value={job.id} key={job.id} className="border-b-0">
+                <TableRow>
+                  <TableCell className="text-left">
+                    <AccordionTrigger className="hover:no-underline">
+                      {job.title}
+                    </AccordionTrigger>
+                  </TableCell>
+                  <TableCell className="text-center">{job.status}</TableCell>
+                  <TableCell className="text-center">
+                    {new Date(job.date_added).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end">
+                      <JobActions job={job} onDelete={onDelete} />
                     </div>
-                  </AccordionContent>
-                </TableCell>
-              </TableRow>
-            </AccordionItem>
-          ))}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell colSpan={4} className="p-0">
+                    <AccordionContent className="px-4 py-2 bg-slate-50">
+                      <div className="space-y-4">
+                        {job.analysis ? (
+                          <>
+                            <div className="space-y-2">
+                              <h3 className="text-lg font-semibold">Analysis Results</h3>
+                              <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium">Match Score: {Math.round(job.analysis.match_score)}%</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    console.log("Optimizing resume for job:", job.id);
+                                  }}
+                                >
+                                  Optimize Resume
+                                </Button>
+                              </div>
+                              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                {job.analysis.analysis_text}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-gray-600">No analysis available</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                console.log("Triggering analysis for job:", job.id);
+                                onAnalyze(job.id);
+                              }}
+                              disabled={isAnalyzing}
+                            >
+                              {isAnalyzing ? "Analyzing..." : "Analyze Job"}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </TableCell>
+                </TableRow>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </TableBody>
       </Table>
     </div>
