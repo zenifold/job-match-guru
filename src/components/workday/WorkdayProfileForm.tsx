@@ -15,40 +15,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface WorkdayFormData {
-  personalInfo: {
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    preferredName: string;
-    address: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    email: string;
-    phoneType: string;
-    phoneNumber: string;
-    phoneExtension: string;
-    previouslyEmployed: boolean;
-  };
-  experience: Array<{
-    company: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-    description: string;
-  }>;
-  education: Array<{
-    school: string;
-    degree: string;
-    field: string;
-    startDate: string;
-    endDate: string;
-    gpa: string;
-  }>;
-}
+import { WorkdayFormData, WorkdayProfile } from "@/types/workday";
 
 const initialFormData: WorkdayFormData = {
   personalInfo: {
@@ -90,7 +57,7 @@ export const WorkdayProfileForm = () => {
         if (error) throw error;
 
         if (data) {
-          setFormData(data.content);
+          setFormData(data.content as WorkdayFormData);
         }
       } catch (error) {
         console.error("Error loading Workday profile:", error);
@@ -106,10 +73,14 @@ export const WorkdayProfileForm = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("workday_profiles").upsert({
+      const profileData: WorkdayProfile = {
         user_id: session.user.id,
         content: formData,
-      });
+      };
+
+      const { error } = await supabase
+        .from("workday_profiles")
+        .upsert(profileData);
 
       if (error) throw error;
 
