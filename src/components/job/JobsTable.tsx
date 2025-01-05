@@ -4,7 +4,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { BarChart2 } from "lucide-react";
 import { useState } from "react";
 import { OptimizedResumeDialog } from "./OptimizedResumeDialog";
-import { JobAnalysisDialog } from "./JobAnalysisDialog";
 import { useToast } from "@/hooks/use-toast";
 import { JobTableHeader } from "./JobTableHeader";
 import { JobAnalysisSection } from "./JobAnalysisSection";
@@ -18,7 +17,6 @@ interface JobsTableProps {
 
 export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableProps) {
   const [selectedJob, setSelectedJob] = useState<{ id: string; title: string } | null>(null);
-  const [showAnalysisInfo, setShowAnalysisInfo] = useState<{ jobId: string; title: string } | null>(null);
   const [analyzingJobId, setAnalyzingJobId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -78,7 +76,6 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
                     <JobAnalysisSection
                       job={job}
                       isAnalyzing={isAnalyzing && analyzingJobId === job.id}
-                      onShowInfo={() => setShowAnalysisInfo({ jobId: job.id, title: job.title })}
                       onReanalyze={() => handleReanalyze(job.id)}
                       onOptimize={() => setSelectedJob({ id: job.id, title: job.title })}
                     />
@@ -110,16 +107,6 @@ export function JobsTable({ jobs, onDelete, onAnalyze, isAnalyzing }: JobsTableP
           onClose={() => setSelectedJob(null)}
           jobId={selectedJob.id}
           jobTitle={selectedJob.title}
-        />
-      )}
-
-      {showAnalysisInfo && (
-        <JobAnalysisDialog
-          isOpen={!!showAnalysisInfo}
-          onClose={() => setShowAnalysisInfo(null)}
-          jobId={showAnalysisInfo.jobId}
-          jobTitle={showAnalysisInfo.title}
-          analysis={jobs.find(job => job.id === showAnalysisInfo.jobId)?.analysis || null}
         />
       )}
     </div>
