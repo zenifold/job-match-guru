@@ -4,20 +4,10 @@ This Chrome extension helps you analyze job postings and auto-fill job applicati
 
 ## Installation
 
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Build the extension:
-   ```bash
-   npm run build:extension
-   ```
-4. Load the extension in Chrome:
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" in the top right
-   - Click "Load unpacked"
-   - Select the `dist` folder from this project
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top right
+3. Click "Load unpacked"
+4. Select this folder (`chrome-extension`)
 
 ## Usage
 
@@ -40,14 +30,6 @@ This Chrome extension helps you analyze job postings and auto-fill job applicati
 - Automatic form filling
 - Keyword optimization suggestions
 - Skills gap analysis
-
-## Development
-
-To work on the extension:
-
-1. Make changes to files in the `extension/` directory
-2. Run `npm run build:extension` to rebuild
-3. Click the refresh icon in `chrome://extensions/` to update the extension
 
 ## Troubleshooting
 
