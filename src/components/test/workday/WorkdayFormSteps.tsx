@@ -5,7 +5,6 @@ import { AddressSection } from "./AddressSection";
 import { ContactSection } from "./ContactSection";
 import { ExperienceSection } from "./ExperienceSection";
 import { EducationSection } from "./EducationSection";
-import { LanguagesSection } from "./LanguagesSection";
 import { WebsitesSection } from "./WebsitesSection";
 import { ApplicationQuestionsSection } from "./ApplicationQuestionsSection";
 import { VoluntaryDisclosuresSection } from "./VoluntaryDisclosuresSection";
@@ -51,9 +50,6 @@ export const WorkdayFormSteps = ({ currentStep, formData, onChange }: WorkdayFor
           <ExperienceSection onChange={onChange} value={mapExperienceData(formData.experience || [])} />
           <div className="border-t pt-6">
             <EducationSection onChange={onChange} value={formData.education} />
-          </div>
-          <div className="border-t pt-6">
-            <LanguagesSection onChange={onChange} value={formData.languages} />
           </div>
           <div className="border-t pt-6">
             <WebsitesSection onChange={onChange} value={formData.websites} />

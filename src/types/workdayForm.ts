@@ -45,14 +45,6 @@ export interface WorkdayFormData {
     endDate?: string;
     gpa?: string;
   }>;
-  languages?: Array<{
-    language: string;
-    isNative: boolean;
-    readingProficiency: string;
-    speakingProficiency: string;
-    writingProficiency: string;
-    translationProficiency: string;
-  }>;
   websites?: Array<{
     url: string;
   }>;
