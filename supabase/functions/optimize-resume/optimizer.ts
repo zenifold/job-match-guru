@@ -26,81 +26,87 @@ Key rules:
 - Keep modifications focused on the job requirements`;
 
   try {
-    // Parse the analysis text to extract keywords and their priorities
-    const keywordsMatch = analysisText.match(/Consider adding experience or skills related to:.*?\((.*?) Priority\)/g);
-    const keywords = keywordsMatch
-      ? keywordsMatch.map(match => {
-          const priorityMatch = match.match(/\((.*?) Priority\)/);
-          const priority = priorityMatch ? priorityMatch[1].toLowerCase() : 'standard';
-          const keyword = match
-            .replace('Consider adding experience or skills related to:', '')
-            .replace(/\(.*?\)/, '')
-            .trim();
-          return { keyword: keyword.toLowerCase(), priority };
-        })
-      : [];
+    // Extract key information from analysis text
+    const matchScoreMatch = analysisText.match(/Overall Match: (\d+)%/);
+    const matchScore = matchScoreMatch ? parseInt(matchScoreMatch[1]) : 0;
 
-    console.log('Extracted keywords with priorities:', keywords);
+    // Parse strong matches and target keywords
+    const strongMatches = (analysisText.match(/Strong Matches:\n(.*?)(?=\n\nTarget Keywords)/s) || ['', ''])[1]
+      .split('\n')
+      .filter(line => line.startsWith('✓'))
+      .map(line => {
+        const match = line.match(/✓ (.*?) \((.*?)\)/);
+        return match ? { keyword: match[1], priority: match[2].toLowerCase() } : null;
+      })
+      .filter(Boolean);
 
-    // Sort keywords by priority
-    const priorityOrder = { critical: 3, high: 2, medium: 1, standard: 0 };
-    keywords.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+    const targetKeywords = (analysisText.match(/Target Keywords:\n(.*?)(?=\n\nRequired Experience)/s) || ['', ''])[1]
+      .split('\n')
+      .filter(line => line.startsWith('-'))
+      .map(line => {
+        const match = line.match(/- (.*?) \((.*?)\)/);
+        return match ? { keyword: match[1], priority: match[2].toLowerCase() } : null;
+      })
+      .filter(Boolean);
 
     // Create a deep copy of the original content
     const optimizedContent = JSON.parse(JSON.stringify(originalContent));
 
-    // Enhance the summary if it exists
+    // Enhance summary with high-priority target keywords
     if (optimizedContent.personalInfo?.summary) {
-      const highPriorityKeywords = keywords
-        .filter(k => k.priority === 'critical' || k.priority === 'high')
+      const highPriorityKeywords = targetKeywords
+        .filter(k => k?.priority === 'critical' || k?.priority === 'high')
         .slice(0, 3)
-        .map(k => k.keyword)
+        .map(k => k?.keyword)
         .join(', ');
       
       if (highPriorityKeywords) {
-        optimizedContent.personalInfo.summary += ` Actively developing expertise in ${highPriorityKeywords} to stay at the forefront of industry developments.`;
+        optimizedContent.personalInfo.summary = `${optimizedContent.personalInfo.summary} Actively developing expertise in ${highPriorityKeywords} to drive innovation and results.`;
       }
     }
 
-    // Add relevant skills, prioritizing high-priority keywords
+    // Add relevant missing skills from target keywords
     if (optimizedContent.skills) {
       const existingSkills = new Set(optimizedContent.skills.map((s: string) => s.toLowerCase()));
-      keywords.forEach(({ keyword, priority }) => {
-        if (!existingSkills.has(keyword) && (priority === 'critical' || priority === 'high')) {
-          optimizedContent.skills.push(keyword);
-        }
-      });
+      const relevantSkills = [...strongMatches, ...targetKeywords]
+        .filter(k => k?.priority === 'critical' || k?.priority === 'high')
+        .map(k => k?.keyword)
+        .filter(keyword => keyword && !existingSkills.has(keyword.toLowerCase()));
+
+      optimizedContent.skills = [...optimizedContent.skills, ...relevantSkills];
     }
 
-    // Enhance experience descriptions
+    // Enhance experience descriptions with relevant keywords
     if (optimizedContent.experience && optimizedContent.experience.length > 0) {
       optimizedContent.experience = optimizedContent.experience.map((exp: any) => {
-        // Filter for high-priority keywords not already mentioned
-        const relevantKeywords = keywords
-          .filter(({ keyword, priority }) => 
-            (priority === 'critical' || priority === 'high') &&
-            !exp.description.toLowerCase().includes(keyword)
-          )
-          .slice(0, 2);
+        const relevantKeywords = targetKeywords
+          .filter(k => k?.priority === 'critical' || k?.priority === 'high')
+          .map(k => k?.keyword)
+          .filter(keyword => !exp.description.toLowerCase().includes(keyword?.toLowerCase()));
 
         if (relevantKeywords.length > 0) {
-          const keywordPhrase = relevantKeywords.map(k => k.keyword).join(' and ');
-          exp.description += ` Leveraged ${keywordPhrase} to drive project success.`;
-        }
+          // Enhance description with relevant keywords
+          const keywordPhrase = relevantKeywords.slice(0, 2).join(' and ');
+          exp.description = `${exp.description} Demonstrated expertise in ${keywordPhrase} through successful project delivery.`;
 
-        // Add relevant keywords to responsibilities, prioritizing critical ones
-        if (exp.keyResponsibilities && exp.keyResponsibilities.length > 0) {
-          const criticalKeyword = keywords.find(({ keyword, priority }) => 
-            priority === 'critical' &&
-            !exp.keyResponsibilities.some((resp: string) => 
-              resp.toLowerCase().includes(keyword)
-            )
-          );
+          // Add new key responsibilities focused on target keywords
+          if (exp.keyResponsibilities) {
+            const criticalKeywords = targetKeywords
+              .filter(k => k?.priority === 'critical')
+              .map(k => k?.keyword)
+              .filter(keyword => 
+                !exp.keyResponsibilities.some((resp: string) => 
+                  resp.toLowerCase().includes(keyword?.toLowerCase())
+                )
+              );
 
-          if (criticalKeyword) {
-            exp.keyResponsibilities.push(
-              `Utilized ${criticalKeyword.keyword} to enhance project outcomes and team efficiency.`
-            );
+            criticalKeywords.forEach(keyword => {
+              if (keyword) {
+                exp.keyResponsibilities.push(
+                  `Led initiatives leveraging ${keyword} to drive business outcomes and improve operational efficiency.`
+                );
+              }
+            });
           }
         }
 
@@ -116,7 +122,7 @@ Key rules:
         optimizedFor: job.title,
         optimizationDate: new Date().toISOString(),
         analysisUsed: analysisText,
-        keywordsWithPriority: keywords
+        keywordsWithPriority: [...strongMatches, ...targetKeywords]
       }
     };
   } catch (error) {
