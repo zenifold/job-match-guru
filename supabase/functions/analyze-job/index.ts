@@ -66,7 +66,7 @@ serve(async (req) => {
       ...(resumeContent.projects || []).map((proj: any) => proj.description || '')
     ].filter(Boolean).join(' ');
 
-    // Use AI to analyze the job and resume
+    // Enhanced system prompt for better structured analysis
     const systemPrompt = `You are an AI assistant analyzing job requirements and resume match.
     
     Job Title: ${job.title}
@@ -74,17 +74,32 @@ serve(async (req) => {
     
     Resume Content: ${resumeText}
     
-    Analyze the match between the job requirements and resume. Focus on:
-    1. Key skills and experience required by the job
-    2. Matching skills found in the resume
-    3. Missing skills or areas for improvement
-    4. Priority level of each skill (Critical, High, Medium, Standard)
+    Analyze the match between the job requirements and resume. Provide a detailed analysis in the following format:
+
+    1. Start with "Match Score Analysis:"
+    2. Calculate and show "Overall Match: X%" based on skills and experience match
+    3. List sections in this order:
+
+    "Strong Matches:"
+    - List each matching skill/experience with ✓ prefix
+    - Include priority level in parentheses (Critical, High, Medium, Standard)
     
-    Format the response as follows:
-    - Start with "Match Score Analysis:"
-    - Include an "Overall Match" percentage
-    - List "Strong Matches:" with ✓ prefix and priority in parentheses
-    - List "Suggested Improvements:" with bullet points and priority in parentheses`;
+    "Target Keywords:"
+    - List specific technical skills and keywords from the job description
+    - Include priority level in parentheses
+    - Focus on concrete, actionable skills
+    
+    "Required Experience:"
+    - List specific experience areas or subject matter expertise needed
+    - Include years of experience if mentioned
+    - Include priority level in parentheses
+    
+    "Suggested Improvements:"
+    - List missing skills or areas for improvement with bullet points
+    - Include priority level in parentheses
+    - Focus on actionable items
+
+    Keep the format consistent and structured for parsing. Use priority levels (Critical, High, Medium, Standard) for all items.`;
 
     console.log('Sending analysis request to OpenRouter API');
 
@@ -99,7 +114,7 @@ serve(async (req) => {
         model: 'google/gemini-2.0-flash-exp:free',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Analyze the job match and provide detailed feedback.' }
+          { role: 'user', content: 'Analyze the job match and provide detailed feedback following the specified format.' }
         ]
       })
     });
@@ -118,10 +133,8 @@ serve(async (req) => {
     if (aiData.choices?.[0]?.message?.content) {
       analysisText = aiData.choices[0].message.content;
     } else if (aiData.choices?.[0]?.content) {
-      // Alternative format some models might use
       analysisText = aiData.choices[0].content;
     } else if (typeof aiData.choices?.[0] === 'string') {
-      // Another possible format
       analysisText = aiData.choices[0];
     } else {
       console.error('Unexpected AI response format:', aiData);
