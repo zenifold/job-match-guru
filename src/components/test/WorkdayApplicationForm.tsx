@@ -12,9 +12,21 @@ import { LanguagesSection } from "./workday/LanguagesSection";
 import { WebsitesSection } from "./workday/WebsitesSection";
 import { ApplicationQuestionsSection } from "./workday/ApplicationQuestionsSection";
 import { VoluntaryDisclosuresSection } from "./workday/VoluntaryDisclosuresSection";
+import { WorkdayTemplateSelector } from "../workday/WorkdayTemplateSelector";
+import { useToast } from "@/hooks/use-toast";
 
 export function WorkdayApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({});
+  const { toast } = useToast();
+
+  const handleTemplateLoad = (templateData: any) => {
+    setFormData(templateData);
+    toast({
+      title: "Template Loaded",
+      description: "The form has been populated with the template data.",
+    });
+  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -76,6 +88,11 @@ export function WorkdayApplicationForm() {
             </span>
           </div>
         </div>
+
+        <WorkdayTemplateSelector
+          onLoadTemplate={handleTemplateLoad}
+          currentFormData={formData}
+        />
 
         <form className="space-y-8">
           {renderStep()}
