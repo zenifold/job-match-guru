@@ -1,4 +1,3 @@
-// Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'extractJobDetails') {
     const jobData = extractJobDetails();
@@ -12,27 +11,45 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function extractJobDetails() {
   try {
-    // Enhanced job detail extraction for various job sites
+    // Enhanced selectors for various job sites
     const selectors = {
       title: [
         'h1',
         '[data-testid*="title"]',
         '.job-title',
         '.position-title',
-        '[class*="jobtitle"]'
+        '[class*="jobtitle"]',
+        // LinkedIn specific
+        '.top-card-layout__title',
+        // Indeed specific
+        '.jobsearch-JobInfoHeader-title',
+        // Glassdoor specific
+        '[data-test="job-title"]'
       ],
       description: [
         '[data-testid*="description"]',
         '.job-description',
         '#job-description',
         '[class*="description"]',
-        'article'
+        'article',
+        // LinkedIn specific
+        '.description__text',
+        // Indeed specific
+        '#jobDescriptionText',
+        // Glassdoor specific
+        '[data-test="description"]'
       ],
       company: [
         '[data-testid*="company"]',
         '.company-name',
         '[class*="company"]',
-        '[itemprop="hiringOrganization"]'
+        '[itemprop="hiringOrganization"]',
+        // LinkedIn specific
+        '.top-card-layout__company',
+        // Indeed specific
+        '.jobsearch-InlineCompanyRating',
+        // Glassdoor specific
+        '[data-test="employer-name"]'
       ]
     };
 
@@ -59,6 +76,27 @@ function extractJobDetails() {
       )
       .join('\n');
 
+    // Add structured data extraction
+    const structuredData = Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+      .map(script => {
+        try {
+          return JSON.parse(script.textContent || '');
+        } catch (e) {
+          return null;
+        }
+      })
+      .find(data => data && (data['@type'] === 'JobPosting' || data.jobPosting));
+
+    if (structuredData) {
+      const jobData = structuredData['@type'] === 'JobPosting' ? structuredData : structuredData.jobPosting;
+      return {
+        success: true,
+        jobTitle: jobTitle || jobData.title,
+        jobDescription: jobDescription || jobData.description,
+        company: company || (jobData.hiringOrganization && jobData.hiringOrganization.name)
+      };
+    }
+
     console.log('Extracted job details:', { jobTitle, company, requirements });
     
     return {
@@ -77,44 +115,69 @@ function extractJobDetails() {
 }
 
 function autofillForm(data) {
-  // Enhanced form field detection
+  // Enhanced field mapping for various job sites
   const fieldMap = {
     name: [
       'input[name*="name" i]', 
       'input[id*="name" i]',
       'input[placeholder*="name" i]',
-      'input[aria-label*="name" i]'
+      'input[aria-label*="name" i]',
+      // LinkedIn specific
+      '[data-test-form-element="name-input"]',
+      // Indeed specific
+      '#input-applicant-name',
+      // Glassdoor specific
+      '[data-test="application-name"]'
     ],
     email: [
       'input[type="email"]',
       'input[name*="email" i]',
       'input[id*="email" i]',
-      'input[placeholder*="email" i]'
+      'input[placeholder*="email" i]',
+      // Platform specific selectors
+      '[data-test-form-element="email-input"]',
+      '#input-email',
+      '[data-test="application-email"]'
     ],
     phone: [
       'input[type="tel"]',
       'input[name*="phone" i]',
       'input[id*="phone" i]',
-      'input[placeholder*="phone" i]'
+      'input[placeholder*="phone" i]',
+      // Platform specific selectors
+      '[data-test-form-element="phone-input"]',
+      '#input-phone',
+      '[data-test="application-phone"]'
     ],
     resume: [
       'textarea[name*="resume" i]',
       'textarea[id*="resume" i]',
       'textarea[placeholder*="resume" i]',
       'textarea[aria-label*="resume" i]',
-      // Common rich text editor selectors
       '.ql-editor',
-      '[contenteditable="true"]'
+      '[contenteditable="true"]',
+      // Platform specific selectors
+      '[data-test-form-element="resume-input"]',
+      '#input-resume',
+      '[data-test="application-resume"]'
     ],
     linkedin: [
       'input[name*="linkedin" i]',
       'input[placeholder*="linkedin" i]',
-      'input[aria-label*="linkedin" i]'
+      'input[aria-label*="linkedin" i]',
+      // Platform specific selectors
+      '[data-test-form-element="linkedin-input"]',
+      '#input-linkedin',
+      '[data-test="application-linkedin"]'
     ],
     website: [
       'input[name*="website" i]',
       'input[placeholder*="website" i]',
-      'input[aria-label*="website" i]'
+      'input[aria-label*="website" i]',
+      // Platform specific selectors
+      '[data-test-form-element="website-input"]',
+      '#input-website',
+      '[data-test="application-website"]'
     ]
   };
 

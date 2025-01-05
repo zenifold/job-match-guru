@@ -30,10 +30,12 @@ function updateUIForUnauthenticatedUser() {
 document.getElementById('analyze').addEventListener('click', async () => {
   const statusEl = document.getElementById('status');
   const autofillBtn = document.getElementById('autofill');
+  const resultsEl = document.getElementById('results');
   
   try {
     statusEl.textContent = 'Analyzing job description...';
     statusEl.className = 'status';
+    resultsEl.innerHTML = '<div class="loading"></div> Processing...';
     
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -71,14 +73,17 @@ document.getElementById('analyze').addEventListener('click', async () => {
     statusEl.className = 'status success';
     autofillBtn.disabled = false;
     
-    // Show optimization results
-    document.getElementById('results').innerHTML = `
+    // Show optimization results with enhanced UI
+    resultsEl.innerHTML = `
       <div class="mt-4 p-4 bg-gray-50 rounded">
         <h3 class="font-semibold">Match Score: ${analysisData.matchScore}%</h3>
-        <p class="text-sm text-gray-600 mt-2">Key matches:</p>
+        <div class="progress-bar mt-2 h-2 bg-gray-200 rounded">
+          <div class="h-full bg-green-500 rounded" style="width: ${analysisData.matchScore}%"></div>
+        </div>
+        <p class="text-sm text-gray-600 mt-4">Key matches:</p>
         <ul class="text-sm mt-1">
           ${analysisData.matches.map(match => `
-            <li class="flex items-center gap-1">
+            <li class="flex items-center gap-1 mt-1">
               <svg class="w-4 h-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
@@ -86,6 +91,19 @@ document.getElementById('analyze').addEventListener('click', async () => {
             </li>
           `).join('')}
         </ul>
+        ${analysisData.suggestions ? `
+          <p class="text-sm text-gray-600 mt-4">Suggestions for improvement:</p>
+          <ul class="text-sm mt-1">
+            ${analysisData.suggestions.map(suggestion => `
+              <li class="flex items-center gap-1 mt-1">
+                <svg class="w-4 h-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                </svg>
+                ${suggestion}
+              </li>
+            `).join('')}
+          </ul>
+        ` : ''}
       </div>
     `;
     
@@ -93,6 +111,7 @@ document.getElementById('analyze').addEventListener('click', async () => {
     statusEl.textContent = `Error: ${error.message}`;
     statusEl.className = 'status error';
     autofillBtn.disabled = true;
+    resultsEl.innerHTML = '';
   }
 });
 
