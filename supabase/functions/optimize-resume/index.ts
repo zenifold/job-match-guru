@@ -35,7 +35,12 @@ serve(async (req) => {
     const missingKeywords = extractMissingKeywords(analysis.analysis_text);
     console.log('Missing keywords:', missingKeywords);
 
-    const optimizedContent = optimizeContent(profile.content, missingKeywords, job.description);
+    const optimizedContent = await optimizeContent(
+      profile.content, 
+      missingKeywords, 
+      job.description,
+      analysis
+    );
 
     // Check for existing optimized resume
     const existingOptimizedResume = await getExistingOptimizedResume(userId, jobId);
