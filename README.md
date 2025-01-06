@@ -26,6 +26,7 @@ Our Chrome extension enhances your job search by:
 - Auto-filling job applications
 - Providing instant resume match scoring
 - Suggesting resume optimizations
+- Automatic updates via Chrome Web Store
 
 ### AI Features
 - Smart resume tailoring
@@ -86,6 +87,7 @@ If you encounter issues:
 3. Try refreshing the page
 4. Reload the extension from `chrome://extensions/`
 5. Ensure you're logged into the web application
+6. Check that automatic updates are enabled in Chrome
 
 ## Development
 
