@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Send message to content script to fill form
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, {
-          type: 'FILL_FORM',
-          data: profileData
+          action: 'autoFill',
+          profile: profileData
         });
       });
       

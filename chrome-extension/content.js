@@ -1,6 +1,5 @@
 import { mapProfileToWorkdayFields } from './profileUtils.js';
 import { fillField, validateFieldValue } from './utils/form.js';
-import { getSupabase } from './utils/supabase.js';
 
 // Helper function to detect page type
 function detectWorkdayPage() {
@@ -13,38 +12,13 @@ function detectWorkdayPage() {
   return null;
 }
 
-// Function to extract job details
-async function extractJobDetails() {
-  try {
-    const jobTitle = document.querySelector('[data-automation-id="jobTitle"]')?.textContent;
-    const jobDescription = document.querySelector('[data-automation-id="jobDescription"]')?.textContent;
-    const company = document.querySelector('[data-automation-id="companyName"]')?.textContent;
-
-    return {
-      title: jobTitle || 'Unknown Title',
-      description: jobDescription || '',
-      company: company || 'Unknown Company',
-      url: window.location.href
-    };
-  } catch (error) {
-    console.error('Error extracting job details:', error);
-    throw error;
-  }
-}
-
 // Function to handle form filling
-async function fillApplicationForm() {
+async function fillApplicationForm(profile) {
   console.log("Starting form fill process");
   
   try {
-    // Get profile data from storage
-    const { profileData } = await chrome.storage.local.get(['profileData']);
-    if (!profileData) {
-      throw new Error('No profile data found');
-    }
-
     // Map profile data to Workday fields
-    const mappedData = mapProfileToWorkdayFields(profileData);
+    const mappedData = mapProfileToWorkdayFields(profile);
     if (!mappedData) {
       throw new Error('Failed to map profile data');
     }
@@ -61,10 +35,6 @@ async function fillApplicationForm() {
     await fillField('[data-automation-id="state"]', mappedData.personalInfo.state);
     await fillField('[data-automation-id="postalCode"]', mappedData.personalInfo.zipCode);
     await fillField('[data-automation-id="country"]', mappedData.personalInfo.country);
-
-    // Social Links
-    await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
-    await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
 
     // Experience - with enhanced error handling and retry logic
     for (const [index, exp] of mappedData.experience.entries()) {
@@ -135,31 +105,14 @@ async function fillApplicationForm() {
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   try {
-    const pageType = detectWorkdayPage();
-    console.log("Current page type:", pageType);
-
-    if (request.action === "analyzeJob" && pageType === 'jobDetails') {
-      const jobDetails = await extractJobDetails();
-      console.log("Extracted job details:", jobDetails);
-      
-      const supabase = await getSupabase();
-      chrome.runtime.sendMessage({
-        type: "ANALYZE_JOB",
-        data: jobDetails
-      });
-      
-      sendResponse({ success: true });
-    } else if (request.action === "autoFill" && pageType === 'application') {
-      const success = await fillApplicationForm();
+    if (request.action === "autoFill") {
+      const success = await fillApplicationForm(request.profile);
       sendResponse({ success });
-    } else {
-      sendResponse({ success: false, error: 'Invalid action or page type' });
     }
   } catch (error) {
     console.error("Error in message listener:", error);
     sendResponse({ success: false, error: error.message });
   }
-  
   return true;
 });
 
