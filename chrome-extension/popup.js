@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Event Listeners
   loginForm?.addEventListener('submit', handleLoginSubmit);
   fillButton?.addEventListener('click', () => handleFormFill(currentProfile, historyComponent.addEntry.bind(historyComponent)));
-  logoutButton?.addEventListener('click', handleLogout);
+  logoutButton?.addEventListener('click', handleLogoutClick);
   settingsButton?.addEventListener('click', () => chrome.runtime.openOptionsPage());
   profileSelect?.addEventListener('change', handleProfileChange);
 });
@@ -48,6 +48,7 @@ async function handleLoginSubmit(event) {
     if (response.success) {
       await updateUIForLoggedInState();
       showMessage(document.getElementById('message'), 'Login successful!', 'success');
+      loginError.style.display = 'none';
     } else {
       loginError.textContent = response.error || 'Login failed. Please try again.';
       loginError.style.display = 'block';
@@ -56,6 +57,21 @@ async function handleLoginSubmit(event) {
     console.error('Login error:', error);
     loginError.textContent = 'An error occurred during login.';
     loginError.style.display = 'block';
+  }
+}
+
+async function handleLogoutClick() {
+  try {
+    const response = await handleLogout();
+    if (response.success) {
+      updateUIForLoggedOutState();
+      showMessage(document.getElementById('message'), 'Logged out successfully', 'success');
+    } else {
+      showMessage(document.getElementById('message'), 'Logout failed', 'error');
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
+    showMessage(document.getElementById('message'), 'An error occurred during logout', 'error');
   }
 }
 

@@ -1,41 +1,54 @@
-import { getStorageData, setStorageData, clearStorage } from './storage.js';
-
-export const isAuthenticated = async () => {
-  const { authToken } = await getStorageData(['authToken']);
-  return !!authToken;
-};
+import { supabase } from './supabase.js';
+import { setStorageData } from './storage.js';
 
 export const handleAuthRequest = async (email, password) => {
   try {
-    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
 
-    if (!response.ok) {
-      throw new Error('Authentication failed');
-    }
+    if (error) throw error;
 
-    const data = await response.json();
-    await setStorageData({ authToken: data.access_token });
-    
+    // Store the session token
+    await setStorageData({ 
+      authToken: data.session.access_token,
+      userId: data.user.id
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Auth error:', error);
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error.message || 'Authentication failed'
+    };
   }
 };
 
 export const handleLogout = async () => {
   try {
-    await clearStorage();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
+    // Clear stored data
+    await chrome.storage.local.clear();
     return { success: true };
   } catch (error) {
     console.error('Logout error:', error);
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error.message || 'Logout failed'
+    };
+  }
+};
+
+export const isAuthenticated = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
+  } catch (error) {
+    console.error('Auth check error:', error);
+    return false;
   }
 };
