@@ -35,63 +35,36 @@ async function fillApplicationForm(profile) {
     await fillField('[data-automation-id="state"]', mappedData.personalInfo.state);
     await fillField('[data-automation-id="postalCode"]', mappedData.personalInfo.zipCode);
     await fillField('[data-automation-id="country"]', mappedData.personalInfo.country);
+    await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
+    await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
 
-    // Experience - with enhanced error handling and retry logic
-    for (const [index, exp] of mappedData.experience.entries()) {
-      // Try different possible selectors for work experience fields
-      const selectors = [
-        `[data-automation-id="workExperience.${index}.title"]`,
-        `[data-automation-id="experience.${index}.jobTitle"]`,
-        `[data-automation-id="workHistory.${index}.position"]`
-      ];
-
-      // Try each selector until one works
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          await fillField(selector, exp.jobTitle);
-          break;
-        }
-      }
-
-      // Company name
-      await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
-      await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
-      
-      // Dates with proper formatting
-      await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
-      if (!exp.currentlyWorkHere) {
+    // Experience
+    if (mappedData.experience) {
+      for (const [index, exp] of mappedData.experience.entries()) {
+        await fillField(`[data-automation-id="workExperience.${index}.title"]`, exp.jobTitle);
+        await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
+        await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
+        await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
         await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
-      }
-      
-      // Description with proper formatting
-      const description = Array.isArray(exp.description) 
-        ? exp.description.join('\n• ')
-        : exp.description;
-      await fillField(`[data-automation-id="workExperience.${index}.description"]`, description);
-
-      // Handle "Current Position" checkbox if it exists
-      const currentPositionSelector = `[data-automation-id="workExperience.${index}.currentPosition"]`;
-      if (document.querySelector(currentPositionSelector)) {
-        await fillField(currentPositionSelector, exp.currentlyWorkHere);
+        await fillField(`[data-automation-id="workExperience.${index}.description"]`, exp.description);
       }
     }
 
     // Education
-    for (const [index, edu] of mappedData.education.entries()) {
-      await fillField(`[data-automation-id="education.${index}.school"]`, edu.school);
-      await fillField(`[data-automation-id="education.${index}.degree"]`, edu.degree);
-      await fillField(`[data-automation-id="education.${index}.field"]`, edu.field);
-      await fillField(`[data-automation-id="education.${index}.startDate"]`, edu.startDate);
-      await fillField(`[data-automation-id="education.${index}.endDate"]`, edu.endDate);
-      await fillField(`[data-automation-id="education.${index}.gpa"]`, edu.gpa);
+    if (mappedData.education) {
+      for (const [index, edu] of mappedData.education.entries()) {
+        await fillField(`[data-automation-id="education.${index}.school"]`, edu.school);
+        await fillField(`[data-automation-id="education.${index}.degree"]`, edu.degree);
+        await fillField(`[data-automation-id="education.${index}.field"]`, edu.field);
+        await fillField(`[data-automation-id="education.${index}.startDate"]`, edu.startDate);
+        await fillField(`[data-automation-id="education.${index}.endDate"]`, edu.endDate);
+        await fillField(`[data-automation-id="education.${index}.gpa"]`, edu.gpa);
+      }
     }
 
     // Skills
-    const skillsField = document.querySelector('[data-automation-id="skills"]');
-    if (skillsField && mappedData.skills.length > 0) {
-      skillsField.value = mappedData.skills.join(', ');
-      skillsField.dispatchEvent(new Event('change', { bubbles: true }));
+    if (mappedData.skills) {
+      await fillField('[data-automation-id="skills"]', mappedData.skills.join(', '));
     }
 
     console.log("Form fill completed successfully");
@@ -115,36 +88,3 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   }
   return true;
 });
-
-// Add styles for the extension UI elements
-const style = document.createElement('style');
-style.textContent = `
-  .resume-optimizer-highlight {
-    border: 2px solid #6366f1 !important;
-    background-color: rgba(99, 102, 241, 0.1) !important;
-    transition: all 0.3s ease;
-  }
-  
-  .resume-optimizer-tooltip {
-    position: absolute;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 8px 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 10000;
-    font-size: 14px;
-    color: #1a202c;
-  }
-
-  .resume-optimizer-success {
-    border-color: #10b981 !important;
-    background-color: rgba(16, 185, 129, 0.1) !important;
-  }
-
-  .resume-optimizer-error {
-    border-color: #ef4444 !important;
-    background-color: rgba(239, 68, 68, 0.1) !important;
-  }
-`;
-document.head.appendChild(style);

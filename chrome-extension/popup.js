@@ -8,6 +8,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const mainSection = document.getElementById('mainSection');
   const editProfileButton = document.getElementById('editProfile');
   const fillButton = document.getElementById('fillButton');
+  const tabs = document.querySelectorAll('.tab');
+  
+  // Handle tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Show corresponding content
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => {
+        content.style.display = content.dataset.tab === tab.dataset.tab ? 'block' : 'none';
+      });
+    });
+  });
   
   // Check if profile exists
   const profileData = await getProfileData();
@@ -21,7 +37,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('lastName').value = profileData.personalInfo.lastName || '';
       document.getElementById('email').value = profileData.personalInfo.email || '';
       document.getElementById('phone').value = profileData.personalInfo.phone || '';
-      document.getElementById('location').value = profileData.personalInfo.location || '';
+      document.getElementById('address').value = profileData.personalInfo.address || '';
+      document.getElementById('city').value = profileData.personalInfo.city || '';
+      document.getElementById('state').value = profileData.personalInfo.state || '';
+      document.getElementById('zipCode').value = profileData.personalInfo.zipCode || '';
+      document.getElementById('country').value = profileData.personalInfo.country || 'United States';
+      document.getElementById('linkedin').value = profileData.personalInfo.linkedin || '';
+      document.getElementById('github').value = profileData.personalInfo.github || '';
     };
     
     editProfileButton.addEventListener('click', () => {
@@ -42,7 +64,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         lastName: document.getElementById('lastName').value,
         email: document.getElementById('email').value,
         phone: document.getElementById('phone').value,
-        location: document.getElementById('location').value
+        address: document.getElementById('address').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        zipCode: document.getElementById('zipCode').value,
+        country: document.getElementById('country').value,
+        linkedin: document.getElementById('linkedin').value,
+        github: document.getElementById('github').value
       };
 
       await saveProfileData(formData);
