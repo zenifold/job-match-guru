@@ -9,7 +9,7 @@ let historyComponent = null;
 
 // Initialize the popup
 document.addEventListener('DOMContentLoaded', async () => {
-  const loginButton = document.getElementById('loginButton');
+  const loginForm = document.getElementById('loginForm');
   const fillButton = document.getElementById('fillButton');
   const logoutButton = document.getElementById('logoutButton');
   const settingsButton = document.getElementById('settingsButton');
@@ -27,31 +27,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Event Listeners
-  loginButton?.addEventListener('click', handleLogin);
+  loginForm?.addEventListener('submit', handleLogin);
   fillButton?.addEventListener('click', () => handleFormFill(currentProfile, historyComponent.addEntry.bind(historyComponent)));
   logoutButton?.addEventListener('click', handleLogout);
   settingsButton?.addEventListener('click', () => chrome.runtime.openOptionsPage());
   profileSelect?.addEventListener('change', handleProfileChange);
-
-  // Listen for auth status changes
-  chrome.runtime.onMessage.addListener((message) => {
-    console.log('Received message in popup:', message);
-    if (message.type === 'AUTH_STATUS_CHANGED') {
-      if (message.isAuthenticated) {
-        updateUIForLoggedInState();
-      } else {
-        updateUIForLoggedOutState();
-      }
-    } else if (message.type === 'AUTH_COMPLETE') {
-      if (message.success) {
-        updateUIForLoggedInState();
-        showMessage(document.getElementById('message'), 'Login successful!', 'success');
-      } else {
-        showMessage(document.getElementById('message'), message.error || 'Login failed', 'error');
-      }
-    }
-  });
 });
+
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const loginError = document.getElementById('loginError');
+  
+  try {
+    showMessage(document.getElementById('message'), 'Logging in...', 'info');
+    const response = await handleAuthRequest(email, password);
+    
+    if (response.success) {
+      await updateUIForLoggedInState();
+      showMessage(document.getElementById('message'), 'Login successful!', 'success');
+    } else {
+      loginError.textContent = response.error || 'Login failed. Please try again.';
+      loginError.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    loginError.textContent = 'An error occurred during login.';
+    loginError.style.display = 'block';
+  }
+}
 
 async function updateUIForLoggedInState() {
   document.getElementById('loginContainer').style.display = 'none';

@@ -5,16 +5,27 @@ export const isAuthenticated = async () => {
   return !!authToken;
 };
 
-export const handleAuthRequest = async () => {
+export const handleAuthRequest = async (email, password) => {
   try {
-    // Send message to background script to handle auth
-    const response = await chrome.runtime.sendMessage({
-      type: 'AUTH_REQUEST'
+    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
     });
+
+    if (!response.ok) {
+      throw new Error('Authentication failed');
+    }
+
+    const data = await response.json();
+    await setStorageData({ authToken: data.access_token });
     
-    return response;
+    return { success: true };
   } catch (error) {
-    console.error('Auth request error:', error);
+    console.error('Auth error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -22,13 +33,6 @@ export const handleAuthRequest = async () => {
 export const handleLogout = async () => {
   try {
     await clearStorage();
-    
-    // Notify about auth status change
-    chrome.runtime.sendMessage({
-      type: 'AUTH_STATUS_CHANGED',
-      isAuthenticated: false
-    });
-    
     return { success: true };
   } catch (error) {
     console.error('Logout error:', error);

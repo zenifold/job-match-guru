@@ -1,4 +1,3 @@
-import { handleAuthRequest, handleAuthComplete } from './utils/auth.js';
 import { getStorageData, setStorageData } from './utils/storage.js';
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -16,7 +15,6 @@ chrome.runtime.onInstalled.addListener((details) => {
 // Add update check listener
 chrome.runtime.onUpdateAvailable.addListener((details) => {
   console.log('Update available:', details.version);
-  // Automatically update the extension
   chrome.runtime.reload();
 });
 
@@ -28,18 +26,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Content script log:", request.message);
   } else if (request.type === "ANALYZE_JOB") {
     handleJobAnalysis(request.data);
-  } else if (request.type === "AUTH_REQUEST") {
-    // Open auth window
-    chrome.windows.create({
-      url: 'https://job-match-guru.lovable.app/extension-auth',
-      type: 'popup',
-      width: 500,
-      height: 600
-    });
-    sendResponse({ success: true });
-  } else if (request.type === "EXTENSION_AUTH_COMPLETE") {
-    handleAuthComplete(request.token).then(sendResponse);
-    return true;
   } else if (request.type === "GET_PROFILE") {
     handleProfileRequest(sendResponse);
     return true;
