@@ -1,116 +1,180 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Resume Optimizer</title>
-  <meta charset="UTF-8">
+  <title>ResumeAI Assistant</title>
   <style>
     body {
-      width: 300px;
+      width: 320px;
       padding: 16px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #1A1F2C;
-      color: #FFFFFF;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #ffffff;
     }
-    button {
-      width: 100%;
-      padding: 8px;
-      margin: 4px 0;
-      border: 1px solid #333333;
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #333;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      color: #9b87f5;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .button {
+      background-color: #9b87f5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
       border-radius: 4px;
-      background: #221F26;
-      color: #FFFFFF;
       cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.2s ease;
     }
-    button:disabled {
-      opacity: 0.5;
+
+    .button:hover {
+      background-color: #8b77e5;
+    }
+
+    .button:disabled {
+      background-color: #666;
       cursor: not-allowed;
     }
-    button:hover:not(:disabled) {
-      background: #333333;
-      border-color: #8B5CF6;
+
+    .button.secondary {
+      background-color: #333;
     }
-    #status {
-      margin: 8px 0;
+
+    .button.secondary:hover {
+      background-color: #444;
+    }
+
+    .profile-select {
+      background-color: #333;
+      color: white;
+      border: 1px solid #444;
       padding: 8px;
       border-radius: 4px;
-      background: #222222;
+      width: 100%;
     }
-    .text-red-500 {
-      color: #EF4444;
+
+    .error {
+      color: #ff4444;
+      font-size: 14px;
+      padding: 8px;
+      background-color: rgba(255, 68, 68, 0.1);
+      border-radius: 4px;
     }
-    .text-green-500 {
-      color: #22C55E;
+
+    .success {
+      color: #44ff44;
+      font-size: 14px;
+      padding: 8px;
+      background-color: rgba(68, 255, 68, 0.1);
+      border-radius: 4px;
     }
-    h2 {
-      color: #FFFFFF;
-      margin-bottom: 16px;
+
+    .settings {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
     }
+
+    .history {
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #222;
+      border-radius: 4px;
+      padding: 8px;
+    }
+
+    .history-item {
+      padding: 8px;
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
     .icon {
-      width: 20px;
-      height: 20px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .icon-purple {
-      color: #8B5CF6;
-    }
-    .icon-blue {
-      color: #0EA5E9;
-    }
-    .icon-pink {
-      color: #D946EF;
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
   </style>
 </head>
 <body>
-  <h2>
-    <svg class="icon icon-purple" viewBox="0 0 24 24">
-      <path d="M20 7h-7m7 10h-7M9 7H7a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm0 10H7a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2z"/>
-    </svg>
-    Resume Optimizer
-  </h2>
-  
-  <div id="authSection">
-    <button id="login">
-      <svg class="icon icon-blue" viewBox="0 0 24 24">
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
-      </svg>
-      Login with Supabase
-    </button>
-    <button id="logout" style="display: none;">
-      <svg class="icon icon-pink" viewBox="0 0 24 24">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-      </svg>
-      Logout
-    </button>
-  </div>
+  <div class="container">
+    <div class="header">
+      <div class="logo">ResumeAI</div>
+      <div id="loginStatus" class="status">Not logged in</div>
+    </div>
 
-  <div id="status"></div>
-  
-  <button id="analyzeJob" disabled>
-    <svg class="icon icon-blue" viewBox="0 0 24 24">
-      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-    Analyze Job & Optimize Resume
-  </button>
-  
-  <button id="autoFill" disabled>
-    <svg class="icon icon-purple" viewBox="0 0 24 24">
-      <path d="M12 5v14M5 12h14"/>
-    </svg>
-    Auto-fill Application
-  </button>
+    <div id="loginContainer">
+      <button id="loginButton" class="button">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        Login
+      </button>
+    </div>
+
+    <div id="mainContainer" style="display: none;">
+      <select id="profileSelect" class="profile-select">
+        <option value="">Select a profile</option>
+      </select>
+
+      <button id="fillButton" class="button" disabled>
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+        </svg>
+        Auto-fill Form
+      </button>
+
+      <button id="settingsButton" class="button secondary">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        Settings
+      </button>
+
+      <button id="logoutButton" class="button secondary">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+        Logout
+      </button>
+
+      <div id="history" class="history">
+        <!-- History items will be dynamically added here -->
+      </div>
+
+      <div id="message" style="display: none;"></div>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

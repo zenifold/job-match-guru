@@ -1,18 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Resume Optimizer",
-  "version": "1.0",
-  "description": "Automatically analyze jobs and fill applications with your resume data",
+  "name": "ResumeAI Assistant",
+  "version": "1.0.0",
+  "description": "Automatically fill job applications with your ResumeAI profile",
   "permissions": [
     "activeTab",
     "storage",
-    "scripting",
     "identity"
   ],
   "host_permissions": [
-    "*://*.workday.com/*",
-    "http://localhost:5173/*"
+    "https://job-match-guru.lovable.app/*",
+    "https://qqbulzzezbcwstrhfbco.supabase.co/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -21,21 +23,15 @@
       "128": "icons/icon128.png"
     }
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "*://*.workday.com/*"
-      ],
-      "js": ["content.js"]
-    }
-  ],
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }
