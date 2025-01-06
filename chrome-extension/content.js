@@ -1,4 +1,5 @@
 import { mapProfileToWorkdayFields } from './profileUtils.js';
+import { fillField } from './utils/form.js';
 
 // Helper function to detect page type
 function detectWorkdayPage() {
@@ -23,25 +24,6 @@ async function extractJobDetails() {
     company: company || 'Unknown Company',
     url: window.location.href
   };
-}
-
-// Function to fill form fields with retry mechanism
-async function fillField(selector, value, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    const element = document.querySelector(selector);
-    if (element && value) {
-      try {
-        element.value = value;
-        element.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
-      } catch (error) {
-        console.error(`Attempt ${i + 1} failed for selector ${selector}:`, error);
-        if (i === maxRetries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-      }
-    }
-  }
-  return false;
 }
 
 // Function to handle form filling
@@ -118,19 +100,11 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   const pageType = detectWorkdayPage();
   console.log("Current page type:", pageType);
 
-  // Check authentication first
-  const { authToken } = await chrome.storage.local.get(['authToken']);
-  if (!authToken && request.action !== 'checkAuth') {
-    sendResponse({ success: false, error: 'Not authenticated' });
-    return true;
-  }
-
   if (request.action === "analyzeJob" && pageType === 'jobDetails') {
     try {
       const jobDetails = await extractJobDetails();
       console.log("Extracted job details:", jobDetails);
       
-      // Send job details to background script for processing
       chrome.runtime.sendMessage({
         type: "ANALYZE_JOB",
         data: jobDetails
@@ -151,7 +125,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     }
   }
   
-  // Return true to indicate we'll send a response asynchronously
   return true;
 });
 

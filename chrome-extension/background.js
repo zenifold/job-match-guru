@@ -1,8 +1,11 @@
+import { handleAuthRequest, handleAuthComplete } from './utils/auth.js';
+import { getStorageData, setStorageData } from './utils/storage.js';
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Resume Optimizer Extension installed');
   
   // Initialize storage with empty state
-  chrome.storage.local.set({
+  setStorageData({
     optimizedResume: null,
     currentJob: null,
     authToken: null,
@@ -17,10 +20,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "ANALYZE_JOB") {
     handleJobAnalysis(request.data);
   } else if (request.type === "AUTH_REQUEST") {
-    handleAuthRequest(sendResponse);
-    return true; // Keep channel open for async response
+    handleAuthRequest().then(sendResponse);
+    return true;
   } else if (request.type === "EXTENSION_AUTH_COMPLETE") {
-    handleAuthComplete(request.token, sendResponse);
+    handleAuthComplete(request.token).then(sendResponse);
     return true;
   } else if (request.type === "GET_PROFILE") {
     handleProfileRequest(sendResponse);
@@ -28,72 +31,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function handleAuthRequest(sendResponse) {
-  try {
-    // Use the production URL
-    const authURL = 'https://job-match-guru.lovable.app/extension-auth';
-    
-    // Open in a popup window with specific dimensions
-    const authWindow = await chrome.windows.create({
-      url: authURL,
-      type: 'popup',
-      width: 500,
-      height: 600
-    });
-
-    // Response will be sent by handleAuthComplete when auth is done
-    sendResponse({ success: true });
-  } catch (error) {
-    console.error("Auth error:", error);
-    sendResponse({ success: false, error: error.message });
-  }
-}
-
-async function handleAuthComplete(token, sendResponse) {
-  try {
-    await chrome.storage.local.set({ authToken: token });
-    
-    // After authentication, fetch and store the user's profile
-    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${token}`,
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch profile');
-    }
-
-    const data = await response.json();
-    const profile = data[0]?.content || null;
-    
-    await chrome.storage.local.set({ profileData: profile });
-    
-    chrome.runtime.sendMessage({ 
-      type: "AUTH_STATUS_CHANGED", 
-      isAuthenticated: true 
-    });
-    
-    sendResponse({ success: true });
-  } catch (error) {
-    console.error("Error saving auth token:", error);
-    sendResponse({ success: false, error: error.message });
-  }
-}
-
 async function handleJobAnalysis(jobData) {
   try {
-    // Store the current job data
-    await chrome.storage.local.set({ currentJob: jobData });
+    await setStorageData({ currentJob: jobData });
     
-    // Get auth token
-    const { authToken } = await chrome.storage.local.get(['authToken']);
+    const { authToken } = await getStorageData(['authToken']);
     if (!authToken) {
       throw new Error('Not authenticated');
     }
 
-    // Send job data to Supabase for analysis
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/jobs', {
       method: 'POST',
       headers: {
@@ -109,10 +55,7 @@ async function handleJobAnalysis(jobData) {
     }
 
     const result = await response.json();
-    
-    await chrome.storage.local.set({ 
-      optimizedResume: result
-    });
+    await setStorageData({ optimizedResume: result });
     
     chrome.runtime.sendMessage({
       type: "ANALYSIS_COMPLETE",
@@ -130,7 +73,7 @@ async function handleJobAnalysis(jobData) {
 
 async function handleProfileRequest(sendResponse) {
   try {
-    const { authToken } = await chrome.storage.local.get(['authToken']);
+    const { authToken } = await getStorageData(['authToken']);
     if (!authToken) {
       throw new Error('Not authenticated');
     }
@@ -149,7 +92,7 @@ async function handleProfileRequest(sendResponse) {
     const data = await response.json();
     const profile = data[0]?.content || null;
     
-    await chrome.storage.local.set({ profileData: profile });
+    await setStorageData({ profileData: profile });
     sendResponse({ success: true, data: profile });
   } catch (error) {
     console.error('Error fetching profile:', error);
