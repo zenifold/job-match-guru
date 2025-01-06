@@ -1,16 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "ResumeAI Assistant",
-  "version": "1.0.0",
-  "description": "Automatically fill job applications with your ResumeAI profile",
-  "update_url": "https://raw.githubusercontent.com/zenifold/job-match-guru/main/updates.xml",
+  "name": "Resume Optimizer",
+  "version": "1.0",
+  "description": "Optimize your resume for job applications",
   "permissions": [
-    "activeTab",
     "storage",
-    "tabs"
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
-    "https://*.workday.com/*",
     "https://qqbulzzezbcwstrhfbco.supabase.co/*"
   ],
   "action": {
@@ -21,19 +19,19 @@
       "128": "icons/icon128.png"
     }
   },
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["https://*.workday.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

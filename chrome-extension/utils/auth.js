@@ -3,17 +3,24 @@ import { setStorageData } from './storage.js';
 
 export const handleAuthRequest = async (email, password) => {
   try {
+    console.log('Attempting login with:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase auth error:', error);
+      throw error;
+    }
+
+    console.log('Login successful:', data);
 
     // Store the session token
     await setStorageData({ 
       authToken: data.session.access_token,
-      userId: data.user.id
+      userId: data.user.id,
+      session: data.session
     });
 
     return { success: true };
@@ -46,6 +53,7 @@ export const handleLogout = async () => {
 export const isAuthenticated = async () => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('Current session:', session);
     return !!session;
   } catch (error) {
     console.error('Auth check error:', error);
