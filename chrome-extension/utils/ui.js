@@ -1,14 +1,51 @@
-export const showMessage = (messageEl, message, type = 'info') => {
+// Loading state management
+export const showLoadingState = () => {
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(button => {
+    button.disabled = true;
+    if (button.querySelector('.loading-spinner')) return;
+    
+    const spinner = document.createElement('span');
+    spinner.className = 'loading-spinner';
+    spinner.innerHTML = '↻';
+    button.appendChild(spinner);
+  });
+};
+
+export const hideLoadingState = () => {
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(button => {
+    button.disabled = false;
+    const spinner = button.querySelector('.loading-spinner');
+    if (spinner) spinner.remove();
+  });
+};
+
+// Message display functions
+export const showMessage = (message, type = 'info') => {
+  const messageEl = document.getElementById('message');
+  if (!messageEl) return;
+
   messageEl.textContent = message;
-  messageEl.className = type;
+  messageEl.className = `message ${type}`;
   messageEl.style.display = 'block';
-  
+
   setTimeout(() => {
     messageEl.style.display = 'none';
   }, 3000);
 };
 
+export const showError = (message) => {
+  showMessage(message, 'error');
+};
+
+export const showSuccess = (message) => {
+  showMessage(message, 'success');
+};
+
 export const updateHistoryDisplay = (historyContainer, history) => {
+  if (!historyContainer) return;
+  
   historyContainer.innerHTML = '';
   
   if (history.length === 0) {
