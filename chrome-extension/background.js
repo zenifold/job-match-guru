@@ -68,7 +68,10 @@ async function handleJobAnalysis(jobData) {
 
 async function handleAuthRequest(sendResponse) {
   try {
-    const authURL = 'http://localhost:5173/extension-auth';
+    // Use the production URL instead of localhost
+    const authURL = 'https://job-match-guru.lovable.app/extension-auth';
+    
+    // Open in a popup window with specific dimensions
     const authWindow = await chrome.windows.create({
       url: authURL,
       type: 'popup',
@@ -126,7 +129,7 @@ async function handleProfileRequest(sendResponse) {
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${authToken}`,
+        'Authorization': `Bearer ${token}`,
       }
     });
 
