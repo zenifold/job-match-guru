@@ -29,8 +29,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "ANALYZE_JOB") {
     handleJobAnalysis(request.data);
   } else if (request.type === "AUTH_REQUEST") {
-    handleAuthRequest().then(sendResponse);
-    return true;
+    // Open auth window
+    chrome.windows.create({
+      url: 'https://job-match-guru.lovable.app/extension-auth',
+      type: 'popup',
+      width: 500,
+      height: 600
+    });
+    sendResponse({ success: true });
   } else if (request.type === "EXTENSION_AUTH_COMPLETE") {
     handleAuthComplete(request.token).then(sendResponse);
     return true;

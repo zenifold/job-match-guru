@@ -42,6 +42,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         updateUIForLoggedOutState();
       }
+    } else if (message.type === 'AUTH_COMPLETE') {
+      if (message.success) {
+        updateUIForLoggedInState();
+        showMessage(document.getElementById('message'), 'Login successful!', 'success');
+      } else {
+        showMessage(document.getElementById('message'), message.error || 'Login failed', 'error');
+      }
     }
   });
 });
