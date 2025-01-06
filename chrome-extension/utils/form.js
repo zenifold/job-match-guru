@@ -24,6 +24,16 @@ export const fillField = async (selector, value, maxRetries = 3) => {
         } else {
           console.log(`No matching option found for ${selector} with value ${value}`);
         }
+      } else if (element.getAttribute('type') === 'checkbox') {
+        element.checked = value === true || value === 'true';
+      } else if (element.getAttribute('type') === 'radio') {
+        const radioGroup = document.querySelectorAll(`[name="${element.name}"]`);
+        const matchingRadio = Array.from(radioGroup).find(radio => 
+          radio.value.toLowerCase() === String(value).toLowerCase()
+        );
+        if (matchingRadio) {
+          matchingRadio.checked = true;
+        }
       } else {
         element.value = value;
       }
@@ -31,6 +41,13 @@ export const fillField = async (selector, value, maxRetries = 3) => {
       // Trigger both change and input events
       element.dispatchEvent(new Event('change', { bubbles: true }));
       element.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Add visual feedback
+      element.classList.add('resume-optimizer-highlight');
+      setTimeout(() => {
+        element.classList.remove('resume-optimizer-highlight');
+        element.classList.add('resume-optimizer-success');
+      }, 500);
       
       console.log(`Successfully filled field: ${selector} with value: ${value}`);
       return true;

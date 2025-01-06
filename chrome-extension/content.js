@@ -65,14 +65,45 @@ async function fillApplicationForm() {
     await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
     await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
 
-    // Experience
+    // Experience - with enhanced error handling and retry logic
     for (const [index, exp] of mappedData.experience.entries()) {
-      await fillField(`[data-automation-id="workExperience.${index}.title"]`, exp.jobTitle);
+      // Try different possible selectors for work experience fields
+      const selectors = [
+        `[data-automation-id="workExperience.${index}.title"]`,
+        `[data-automation-id="experience.${index}.jobTitle"]`,
+        `[data-automation-id="workHistory.${index}.position"]`
+      ];
+
+      // Try each selector until one works
+      for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (element) {
+          await fillField(selector, exp.jobTitle);
+          break;
+        }
+      }
+
+      // Company name
       await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
       await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
+      
+      // Dates with proper formatting
       await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
-      await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
-      await fillField(`[data-automation-id="workExperience.${index}.description"]`, exp.description);
+      if (!exp.currentlyWorkHere) {
+        await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
+      }
+      
+      // Description with proper formatting
+      const description = Array.isArray(exp.description) 
+        ? exp.description.join('\n• ')
+        : exp.description;
+      await fillField(`[data-automation-id="workExperience.${index}.description"]`, description);
+
+      // Handle "Current Position" checkbox if it exists
+      const currentPositionSelector = `[data-automation-id="workExperience.${index}.currentPosition"]`;
+      if (document.querySelector(currentPositionSelector)) {
+        await fillField(currentPositionSelector, exp.currentlyWorkHere);
+      }
     }
 
     // Education
