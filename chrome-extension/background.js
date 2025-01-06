@@ -1,8 +1,8 @@
 import { handleAuthRequest, handleAuthComplete } from './utils/auth.js';
 import { getStorageData, setStorageData } from './utils/storage.js';
 
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('Resume Optimizer Extension installed');
+chrome.runtime.onInstalled.addListener((details) => {
+  console.log('Resume Optimizer Extension installed/updated:', details.reason);
   
   // Initialize storage with empty state
   setStorageData({
@@ -11,6 +11,13 @@ chrome.runtime.onInstalled.addListener(() => {
     authToken: null,
     profileData: null
   });
+});
+
+// Add update check listener
+chrome.runtime.onUpdateAvailable.addListener((details) => {
+  console.log('Update available:', details.version);
+  // Automatically update the extension
+  chrome.runtime.reload();
 });
 
 // Listen for messages from content script and popup
