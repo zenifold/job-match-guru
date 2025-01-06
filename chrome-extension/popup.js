@@ -27,14 +27,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Event Listeners
-  loginButton.addEventListener('click', handleLogin);
-  fillButton.addEventListener('click', () => handleFormFill(currentProfile, historyComponent.addEntry.bind(historyComponent)));
-  logoutButton.addEventListener('click', handleLogout);
-  settingsButton.addEventListener('click', () => chrome.runtime.openOptionsPage());
-  profileSelect.addEventListener('change', handleProfileChange);
+  loginButton?.addEventListener('click', handleLogin);
+  fillButton?.addEventListener('click', () => handleFormFill(currentProfile, historyComponent.addEntry.bind(historyComponent)));
+  logoutButton?.addEventListener('click', handleLogout);
+  settingsButton?.addEventListener('click', () => chrome.runtime.openOptionsPage());
+  profileSelect?.addEventListener('change', handleProfileChange);
 
   // Listen for auth status changes
   chrome.runtime.onMessage.addListener((message) => {
+    console.log('Received message in popup:', message);
     if (message.type === 'AUTH_STATUS_CHANGED') {
       if (message.isAuthenticated) {
         updateUIForLoggedInState();
@@ -51,12 +52,16 @@ async function updateUIForLoggedInState() {
   document.getElementById('loginStatus').textContent = 'Logged in';
   
   const fillButton = document.getElementById('fillButton');
-  fillButton.disabled = !currentProfile;
+  if (fillButton) {
+    fillButton.disabled = !currentProfile;
+  }
   
   try {
     await loadProfiles();
     const { history } = await getStorageData(['history']);
-    historyComponent.loadHistory(history);
+    if (historyComponent) {
+      historyComponent.loadHistory(history);
+    }
   } catch (error) {
     console.error('Error updating UI for logged in state:', error);
     showMessage(document.getElementById('message'), 'Failed to load profiles or history', 'error');

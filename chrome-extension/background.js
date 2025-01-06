@@ -13,8 +13,10 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Listen for messages from content script
+// Listen for messages from content script and popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Received message:', request.type);
+  
   if (request.type === "LOG") {
     console.log("Content script log:", request.message);
   } else if (request.type === "ANALYZE_JOB") {
