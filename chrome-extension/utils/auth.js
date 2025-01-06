@@ -1,4 +1,4 @@
-import { signInWithPassword, signOut, supabase } from './supabase.js';
+import { signInWithPassword, signOut, getSupabase } from './supabase.js';
 import { setStorageData } from './storage.js';
 
 export const handleAuthRequest = async (email, password) => {
@@ -48,6 +48,7 @@ export const handleLogout = async () => {
 
 export const isAuthenticated = async () => {
   try {
+    const supabase = await getSupabase();
     const { data: { session } } = await supabase.auth.getSession();
     console.log('Current session:', session);
     return !!session;
