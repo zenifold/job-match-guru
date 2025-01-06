@@ -22,7 +22,7 @@ export const hideLoadingState = () => {
 };
 
 // Message display functions
-export const showMessage = (message, type = 'info') => {
+const showMessage = (message, type = 'info') => {
   const messageEl = document.getElementById('message');
   if (!messageEl) return;
 
