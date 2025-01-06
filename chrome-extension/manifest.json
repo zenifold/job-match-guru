@@ -3,6 +3,7 @@
   "name": "ResumeAI Assistant",
   "version": "1.0.0",
   "description": "Automatically fill job applications with your ResumeAI profile",
+  "update_url": "https://raw.githubusercontent.com/your-username/your-repo/main/updates.xml",
   "permissions": [
     "activeTab",
     "storage",
