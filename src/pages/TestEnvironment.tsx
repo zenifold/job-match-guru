@@ -8,11 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useResume } from "@/contexts/ResumeContext";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export default function TestEnvironment() {
   const [showPopup, setShowPopup] = useState(false);
   const { resumeData } = useResume();
   const { toast } = useToast();
+  const session = useSession();
 
   // Function to show the current resume data being used
   const showResumeData = () => {
@@ -23,19 +25,54 @@ export default function TestEnvironment() {
     });
   };
 
+  // Simulate extension authentication
+  const handleExtensionAuth = async () => {
+    if (!session) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to test the extension functionality",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Extension Authenticated",
+      description: "Using current session for extension testing",
+    });
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Test Environment</h1>
+        <h1 className="text-2xl font-bold mb-6">Extension Test Environment</h1>
         
-        <div className="mb-4 space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={showResumeData}
-            className="mb-4"
-          >
-            Show Current Resume Data
-          </Button>
+        <div className="mb-6 space-y-4">
+          <div className="p-4 bg-muted rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Test Environment Instructions</h2>
+            <ol className="list-decimal list-inside space-y-2">
+              <li>Log in to your account if not already logged in</li>
+              <li>Click "Authenticate Extension" to simulate extension auth</li>
+              <li>Use the "Show Extension" button to toggle the extension popup</li>
+              <li>Test form auto-filling functionality</li>
+              <li>Check console logs for detailed debugging information</li>
+            </ol>
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={showResumeData}
+            >
+              Show Current Resume Data
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleExtensionAuth}
+            >
+              Authenticate Extension
+            </Button>
+          </div>
         </div>
         
         <Tabs defaultValue="workday" className="w-full">
@@ -67,7 +104,7 @@ export default function TestEnvironment() {
               <MockJobPage platform="indeed" resumeData={resumeData} />
             </TabsContent>
 
-            <Card className="fixed top-4 right-4 p-4 shadow-lg">
+            <Card className="fixed top-4 right-4 p-4 shadow-lg z-50">
               <h3 className="font-medium mb-2">Extension Controls</h3>
               <Button 
                 onClick={() => setShowPopup(!showPopup)}
