@@ -29,7 +29,7 @@ export const handleAuthRequest = async (email, password) => {
   }
 };
 
-export const handleLogout = async () => {
+export const handleSignOut = async () => {
   try {
     const { success, error } = await signOut();
     if (!success) throw error;
