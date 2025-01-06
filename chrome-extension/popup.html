@@ -1,219 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ResumeAI Assistant</title>
+  <title>Resume Assistant</title>
   <style>
-    :root {
-      --background: 222.2 84% 4.9%;
-      --foreground: 210 40% 98%;
-      --card: 222.2 84% 4.9%;
-      --card-foreground: 210 40% 98%;
-      --popover: 222.2 84% 4.9%;
-      --popover-foreground: 210 40% 98%;
-      --primary: 210 40% 98%;
-      --primary-foreground: 222.2 47.4% 11.2%;
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      --ring: 212.7 26.8% 83.9%;
-      --radius: 0.5rem;
-    }
-
     body {
-      width: 320px;
+      width: 400px;
       padding: 16px;
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: hsl(var(--background));
-      color: hsl(var(--foreground));
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
-
+    
     .container {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 12px;
-      border-bottom: 1px solid hsl(var(--border));
-    }
-
-    .logo {
-      font-size: 18px;
-      font-weight: 600;
-      color: hsl(var(--foreground));
-      letter-spacing: -0.025em;
-    }
-
-    .status {
-      font-size: 14px;
-      color: hsl(var(--muted-foreground));
-    }
-
-    .button {
-      background-color: hsl(var(--primary));
-      color: hsl(var(--primary-foreground));
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: opacity 0.2s, transform 0.2s;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      height: 40px;
-    }
-
-    .button:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .button.secondary {
-      background-color: hsl(var(--secondary));
-      color: hsl(var(--secondary-foreground));
-    }
-
+    
     .form-group {
       margin-bottom: 12px;
     }
-
+    
+    .form-label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
     .form-input {
       width: 100%;
-      padding: 8px 12px;
-      border: 1px solid hsl(var(--border));
-      border-radius: var(--radius);
-      background: hsl(var(--input));
-      color: hsl(var(--foreground));
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
       font-size: 14px;
     }
-
-    .form-input:focus {
-      outline: none;
-      border-color: hsl(var(--ring));
-      box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+    
+    .button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
     }
-
+    
+    .button:hover {
+      background-color: #1d4ed8;
+    }
+    
+    .button:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+    
     .error {
-      color: #ef4444;
+      color: #dc2626;
       font-size: 14px;
-      padding: 8px;
-      background-color: rgb(239 68 68 / 0.1);
-      border-radius: var(--radius);
-      margin-top: 8px;
+      margin-top: 4px;
     }
-
-    .history {
-      margin-top: 16px;
-    }
-
-    .history-item {
-      padding: 8px;
-      border-radius: var(--radius);
-      background-color: hsl(var(--secondary));
-      margin-bottom: 8px;
+    
+    .success {
+      color: #16a34a;
       font-size: 14px;
-    }
-
-    .history-item small {
-      color: hsl(var(--muted-foreground));
-      display: block;
       margin-top: 4px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
+    .section {
+      display: none;
     }
 
-    @keyframes iconPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    .icon {
-      animation: iconPulse 2s infinite;
+    .section.active {
+      display: block;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <div class="logo">ResumeAI</div>
-      <div id="loginStatus" class="status">Not logged in</div>
-    </div>
-
-    <div id="loginContainer">
-      <form id="loginForm">
+    <div id="setupSection" class="section active">
+      <h2>Profile Setup</h2>
+      <form id="profileForm">
         <div class="form-group">
-          <input type="email" id="email" class="form-input" placeholder="Email" required />
+          <label class="form-label" for="firstName">First Name</label>
+          <input type="text" id="firstName" class="form-input" required>
         </div>
         <div class="form-group">
-          <input type="password" id="password" class="form-input" placeholder="Password" required />
+          <label class="form-label" for="lastName">Last Name</label>
+          <input type="text" id="lastName" class="form-input" required>
         </div>
-        <button type="submit" class="button">
-          <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-            <path fill="currentColor" d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 8a6 6 0 1 1 12 0A6 6 0 0 1 6 8zm2 10a3 3 0 0 0-3 3 1 1 0 1 1-2 0 5 5 0 0 1 5-5h8a5 5 0 0 1 5 5 1 1 0 1 1-2 0 3 3 0 0 0-3-3H8z"/>
-          </svg>
-          Login
-        </button>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone</label>
+          <input type="tel" id="phone" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="location">Location</label>
+          <input type="text" id="location" class="form-input">
+        </div>
+        <button type="submit" class="button">Save Profile</button>
       </form>
-      <div id="loginError" class="error" style="display: none;"></div>
     </div>
 
-    <div id="mainContainer" style="display: none;">
-      <select id="profileSelect" class="profile-select">
-        <option value="">Select a profile</option>
-      </select>
-
-      <button id="fillButton" class="button" disabled>
-        <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-        </svg>
-        Auto-fill Form
-      </button>
-
-      <button id="settingsButton" class="button secondary">
-        <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-        </svg>
-        Settings
-      </button>
-
-      <button id="logoutButton" class="button secondary">
-        <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-        </svg>
-        Logout
-      </button>
-
-      <div id="history" class="history">
-        <!-- History items will be dynamically added here -->
-      </div>
-
-      <div id="message"></div>
+    <div id="mainSection" class="section">
+      <h2>Resume Assistant</h2>
+      <button id="fillButton" class="button">Auto-fill Form</button>
+      <button id="editProfile" class="button">Edit Profile</button>
     </div>
+
+    <div id="message"></div>
   </div>
-
   <script type="module" src="popup.js"></script>
 </body>
 </html>

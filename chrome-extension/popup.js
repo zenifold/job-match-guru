@@ -1,63 +1,81 @@
-import { handleAuthRequest, handleSignOut, isAuthenticated } from './utils/auth.js';
+import { saveProfileData, getProfileData } from './utils/profile.js';
 import { showLoadingState, hideLoadingState, showError, showSuccess } from './utils/ui.js';
 
 // Initialize the popup UI
 document.addEventListener('DOMContentLoaded', async () => {
-  const loginForm = document.getElementById('loginForm');
-  const logoutButton = document.getElementById('logoutButton');
-  const loginSection = document.getElementById('loginSection');
+  const profileForm = document.getElementById('profileForm');
+  const setupSection = document.getElementById('setupSection');
   const mainSection = document.getElementById('mainSection');
+  const editProfileButton = document.getElementById('editProfile');
+  const fillButton = document.getElementById('fillButton');
   
-  // Check authentication status
-  const authenticated = await isAuthenticated();
-  if (authenticated) {
-    loginSection.style.display = 'none';
-    mainSection.style.display = 'block';
-  } else {
-    loginSection.style.display = 'block';
-    mainSection.style.display = 'none';
+  // Check if profile exists
+  const profileData = await getProfileData();
+  if (profileData) {
+    setupSection.classList.remove('active');
+    mainSection.classList.add('active');
+    
+    // Pre-fill form if editing
+    const populateForm = () => {
+      document.getElementById('firstName').value = profileData.personalInfo.firstName || '';
+      document.getElementById('lastName').value = profileData.personalInfo.lastName || '';
+      document.getElementById('email').value = profileData.personalInfo.email || '';
+      document.getElementById('phone').value = profileData.personalInfo.phone || '';
+      document.getElementById('location').value = profileData.personalInfo.location || '';
+    };
+    
+    editProfileButton.addEventListener('click', () => {
+      setupSection.classList.add('active');
+      mainSection.classList.remove('active');
+      populateForm();
+    });
   }
 
-  // Handle login form submission
-  loginForm.addEventListener('submit', async (e) => {
+  // Handle profile form submission
+  profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     showLoadingState();
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
     try {
-      const result = await handleAuthRequest(email, password);
-      if (result.success) {
-        showSuccess('Successfully logged in!');
-        loginSection.style.display = 'none';
-        mainSection.style.display = 'block';
-      } else {
-        showError(result.error || 'Failed to login');
-      }
+      const formData = {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        location: document.getElementById('location').value
+      };
+
+      await saveProfileData(formData);
+      showSuccess('Profile saved successfully!');
+      setupSection.classList.remove('active');
+      mainSection.classList.add('active');
     } catch (error) {
-      showError(error.message);
+      showError(error.message || 'Failed to save profile');
     } finally {
       hideLoadingState();
     }
   });
 
-  // Handle logout
-  logoutButton.addEventListener('click', async () => {
-    showLoadingState();
+  // Handle form auto-fill
+  fillButton.addEventListener('click', async () => {
     try {
-      const result = await handleSignOut();
-      if (result.success) {
-        showSuccess('Successfully logged out!');
-        loginSection.style.display = 'block';
-        mainSection.style.display = 'none';
-      } else {
-        showError(result.error || 'Failed to logout');
+      const profileData = await getProfileData();
+      if (!profileData) {
+        showError('Please set up your profile first');
+        return;
       }
+
+      // Send message to content script to fill form
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'FILL_FORM',
+          data: profileData
+        });
+      });
+      
+      showSuccess('Form filled successfully!');
     } catch (error) {
-      showError(error.message);
-    } finally {
-      hideLoadingState();
+      showError(error.message || 'Failed to fill form');
     }
   });
 });

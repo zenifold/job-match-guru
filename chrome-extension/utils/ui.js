@@ -1,14 +1,8 @@
-// Loading state management
 export const showLoadingState = () => {
   const buttons = document.querySelectorAll('button');
   buttons.forEach(button => {
     button.disabled = true;
-    if (button.querySelector('.loading-spinner')) return;
-    
-    const spinner = document.createElement('span');
-    spinner.className = 'loading-spinner';
-    spinner.innerHTML = '↻';
-    button.appendChild(spinner);
+    button.textContent = 'Loading...';
   });
 };
 
@@ -16,60 +10,28 @@ export const hideLoadingState = () => {
   const buttons = document.querySelectorAll('button');
   buttons.forEach(button => {
     button.disabled = false;
-    const spinner = button.querySelector('.loading-spinner');
-    if (spinner) spinner.remove();
+    button.textContent = button.getAttribute('data-original-text') || button.textContent.replace('Loading...', '');
   });
-};
-
-// Message display functions
-const showMessage = (message, type = 'info') => {
-  const messageEl = document.getElementById('message');
-  if (!messageEl) return;
-
-  messageEl.textContent = message;
-  messageEl.className = `message ${type}`;
-  messageEl.style.display = 'block';
-
-  setTimeout(() => {
-    messageEl.style.display = 'none';
-  }, 3000);
 };
 
 export const showError = (message) => {
-  showMessage(message, 'error');
+  const messageEl = document.getElementById('message');
+  if (!messageEl) return;
+  
+  messageEl.className = 'error';
+  messageEl.textContent = message;
+  setTimeout(() => {
+    messageEl.textContent = '';
+  }, 5000);
 };
 
 export const showSuccess = (message) => {
-  showMessage(message, 'success');
-};
-
-export const updateHistoryDisplay = (historyContainer, history) => {
-  if (!historyContainer) return;
+  const messageEl = document.getElementById('message');
+  if (!messageEl) return;
   
-  historyContainer.innerHTML = '';
-  
-  if (history.length === 0) {
-    const emptyMessage = document.createElement('div');
-    emptyMessage.className = 'history-item';
-    emptyMessage.textContent = 'No history yet';
-    historyContainer.appendChild(emptyMessage);
-    return;
-  }
-  
-  history.forEach(entry => {
-    const item = document.createElement('div');
-    item.className = 'history-item';
-    
-    const date = new Date(entry.timestamp).toLocaleString();
-    const status = entry.status === 'Success' 
-      ? '<span style="color: #22c55e;">✓</span>' 
-      : '<span style="color: #ef4444;">✗</span>';
-    
-    item.innerHTML = `
-      ${status} ${entry.action}<br>
-      <small>${date}</small>
-    `;
-    
-    historyContainer.appendChild(item);
-  });
+  messageEl.className = 'success';
+  messageEl.textContent = message;
+  setTimeout(() => {
+    messageEl.textContent = '';
+  }, 5000);
 };
