@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleAuthRequest(sendResponse) {
   try {
-    // Use the production URL instead of localhost
+    // Use the production URL
     const authURL = 'https://job-match-guru.lovable.app/extension-auth';
     
     // Open in a popup window with specific dimensions
@@ -42,6 +42,7 @@ async function handleAuthRequest(sendResponse) {
     });
 
     // Response will be sent by handleAuthComplete when auth is done
+    sendResponse({ success: true });
   } catch (error) {
     console.error("Auth error:", error);
     sendResponse({ success: false, error: error.message });
@@ -82,8 +83,6 @@ async function handleAuthComplete(token, sendResponse) {
 }
 
 async function handleJobAnalysis(jobData) {
-  console.log("Processing job data:", jobData);
-  
   try {
     // Store the current job data
     await chrome.storage.local.set({ currentJob: jobData });
@@ -94,16 +93,26 @@ async function handleJobAnalysis(jobData) {
       throw new Error('Not authenticated');
     }
 
-    // TODO: Implement job analysis with Supabase
-    const mockOptimizedResume = {
-      personalInfo: {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com"
-      }
-    };
+    // Send job data to Supabase for analysis
+    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/jobs', {
+      method: 'POST',
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(jobData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to analyze job');
+    }
+
+    const result = await response.json();
     
-    await chrome.storage.local.set({ optimizedResume: mockOptimizedResume });
+    await chrome.storage.local.set({ 
+      optimizedResume: result
+    });
     
     chrome.runtime.sendMessage({
       type: "ANALYSIS_COMPLETE",

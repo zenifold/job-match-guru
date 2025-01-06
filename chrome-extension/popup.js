@@ -20,7 +20,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateUIForLoggedOutState();
   }
 
-  // Event Listeners
+  // Event Listeners with proper cleanup
+  const cleanup = () => {
+    loginButton.removeEventListener('click', handleLogin);
+    fillButton.removeEventListener('click', handleFormFill);
+    logoutButton.removeEventListener('click', handleLogout);
+    settingsButton.removeEventListener('click', handleSettings);
+    profileSelect.removeEventListener('change', handleProfileChange);
+  };
+
   loginButton.addEventListener('click', handleLogin);
   fillButton.addEventListener('click', handleFormFill);
   logoutButton.addEventListener('click', handleLogout);
@@ -37,6 +45,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   });
+
+  // Cleanup on window unload
+  window.addEventListener('unload', cleanup);
 });
 
 async function updateUIForLoggedInState() {
@@ -48,11 +59,15 @@ async function updateUIForLoggedInState() {
   const fillButton = document.getElementById('fillButton');
   fillButton.disabled = !currentProfile;
   
-  // Load profiles
-  await loadProfiles();
-  
-  // Load history
-  loadHistory();
+  try {
+    // Load profiles
+    await loadProfiles();
+    // Load history
+    loadHistory();
+  } catch (error) {
+    console.error('Error updating UI for logged in state:', error);
+    showMessage('Failed to load profiles or history', 'error');
+  }
 }
 
 function updateUIForLoggedOutState() {
@@ -68,10 +83,10 @@ async function handleLogin() {
     // Request auth from background script
     const response = await chrome.runtime.sendMessage({ type: 'AUTH_REQUEST' });
     
-    if (response.success) {
+    if (response?.success) {
       showMessage('Login successful!', 'success');
     } else {
-      showMessage(response.error || 'Login failed. Please try again.', 'error');
+      showMessage(response?.error || 'Login failed. Please try again.', 'error');
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -96,6 +111,11 @@ async function handleLogout() {
 }
 
 async function loadProfiles() {
+  if (!token) {
+    console.log('No auth token found');
+    return;
+  }
+
   try {
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*', {
       headers: {
@@ -151,10 +171,11 @@ async function handleProfileChange(event) {
     currentProfile = profile;
     
     // Store selected profile
-    await chrome.storage.local.set({ profile });
+    await chrome.storage.local.set({ profileData: profile });
     
     // Enable fill button
     document.getElementById('fillButton').disabled = false;
+    showMessage('Profile loaded successfully', 'success');
   } catch (error) {
     console.error('Error loading profile:', error);
     showMessage('Failed to load profile.', 'error');
@@ -170,14 +191,16 @@ async function handleFormFill() {
   try {
     showMessage('Filling form...', 'info');
     
-    // Send message to content script to fill form
+    // Get current active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // Send message to content script to fill form
     const response = await chrome.tabs.sendMessage(tab.id, {
-      action: 'fillForm',
+      action: 'autoFill',
       profile: currentProfile
     });
     
-    if (response.success) {
+    if (response?.success) {
       showMessage('Form filled successfully!', 'success');
       addToHistory({
         timestamp: new Date().toISOString(),
@@ -186,24 +209,23 @@ async function handleFormFill() {
         url: tab.url
       });
     } else {
-      showMessage('Failed to fill form: ' + response.error, 'error');
-      addToHistory({
-        timestamp: new Date().toISOString(),
-        action: 'Form Fill',
-        status: 'Failed',
-        url: tab.url,
-        error: response.error
-      });
+      throw new Error(response?.error || 'Failed to fill form');
     }
   } catch (error) {
     console.error('Form fill error:', error);
-    showMessage('An error occurred while filling the form.', 'error');
+    showMessage('Failed to fill form: ' + error.message, 'error');
+    addToHistory({
+      timestamp: new Date().toISOString(),
+      action: 'Form Fill',
+      status: 'Failed',
+      url: tab.url,
+      error: error.message
+    });
   }
 }
 
 function handleSettings() {
-  // Open settings page in new tab
-  chrome.tabs.create({ url: 'chrome-extension://' + chrome.runtime.id + '/settings.html' });
+  chrome.runtime.openOptionsPage();
 }
 
 function showMessage(message, type = 'info') {
@@ -259,8 +281,8 @@ function updateHistoryDisplay(history) {
     
     const date = new Date(entry.timestamp).toLocaleString();
     const status = entry.status === 'Success' 
-      ? '<span style="color: #44ff44;">✓</span>' 
-      : '<span style="color: #ff4444;">✗</span>';
+      ? '<span style="color: #22c55e;">✓</span>' 
+      : '<span style="color: #ef4444;">✗</span>';
     
     item.innerHTML = `
       ${status} ${entry.action}<br>

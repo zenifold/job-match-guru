@@ -25,20 +25,28 @@ async function extractJobDetails() {
   };
 }
 
-// Function to fill form fields
-async function fillField(selector, value) {
-  const element = document.querySelector(selector);
-  if (element && value) {
-    element.value = value;
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
+// Function to fill form fields with retry mechanism
+async function fillField(selector, value, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const element = document.querySelector(selector);
+    if (element && value) {
+      try {
+        element.value = value;
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      } catch (error) {
+        console.error(`Attempt ${i + 1} failed for selector ${selector}:`, error);
+        if (i === maxRetries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      }
+    }
   }
   return false;
 }
 
 // Function to handle form filling
-async function fillApplicationForm(resumeData) {
-  console.log("Filling application form with data:", resumeData);
+async function fillApplicationForm() {
+  console.log("Starting form fill process");
   
   // Get profile data from storage
   const { profileData } = await chrome.storage.local.get(['profileData']);
@@ -52,46 +60,56 @@ async function fillApplicationForm(resumeData) {
     throw new Error('Failed to map profile data');
   }
 
-  // Personal Information
-  await fillField('[data-automation-id="firstName"]', mappedData.personalInfo.firstName);
-  await fillField('[data-automation-id="lastName"]', mappedData.personalInfo.lastName);
-  await fillField('[data-automation-id="email"]', mappedData.personalInfo.email);
-  await fillField('[data-automation-id="phone"]', mappedData.personalInfo.phone);
-  await fillField('[data-automation-id="address"]', mappedData.personalInfo.address);
-  await fillField('[data-automation-id="city"]', mappedData.personalInfo.city);
-  await fillField('[data-automation-id="state"]', mappedData.personalInfo.state);
-  await fillField('[data-automation-id="postalCode"]', mappedData.personalInfo.zipCode);
-  await fillField('[data-automation-id="country"]', mappedData.personalInfo.country);
+  console.log("Mapped data:", mappedData);
 
-  // Social Links
-  await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
-  await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
+  try {
+    // Personal Information
+    await fillField('[data-automation-id="firstName"]', mappedData.personalInfo.firstName);
+    await fillField('[data-automation-id="lastName"]', mappedData.personalInfo.lastName);
+    await fillField('[data-automation-id="email"]', mappedData.personalInfo.email);
+    await fillField('[data-automation-id="phone"]', mappedData.personalInfo.phone);
+    await fillField('[data-automation-id="address"]', mappedData.personalInfo.address);
+    await fillField('[data-automation-id="city"]', mappedData.personalInfo.city);
+    await fillField('[data-automation-id="state"]', mappedData.personalInfo.state);
+    await fillField('[data-automation-id="postalCode"]', mappedData.personalInfo.zipCode);
+    await fillField('[data-automation-id="country"]', mappedData.personalInfo.country);
 
-  // Experience
-  for (const [index, exp] of mappedData.experience.entries()) {
-    await fillField(`[data-automation-id="workExperience.${index}.title"]`, exp.jobTitle);
-    await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
-    await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
-    await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
-    await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
-    await fillField(`[data-automation-id="workExperience.${index}.description"]`, exp.description);
-  }
+    // Social Links
+    await fillField('[data-automation-id="linkedin"]', mappedData.personalInfo.linkedin);
+    await fillField('[data-automation-id="github"]', mappedData.personalInfo.github);
 
-  // Education
-  for (const [index, edu] of mappedData.education.entries()) {
-    await fillField(`[data-automation-id="education.${index}.school"]`, edu.school);
-    await fillField(`[data-automation-id="education.${index}.degree"]`, edu.degree);
-    await fillField(`[data-automation-id="education.${index}.field"]`, edu.field);
-    await fillField(`[data-automation-id="education.${index}.startDate"]`, edu.startDate);
-    await fillField(`[data-automation-id="education.${index}.endDate"]`, edu.endDate);
-    await fillField(`[data-automation-id="education.${index}.gpa"]`, edu.gpa);
-  }
+    // Experience
+    for (const [index, exp] of mappedData.experience.entries()) {
+      await fillField(`[data-automation-id="workExperience.${index}.title"]`, exp.jobTitle);
+      await fillField(`[data-automation-id="workExperience.${index}.company"]`, exp.company);
+      await fillField(`[data-automation-id="workExperience.${index}.location"]`, exp.location);
+      await fillField(`[data-automation-id="workExperience.${index}.startDate"]`, exp.startDate);
+      await fillField(`[data-automation-id="workExperience.${index}.endDate"]`, exp.endDate);
+      await fillField(`[data-automation-id="workExperience.${index}.description"]`, exp.description);
+    }
 
-  // Skills
-  const skillsField = document.querySelector('[data-automation-id="skills"]');
-  if (skillsField && mappedData.skills.length > 0) {
-    skillsField.value = mappedData.skills.join(', ');
-    skillsField.dispatchEvent(new Event('change', { bubbles: true }));
+    // Education
+    for (const [index, edu] of mappedData.education.entries()) {
+      await fillField(`[data-automation-id="education.${index}.school"]`, edu.school);
+      await fillField(`[data-automation-id="education.${index}.degree"]`, edu.degree);
+      await fillField(`[data-automation-id="education.${index}.field"]`, edu.field);
+      await fillField(`[data-automation-id="education.${index}.startDate"]`, edu.startDate);
+      await fillField(`[data-automation-id="education.${index}.endDate"]`, edu.endDate);
+      await fillField(`[data-automation-id="education.${index}.gpa"]`, edu.gpa);
+    }
+
+    // Skills
+    const skillsField = document.querySelector('[data-automation-id="skills"]');
+    if (skillsField && mappedData.skills.length > 0) {
+      skillsField.value = mappedData.skills.join(', ');
+      skillsField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    console.log("Form fill completed successfully");
+    return true;
+  } catch (error) {
+    console.error("Error filling form:", error);
+    throw error;
   }
 }
 
@@ -125,8 +143,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     }
   } else if (request.action === "autoFill" && pageType === 'application') {
     try {
-      await fillApplicationForm();
-      sendResponse({ success: true });
+      const success = await fillApplicationForm();
+      sendResponse({ success });
     } catch (error) {
       console.error("Error auto-filling form:", error);
       sendResponse({ success: false, error: error.message });
