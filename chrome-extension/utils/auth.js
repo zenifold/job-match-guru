@@ -1,16 +1,12 @@
-import { supabase } from './supabase.js';
+import { signInWithPassword, signOut, supabase } from './supabase.js';
 import { setStorageData } from './storage.js';
 
 export const handleAuthRequest = async (email, password) => {
   try {
     console.log('Attempting login with:', email);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { success, data, error } = await signInWithPassword(email, password);
 
-    if (error) {
-      console.error('Supabase auth error:', error);
+    if (!success) {
       throw error;
     }
 
@@ -35,8 +31,8 @@ export const handleAuthRequest = async (email, password) => {
 
 export const handleLogout = async () => {
   try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    const { success, error } = await signOut();
+    if (!success) throw error;
     
     // Clear stored data
     await chrome.storage.local.clear();
