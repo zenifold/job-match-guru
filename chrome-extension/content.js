@@ -1,5 +1,6 @@
 import { mapProfileToWorkdayFields } from './profileUtils.js';
 import { fillField, validateFieldValue } from './utils/form.js';
+import { getSupabase } from './utils/supabase.js';
 
 // Helper function to detect page type
 function detectWorkdayPage() {
@@ -141,6 +142,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       const jobDetails = await extractJobDetails();
       console.log("Extracted job details:", jobDetails);
       
+      const supabase = await getSupabase();
       chrome.runtime.sendMessage({
         type: "ANALYZE_JOB",
         data: jobDetails

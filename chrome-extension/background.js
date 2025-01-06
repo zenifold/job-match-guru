@@ -1,4 +1,5 @@
 import { getStorageData, setStorageData } from './utils/storage.js';
+import { getSupabase } from './utils/supabase.js';
 
 chrome.runtime.onInstalled.addListener((details) => {
   console.log('Resume Optimizer Extension installed/updated:', details.reason);
@@ -36,8 +37,9 @@ async function handleJobAnalysis(jobData) {
   try {
     await setStorageData({ currentJob: jobData });
     
-    const { authToken } = await getStorageData(['authToken']);
-    if (!authToken) {
+    const supabase = await getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       throw new Error('Not authenticated');
     }
 
@@ -45,7 +47,7 @@ async function handleJobAnalysis(jobData) {
       method: 'POST',
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${authToken}`,
+        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(jobData)
@@ -74,15 +76,16 @@ async function handleJobAnalysis(jobData) {
 
 async function handleProfileRequest(sendResponse) {
   try {
-    const { authToken } = await getStorageData(['authToken']);
-    if (!authToken) {
+    const supabase = await getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       throw new Error('Not authenticated');
     }
 
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${authToken}`,
+        'Authorization': `Bearer ${session.access_token}`,
       }
     });
 

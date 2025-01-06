@@ -1,174 +1,63 @@
-import { getStorageData, setStorageData } from './utils/storage.js';
-import { isAuthenticated, handleAuthRequest, handleLogout } from './utils/auth.js';
-import { showMessage } from './utils/ui.js';
-import { handleFormFill } from './utils/form.js';
-import { History } from './components/History.js';
+import { handleAuthRequest, handleSignOut, isAuthenticated } from './utils/auth.js';
+import { showLoadingState, hideLoadingState, showError, showSuccess } from './utils/ui.js';
 
-let currentProfile = null;
-let historyComponent = null;
-
-// Initialize the popup
+// Initialize the popup UI
 document.addEventListener('DOMContentLoaded', async () => {
   const loginForm = document.getElementById('loginForm');
-  const fillButton = document.getElementById('fillButton');
   const logoutButton = document.getElementById('logoutButton');
-  const settingsButton = document.getElementById('settingsButton');
-  const profileSelect = document.getElementById('profileSelect');
-  const historyContainer = document.getElementById('history');
+  const loginSection = document.getElementById('loginSection');
+  const mainSection = document.getElementById('mainSection');
   
-  historyComponent = new History(historyContainer);
-  
-  // Check if user is already logged in
-  const isLoggedIn = await isAuthenticated();
-  if (isLoggedIn) {
-    await updateUIForLoggedInState();
+  // Check authentication status
+  const authenticated = await isAuthenticated();
+  if (authenticated) {
+    loginSection.style.display = 'none';
+    mainSection.style.display = 'block';
   } else {
-    updateUIForLoggedOutState();
+    loginSection.style.display = 'block';
+    mainSection.style.display = 'none';
   }
 
-  // Event Listeners
-  loginForm?.addEventListener('submit', handleLoginSubmit);
-  fillButton?.addEventListener('click', () => handleFormFill(currentProfile, historyComponent.addEntry.bind(historyComponent)));
-  logoutButton?.addEventListener('click', handleLogoutClick);
-  settingsButton?.addEventListener('click', () => chrome.runtime.openOptionsPage());
-  profileSelect?.addEventListener('change', handleProfileChange);
-});
+  // Handle login form submission
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showLoadingState();
 
-async function handleLoginSubmit(event) {
-  event.preventDefault();
-  
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const loginError = document.getElementById('loginError');
-  
-  try {
-    showMessage(document.getElementById('message'), 'Logging in...', 'info');
-    const response = await handleAuthRequest(email, password);
-    
-    if (response.success) {
-      await updateUIForLoggedInState();
-      showMessage(document.getElementById('message'), 'Login successful!', 'success');
-      loginError.style.display = 'none';
-    } else {
-      loginError.textContent = response.error || 'Login failed. Please try again.';
-      loginError.style.display = 'block';
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    loginError.textContent = 'An error occurred during login.';
-    loginError.style.display = 'block';
-  }
-}
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-async function handleLogoutClick() {
-  try {
-    const response = await handleLogout();
-    if (response.success) {
-      updateUIForLoggedOutState();
-      showMessage(document.getElementById('message'), 'Logged out successfully', 'success');
-    } else {
-      showMessage(document.getElementById('message'), 'Logout failed', 'error');
-    }
-  } catch (error) {
-    console.error('Logout error:', error);
-    showMessage(document.getElementById('message'), 'An error occurred during logout', 'error');
-  }
-}
-
-async function updateUIForLoggedInState() {
-  document.getElementById('loginContainer').style.display = 'none';
-  document.getElementById('mainContainer').style.display = 'block';
-  document.getElementById('loginStatus').textContent = 'Logged in';
-  
-  const fillButton = document.getElementById('fillButton');
-  if (fillButton) {
-    fillButton.disabled = !currentProfile;
-  }
-  
-  try {
-    await loadProfiles();
-    const { history } = await getStorageData(['history']);
-    if (historyComponent) {
-      historyComponent.loadHistory(history);
-    }
-  } catch (error) {
-    console.error('Error updating UI for logged in state:', error);
-    showMessage(document.getElementById('message'), 'Failed to load profiles or history', 'error');
-  }
-}
-
-function updateUIForLoggedOutState() {
-  document.getElementById('loginContainer').style.display = 'block';
-  document.getElementById('mainContainer').style.display = 'none';
-  document.getElementById('loginStatus').textContent = 'Not logged in';
-}
-
-async function handleProfileChange(event) {
-  const profileId = event.target.value;
-  if (!profileId) {
-    currentProfile = null;
-    document.getElementById('fillButton').disabled = true;
-    return;
-  }
-
-  try {
-    const response = await fetch(`https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?id=eq.${profileId}&select=*`, {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${await getStorageData(['authToken'])}`,
+    try {
+      const result = await handleAuthRequest(email, password);
+      if (result.success) {
+        showSuccess('Successfully logged in!');
+        loginSection.style.display = 'none';
+        mainSection.style.display = 'block';
+      } else {
+        showError(result.error || 'Failed to login');
       }
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch profile');
-
-    const [profile] = await response.json();
-    currentProfile = profile;
-    
-    await setStorageData({ profileData: profile });
-    document.getElementById('fillButton').disabled = false;
-    showMessage(document.getElementById('message'), 'Profile loaded successfully', 'success');
-  } catch (error) {
-    console.error('Error loading profile:', error);
-    showMessage(document.getElementById('message'), 'Failed to load profile.', 'error');
-  }
-}
-
-async function loadProfiles() {
-  const { authToken } = await getStorageData(['authToken']);
-  if (!authToken) {
-    console.log('No auth token found');
-    return;
-  }
-
-  try {
-    const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*', {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${authToken}`,
-      }
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch profiles');
-
-    const profiles = await response.json();
-    updateProfileSelect(profiles);
-  } catch (error) {
-    console.error('Error loading profiles:', error);
-    showMessage(document.getElementById('message'), 'Failed to load profiles.', 'error');
-  }
-}
-
-function updateProfileSelect(profiles) {
-  const select = document.getElementById('profileSelect');
-  select.innerHTML = '<option value="">Select a profile</option>';
-  
-  profiles.forEach(profile => {
-    const option = document.createElement('option');
-    option.value = profile.id;
-    option.textContent = profile.name;
-    if (currentProfile && currentProfile.id === profile.id) {
-      option.selected = true;
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      hideLoadingState();
     }
-    select.appendChild(option);
   });
-}
+
+  // Handle logout
+  logoutButton.addEventListener('click', async () => {
+    showLoadingState();
+    try {
+      const result = await handleSignOut();
+      if (result.success) {
+        showSuccess('Successfully logged out!');
+        loginSection.style.display = 'block';
+        mainSection.style.display = 'none';
+      } else {
+        showError(result.error || 'Failed to logout');
+      }
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      hideLoadingState();
+    }
+  });
+});
