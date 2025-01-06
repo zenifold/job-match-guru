@@ -68,7 +68,7 @@
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, transform 0.2s;
       width: 100%;
       display: flex;
       align-items: center;
@@ -79,6 +79,7 @@
 
     .button:hover {
       opacity: 0.9;
+      transform: translateY(-1px);
     }
 
     .button:disabled {
@@ -160,6 +161,16 @@
       from { opacity: 0; transform: translateY(-4px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    @keyframes iconPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .icon {
+      animation: iconPulse 2s infinite;
+    }
   </style>
 </head>
 <body>
@@ -172,8 +183,7 @@
     <div id="loginContainer">
       <button id="loginButton" class="button">
         <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M16 2H8C4.691 2 2 4.691 2 8v13a1 1 0 0 0 1 1h13c3.309 0 6-2.691 6-6V8c0-3.309-2.691-6-6-6zm4 14c0 2.206-1.794 4-4 4H4V8c0-2.206 1.794-4 4-4h8c2.206 0 4 1.794 4 4v8z"/>
-          <path fill="currentColor" d="M7 9h10v2H7zm0 4h10v2H7z"/>
+          <path fill="currentColor" d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 8a6 6 0 1 1 12 0A6 6 0 0 1 6 8zm2 10a3 3 0 0 0-3 3 1 1 0 1 1-2 0 5 5 0 0 1 5-5h8a5 5 0 0 1 5 5 1 1 0 1 1-2 0 3 3 0 0 0-3-3H8z"/>
         </svg>
         Login
       </button>
