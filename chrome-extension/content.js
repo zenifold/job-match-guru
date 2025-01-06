@@ -1,5 +1,5 @@
 import { mapProfileToWorkdayFields } from './profileUtils.js';
-import { fillField } from './utils/form.js';
+import { fillField, validateFieldValue } from './utils/form.js';
 
 // Helper function to detect page type
 function detectWorkdayPage() {
@@ -14,37 +14,42 @@ function detectWorkdayPage() {
 
 // Function to extract job details
 async function extractJobDetails() {
-  const jobTitle = document.querySelector('[data-automation-id="jobTitle"]')?.textContent;
-  const jobDescription = document.querySelector('[data-automation-id="jobDescription"]')?.textContent;
-  const company = document.querySelector('[data-automation-id="companyName"]')?.textContent;
+  try {
+    const jobTitle = document.querySelector('[data-automation-id="jobTitle"]')?.textContent;
+    const jobDescription = document.querySelector('[data-automation-id="jobDescription"]')?.textContent;
+    const company = document.querySelector('[data-automation-id="companyName"]')?.textContent;
 
-  return {
-    title: jobTitle || 'Unknown Title',
-    description: jobDescription || '',
-    company: company || 'Unknown Company',
-    url: window.location.href
-  };
+    return {
+      title: jobTitle || 'Unknown Title',
+      description: jobDescription || '',
+      company: company || 'Unknown Company',
+      url: window.location.href
+    };
+  } catch (error) {
+    console.error('Error extracting job details:', error);
+    throw error;
+  }
 }
 
 // Function to handle form filling
 async function fillApplicationForm() {
   console.log("Starting form fill process");
   
-  // Get profile data from storage
-  const { profileData } = await chrome.storage.local.get(['profileData']);
-  if (!profileData) {
-    throw new Error('No profile data found');
-  }
-
-  // Map profile data to Workday fields
-  const mappedData = mapProfileToWorkdayFields(profileData);
-  if (!mappedData) {
-    throw new Error('Failed to map profile data');
-  }
-
-  console.log("Mapped data:", mappedData);
-
   try {
+    // Get profile data from storage
+    const { profileData } = await chrome.storage.local.get(['profileData']);
+    if (!profileData) {
+      throw new Error('No profile data found');
+    }
+
+    // Map profile data to Workday fields
+    const mappedData = mapProfileToWorkdayFields(profileData);
+    if (!mappedData) {
+      throw new Error('Failed to map profile data');
+    }
+
+    console.log("Mapped data:", mappedData);
+
     // Personal Information
     await fillField('[data-automation-id="firstName"]', mappedData.personalInfo.firstName);
     await fillField('[data-automation-id="lastName"]', mappedData.personalInfo.lastName);
@@ -97,11 +102,11 @@ async function fillApplicationForm() {
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  const pageType = detectWorkdayPage();
-  console.log("Current page type:", pageType);
+  try {
+    const pageType = detectWorkdayPage();
+    console.log("Current page type:", pageType);
 
-  if (request.action === "analyzeJob" && pageType === 'jobDetails') {
-    try {
+    if (request.action === "analyzeJob" && pageType === 'jobDetails') {
       const jobDetails = await extractJobDetails();
       console.log("Extracted job details:", jobDetails);
       
@@ -111,18 +116,15 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       });
       
       sendResponse({ success: true });
-    } catch (error) {
-      console.error("Error analyzing job:", error);
-      sendResponse({ success: false, error: error.message });
-    }
-  } else if (request.action === "autoFill" && pageType === 'application') {
-    try {
+    } else if (request.action === "autoFill" && pageType === 'application') {
       const success = await fillApplicationForm();
       sendResponse({ success });
-    } catch (error) {
-      console.error("Error auto-filling form:", error);
-      sendResponse({ success: false, error: error.message });
+    } else {
+      sendResponse({ success: false, error: 'Invalid action or page type' });
     }
+  } catch (error) {
+    console.error("Error in message listener:", error);
+    sendResponse({ success: false, error: error.message });
   }
   
   return true;
@@ -147,6 +149,16 @@ style.textContent = `
     z-index: 10000;
     font-size: 14px;
     color: #1a202c;
+  }
+
+  .resume-optimizer-success {
+    border-color: #10b981 !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+  }
+
+  .resume-optimizer-error {
+    border-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
   }
 `;
 document.head.appendChild(style);
