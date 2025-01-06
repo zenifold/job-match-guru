@@ -10,16 +10,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileSelect = document.getElementById('profileSelect');
   
   // Check if user is already logged in
-  chrome.storage.local.get(['token', 'profile'], async (result) => {
-    token = result.token;
-    currentProfile = result.profile;
-    
-    if (token) {
-      await updateUIForLoggedInState();
-    } else {
-      updateUIForLoggedOutState();
-    }
-  });
+  const { authToken, profileData } = await chrome.storage.local.get(['authToken', 'profileData']);
+  token = authToken;
+  currentProfile = profileData;
+  
+  if (token) {
+    await updateUIForLoggedInState();
+  } else {
+    updateUIForLoggedOutState();
+  }
 
   // Event Listeners
   loginButton.addEventListener('click', handleLogin);
@@ -27,6 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   logoutButton.addEventListener('click', handleLogout);
   settingsButton.addEventListener('click', handleSettings);
   profileSelect.addEventListener('change', handleProfileChange);
+
+  // Listen for auth status changes from background script
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'AUTH_STATUS_CHANGED') {
+      if (message.isAuthenticated) {
+        updateUIForLoggedInState();
+      } else {
+        updateUIForLoggedOutState();
+      }
+    }
+  });
 });
 
 async function updateUIForLoggedInState() {
@@ -53,16 +63,15 @@ function updateUIForLoggedOutState() {
 
 async function handleLogin() {
   try {
-    showMessage('Logging in...', 'info');
+    showMessage('Initiating login...', 'info');
     
-    // Send message to background script to handle auth
-    const response = await chrome.runtime.sendMessage({ action: 'authenticate' });
+    // Request auth from background script
+    const response = await chrome.runtime.sendMessage({ type: 'AUTH_REQUEST' });
     
     if (response.success) {
-      token = response.token;
-      await updateUIForLoggedInState();
+      showMessage('Login successful!', 'success');
     } else {
-      showMessage('Login failed. Please try again.', 'error');
+      showMessage(response.error || 'Login failed. Please try again.', 'error');
     }
   } catch (error) {
     console.error('Login error:', error);

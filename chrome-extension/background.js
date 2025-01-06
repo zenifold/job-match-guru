@@ -28,44 +28,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function handleJobAnalysis(jobData) {
-  console.log("Processing job data:", jobData);
-  
-  try {
-    // Store the current job data
-    await chrome.storage.local.set({ currentJob: jobData });
-    
-    // Get auth token
-    const { authToken } = await chrome.storage.local.get(['authToken']);
-    if (!authToken) {
-      throw new Error('Not authenticated');
-    }
-
-    // TODO: Implement job analysis with Supabase
-    const mockOptimizedResume = {
-      personalInfo: {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com"
-      }
-    };
-    
-    await chrome.storage.local.set({ optimizedResume: mockOptimizedResume });
-    
-    chrome.runtime.sendMessage({
-      type: "ANALYSIS_COMPLETE",
-      success: true
-    });
-  } catch (error) {
-    console.error("Error in job analysis:", error);
-    chrome.runtime.sendMessage({
-      type: "ANALYSIS_COMPLETE",
-      success: false,
-      error: error.message
-    });
-  }
-}
-
 async function handleAuthRequest(sendResponse) {
   try {
     // Use the production URL instead of localhost
@@ -119,6 +81,44 @@ async function handleAuthComplete(token, sendResponse) {
   }
 }
 
+async function handleJobAnalysis(jobData) {
+  console.log("Processing job data:", jobData);
+  
+  try {
+    // Store the current job data
+    await chrome.storage.local.set({ currentJob: jobData });
+    
+    // Get auth token
+    const { authToken } = await chrome.storage.local.get(['authToken']);
+    if (!authToken) {
+      throw new Error('Not authenticated');
+    }
+
+    // TODO: Implement job analysis with Supabase
+    const mockOptimizedResume = {
+      personalInfo: {
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com"
+      }
+    };
+    
+    await chrome.storage.local.set({ optimizedResume: mockOptimizedResume });
+    
+    chrome.runtime.sendMessage({
+      type: "ANALYSIS_COMPLETE",
+      success: true
+    });
+  } catch (error) {
+    console.error("Error in job analysis:", error);
+    chrome.runtime.sendMessage({
+      type: "ANALYSIS_COMPLETE",
+      success: false,
+      error: error.message
+    });
+  }
+}
+
 async function handleProfileRequest(sendResponse) {
   try {
     const { authToken } = await chrome.storage.local.get(['authToken']);
@@ -129,7 +129,7 @@ async function handleProfileRequest(sendResponse) {
     const response = await fetch('https://qqbulzzezbcwstrhfbco.supabase.co/rest/v1/profiles?select=*&is_master=eq.true', {
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYnVsenplemJjd3N0cmhmYmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjA0MzcsImV4cCI6MjA1MTQ5NjQzN30.vUmslRzwtXxNEjOQXFbRnMHd-ZoghRFmBbqJn2l2g8c',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${authToken}`,
       }
     });
 
